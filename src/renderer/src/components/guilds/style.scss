@@ -1,0 +1,33 @@
+.guilds-list {
+	display: flex;
+	flex-direction: column;
+	overflow-y: scroll;
+	width: 72px;
+	height: 100%;
+
+	.guild {
+		display: flex;
+		flex-direction: row;
+		height: 48px;
+		margin-bottom: 8px;
+
+		.indicator {
+			width: 12px;
+			align-items: center;
+
+			.pill {
+				display: block;
+				transition: all 0.2s;
+
+				background-color: white;
+				height: 12px;
+				width: 6px;
+				margin-left: 2px;
+			}
+		}
+
+		.guild-icon {
+			width: 48px;
+		}
+	}
+}

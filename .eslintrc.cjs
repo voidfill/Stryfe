@@ -1,0 +1,45 @@
+module.exports = {
+	env: {
+		browser: true,
+		commonjs: true,
+		es6: true,
+		node: true,
+	},
+	extends: [
+		"eslint:recommended",
+		"plugin:solid/typescript",
+		"plugin:@typescript-eslint/recommended",
+		"plugin:@typescript-eslint/eslint-recommended",
+		"plugin:prettier/recommended",
+	],
+	overrides: [
+		{
+			files: ["*.js"],
+			rules: {
+				"@typescript-eslint/explicit-function-return-type": "off",
+			},
+		},
+	],
+	parser: "@typescript-eslint/parser",
+	parserOptions: {
+		ecmaFeatures: {
+			jsx: true,
+		},
+		ecmaVersion: "latest",
+		sourceType: "module",
+	},
+	plugins: ["@typescript-eslint", "solid", "sort-keys-plus", "typescript-sort-keys"],
+	root: true,
+	rules: {
+		"@typescript-eslint/ban-ts-comment": ["error", { "ts-ignore": "allow-with-description" }],
+		"@typescript-eslint/explicit-function-return-type": "error",
+		"@typescript-eslint/explicit-module-boundary-types": "off",
+		"@typescript-eslint/no-empty-function": ["error", { allow: ["arrowFunctions"] }],
+		"@typescript-eslint/no-explicit-any": "off", // i cant do this without any.
+		"@typescript-eslint/no-non-null-assertion": "off",
+		"@typescript-eslint/no-var-requires": "off",
+		"no-fallthrough": ["error", { commentPattern: "@fallthrough" }],
+		"sort-keys-plus/sort-keys": ["warn", "asc", { caseSensitive: true, natural: true }], // if you rely on object key order, youre doing it wrong.
+		"typescript-sort-keys/interface": ["warn", "asc", { caseSensitive: true, natural: true }], // no autofixer sadly.
+	},
+};
