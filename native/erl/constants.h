@@ -1,3 +1,9 @@
+typedef union
+{
+	double d;
+	uint64_t i;
+} tp;
+
 #define FORMAT_VERSION 131
 //
 //

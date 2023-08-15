@@ -268,7 +268,9 @@ public:
 	{
 		char buf[9];
 		buf[0] = NEW_FLOAT_EXT;
-		_erlpack_store64(buf + 1, d);
+		tp p;
+		p.d = d;
+		_erlpack_store64(buf + 1, p.i);
 		return append(buf, 9);
 	}
 

@@ -1,7 +1,5 @@
 # stryfe
 
-TODO: Check erl encoder double, does not seem to capture decimal places / is completely wrong
-
 An Electron application with Solid and TypeScript
 
 ## Recommended IDE Setup

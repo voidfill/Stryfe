@@ -67,6 +67,10 @@ public:
 				return Nan::Null();
 			case STRING_EXT:
 				return Nan::New<String>(readString(read16())).ToLocalChecked();
+			case SMALL_ATOM_EXT:
+				return decodeSmallAtom();
+			case NEW_FLOAT_EXT:
+				return decodeFloat();
 			case LARGE_BIG_EXT: // basically unused as far as i can tell but whatever
 				return decodeLargeBig();
 
@@ -174,8 +178,20 @@ public:
 		return arr;
 	}
 
+	Local<Value> decodeFloat() {
+		tp p;
+		p.i = read64();
+		return Nan::New<Number>(p.d);
+	}
+
 	Local<Value> decodeAtom() {
 		uint16_t length = read16();
+		const char* atom = readString(length);
+		return atomHelper(atom, length);
+	}
+
+	Local<Value> decodeSmallAtom() {
+		uint8_t length = read8();
 		const char* atom = readString(length);
 		return atomHelper(atom, length);
 	}
