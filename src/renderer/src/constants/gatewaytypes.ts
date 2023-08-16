@@ -35,7 +35,7 @@ export type relationship = {
 	type: number;
 };
 
-export type merged_member = Omit<guildMember, "user"> & {
+export type merged_member = DistributiveOmit<guildMember, "user"> & {
 	user_id: string;
 };
 
@@ -201,13 +201,15 @@ export type thread_member = id_able & {
 export type thread_self_member = {
 	flags: number;
 	join_timestamp: string;
-	mute_config: any | null; // <---
+	mute_config: unknown;
 	muted: boolean;
 };
 
 export type direct_message = id_able & {
 	flags: number;
+	is_spam: boolean;
 	last_message_id?: string | null;
+	last_pin_timestamp?: string;
 	recipient_ids: [string];
 	type: ChannelTypes.DM;
 };
@@ -215,101 +217,118 @@ export type direct_message = id_able & {
 export type group_direct_message = id_able & {
 	flags: number;
 	icon: string | null;
+	is_spam: undefined; // doesnt exist.
 	last_message_id?: string | null;
+	last_pin_timestamp?: string;
 	name: string | null;
 	owner_id: string;
 	recipient_ids: string[];
 	type: ChannelTypes.GROUP_DM;
 };
 
-export type guild_text = id_able & {
-	flags: number;
-	last_message_id?: string | null;
-	last_pin_timestamp?: string;
-	name: string;
-	nsfw?: boolean;
-	parent_id?: string;
-	permission_overwrites: permission_overwrite[];
-	position: number;
-	rate_limit_per_user: number;
-	topic: string | null;
-	type: ChannelTypes.GUILD_TEXT;
+type _themeColorAndEmoji = {
+	icon_emoji: null | {
+		id: string | null;
+		name: string;
+	};
+	theme_color: unknown;
 };
 
-export type guild_voice = id_able & {
-	bitrate: number;
-	flags: number;
-	last_message_id?: string | null;
-	name: string;
-	parent_id?: string;
-	permission_overwrites: permission_overwrite[];
-	position: number;
-	rate_limit_per_user: number;
-	rtc_region: string | null;
-	type: ChannelTypes.GUILD_VOICE;
-	user_limit: number;
-};
+export type guild_text = id_able &
+	_themeColorAndEmoji & {
+		flags: number;
+		last_message_id?: string | null;
+		last_pin_timestamp?: string;
+		name: string;
+		nsfw?: boolean;
+		parent_id?: string;
+		permission_overwrites: permission_overwrite[];
+		position: number;
+		rate_limit_per_user: number;
+		topic: string | null;
+		type: ChannelTypes.GUILD_TEXT;
+	};
 
-export type guild_stage_voice = Omit<guild_voice, "type"> & {
-	nsfw?: boolean;
-	type: ChannelTypes.GUILD_STAGE_VOICE;
-};
+export type guild_voice = id_able &
+	_themeColorAndEmoji & {
+		bitrate: number;
+		flags: number;
+		last_message_id?: string | null;
+		name: string;
+		parent_id?: string;
+		permission_overwrites: permission_overwrite[];
+		position: number;
+		rate_limit_per_user: number;
+		rtc_region: string | null;
+		type: ChannelTypes.GUILD_VOICE;
+		user_limit: number;
+	};
 
-export type guild_category = id_able & {
-	flags: number;
-	name: string;
-	permission_overwrites: permission_overwrite[];
-	position: number;
-	type: ChannelTypes.GUILD_CATEGORY;
-};
+export type guild_stage_voice = DistributiveOmit<guild_voice, "type"> &
+	_themeColorAndEmoji & {
+		nsfw?: boolean;
+		type: ChannelTypes.GUILD_STAGE_VOICE;
+	};
 
-export type guild_announcement = id_able & {
-	flags: number;
-	last_message_id?: string | null;
-	last_pin_timestamp?: string;
-	name: string;
-	nsfw?: boolean;
-	parent_id?: string;
-	permission_overwrites: permission_overwrite[];
-	position: number;
-	rate_limit_per_user: number;
-	topic: string | null;
-	type: ChannelTypes.GUILD_ANNOUNCEMENT;
-};
+export type guild_category = id_able &
+	_themeColorAndEmoji & {
+		flags: number;
+		name: string;
+		permission_overwrites: permission_overwrite[];
+		position: number;
+		type: ChannelTypes.GUILD_CATEGORY;
+	};
+
+export type guild_announcement = id_able &
+	_themeColorAndEmoji & {
+		flags: number;
+		last_message_id?: string | null;
+		last_pin_timestamp?: string;
+		name: string;
+		nsfw?: boolean;
+		parent_id?: string;
+		permission_overwrites: permission_overwrite[];
+		position: number;
+		rate_limit_per_user: number;
+		topic: string | null;
+		type: ChannelTypes.GUILD_ANNOUNCEMENT;
+	};
 
 // idk
-export type guild_directory = id_able & {
-	flags: number;
-	last_message_id?: string | null;
-	name: string;
-	permission_overwrites: permission_overwrite[];
-	position: number;
-	topic: string | null;
-	type: ChannelTypes.GUILD_DIRECTORY;
-};
-
-export type guild_forum = id_able & {
-	available_tags: forum_tag[];
-	default_auto_archive_duration: number;
-	default_forum_layout: number;
-	default_reaction_emoji: {
-		emoji_id: string | null;
-		emoji_name: string | null;
+export type guild_directory = id_able &
+	_themeColorAndEmoji & {
+		flags: number;
+		last_message_id?: string | null;
+		name: string;
+		permission_overwrites: permission_overwrite[];
+		position: number;
+		topic: string | null;
+		type: ChannelTypes.GUILD_DIRECTORY;
 	};
-	default_sort_order: 0 | 1 | null;
-	default_thread_rate_limit_per_user: number;
-	flags: number;
-	last_message_id?: string | null;
-	name: string;
-	nsfw?: boolean;
-	parent_id?: string;
-	permission_overwrites: permission_overwrite[];
-	position: number;
-	rate_limit_per_user: number;
-	template: string;
-	topic?: string | null;
-	type: ChannelTypes.GUILD_FORUM;
-};
+
+export type guild_forum = id_able &
+	_themeColorAndEmoji & {
+		available_tags: forum_tag[];
+		default_auto_archive_duration: number;
+		default_forum_layout: number;
+		default_reaction_emoji: {
+			emoji_id: string | null;
+			emoji_name: string | null;
+		};
+		default_sort_order: 0 | 1 | null;
+		default_thread_rate_limit_per_user: number;
+		flags: number;
+		last_message_id?: string | null;
+		name: string;
+		nsfw?: boolean;
+		parent_id?: string;
+		permission_overwrites: permission_overwrite[];
+		position: number;
+		rate_limit_per_user: number;
+		template: string;
+		topic?: string | null;
+		type: ChannelTypes.GUILD_FORUM;
+	};
 
 export type public_thread = id_able & {
 	flags: number;
@@ -328,11 +347,11 @@ export type public_thread = id_able & {
 	type: ChannelTypes.PUBLIC_THREAD;
 };
 
-export type private_thread = Omit<public_thread, "type"> & {
+export type private_thread = DistributiveOmit<public_thread, "type"> & {
 	type: ChannelTypes.PRIVATE_THREAD;
 };
 
-export type announcement_thread = Omit<public_thread, "type"> & {
+export type announcement_thread = DistributiveOmit<public_thread, "type"> & {
 	type: ChannelTypes.ANNOUNCEMENT_THREAD;
 };
 
@@ -350,8 +369,8 @@ export type ready_guild_properties = {
 	discovery_splash: string | null;
 	explicit_content_filter: number;
 	features: string[];
-	home_header: any | null;
-	hub_type: any | null;
+	home_header: unknown;
+	hub_type: unknown;
 	icon: string | null;
 	max_members: number;
 	max_stage_video_channel_users: number;
@@ -452,6 +471,8 @@ export type __all = {
 	GUILD_CREATE: GUILD_CREATE;
 	GUILD_DELETE: GUILD_DELETE;
 	GUILD_UPDATE: GUILD_UPDATE;
+	MESSAGE_CREATE: MESSAGE_CREATE;
+	PASSIVE_UPDATE_V1: PASSIVE_UPDATE_V1;
 	READY: READY;
 	THREAD_CREATE: THREAD_CREATE;
 	THREAD_DELETE: THREAD_DELETE;
@@ -499,8 +520,8 @@ export type READY = {
 export type GUILD_CREATE =
 	| unavailable_guild
 	| (id_able & {
-			application_command_counts: any;
-			channels: unknown[];
+			application_command_counts: unknown;
+			channels: guild_channel[];
 			data_mode: "full" | "partial"; //TODO: check
 			embedded_activities: unknown[];
 			emojis: emoji[];
@@ -537,13 +558,15 @@ export type CHANNEL_CREATE =
 	| (guild_channel & {
 			guild_id: string;
 	  })
-	| (Omit<private_channel, "recipient_ids"> & {
+	| (DistributiveOmit<private_channel, "recipient_ids"> & {
 			recipients: user[];
 	  });
 
-export type CHANNEL_UPDATE = (guild_channel | private_channel) & {
-	guild_id?: string;
-};
+export type CHANNEL_UPDATE =
+	| (guild_channel & {
+			guild_id: string;
+	  })
+	| private_channel;
 
 export type CHANNEL_DELETE = {
 	guild_id?: string;
@@ -588,4 +611,18 @@ export type THREAD_LIST_SYNC = {
 
 export type THREAD_MEMBER_UPDATE = thread_member & {
 	guild_id: string;
+};
+
+export type MESSAGE_CREATE = id_able & {
+	channel_id: string;
+};
+
+export type PASSIVE_UPDATE_V1 = {
+	channels?: (id_able & {
+		last_message_id?: string | null;
+		last_pin_timestamp?: string;
+	})[];
+	guild_id: string;
+	members?: unknown;
+	voice_states?: unknown;
 };

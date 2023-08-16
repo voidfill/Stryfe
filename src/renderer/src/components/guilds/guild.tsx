@@ -29,7 +29,7 @@ export default function Guild(props: { id: string }): JSX.Element {
 	const guild = createMemo(() => GuildStore.getGuild(props.id));
 
 	return (
-		<Show when={!GuildStore.isUnavailable(props.id) && guild()} fallback={<div class="guild unavailable"></div>}>
+		<Show when={!GuildStore.isUnavailable(props.id) && guild()} fallback={<div class="guild unavailable" />}>
 			<HoverAnimationProvider
 				classList={{
 					available: true,

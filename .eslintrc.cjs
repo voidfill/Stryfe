@@ -31,7 +31,19 @@ module.exports = {
 	plugins: ["@typescript-eslint", "solid", "sort-keys-plus", "typescript-sort-keys"],
 	root: true,
 	rules: {
-		"@typescript-eslint/ban-ts-comment": ["error", { "ts-ignore": "allow-with-description" }],
+		"@typescript-eslint/ban-ts-comment": ["error", { minimumDescriptionLength: 1, "ts-expect-error": "allow-with-description" }],
+		"@typescript-eslint/ban-types": [
+			"error",
+			{
+				extendDefaults: true,
+				types: {
+					Omit: {
+						fixWith: "DistributiveOmit",
+						message: "Use DistributiveOmit instead, Omit doesnt distribute over unions.",
+					},
+				},
+			},
+		],
 		"@typescript-eslint/explicit-function-return-type": "error",
 		"@typescript-eslint/explicit-module-boundary-types": "off",
 		"@typescript-eslint/no-empty-function": ["error", { allow: ["arrowFunctions"] }],

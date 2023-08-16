@@ -1,13 +1,13 @@
 import { resolve } from "path";
-import { defineConfig, externalizeDepsPlugin } from "electron-vite";
+import { defineConfig, externalizeDepsPlugin, bytecodePlugin } from "electron-vite";
 import solid from "vite-plugin-solid";
 
 export default defineConfig({
 	main: {
-		plugins: [externalizeDepsPlugin()],
+		plugins: [externalizeDepsPlugin(), bytecodePlugin()], // i dont really care about code protection, minor speedup though.
 	},
 	preload: {
-		plugins: [externalizeDepsPlugin()],
+		plugins: [externalizeDepsPlugin(), bytecodePlugin()],
 	},
 	renderer: {
 		plugins: [solid()],

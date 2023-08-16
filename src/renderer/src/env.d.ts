@@ -7,3 +7,6 @@ type PickByType<T, Value> = {
 type OmitByType<T, Value> = {
 	[P in keyof T as T[P] extends Value ? never : P]: T[P];
 };
+
+// eslint-disable-next-line @typescript-eslint/ban-types
+type DistributiveOmit<T, K extends PropertyKey> = T extends any ? Omit<T, K> : never;

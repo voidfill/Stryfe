@@ -17,6 +17,10 @@ $accent-secondary: #a393bf;
 	--scrollbar-thumb: #{lighten($primary, 10%)};
 }
 
+button, a:-webkit-any-link {
+	all: unset;
+}
+
 ::placeholder,
 body,
 button,

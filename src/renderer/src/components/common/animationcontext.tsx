@@ -5,7 +5,9 @@ import WindowStore from "@stores/window";
 export const AnimationContext = createContext(() => false as boolean);
 export const useAnimationContext = (): (() => boolean) => useContext(AnimationContext);
 
-export function HoverAnimationProvider<T extends ValidComponent>(props: Omit<DynamicProps<T>, "onmouseenter" | "onmouseleave">): JSX.Element {
+export function HoverAnimationProvider<T extends ValidComponent>(
+	props: DistributiveOmit<DynamicProps<T>, "onmouseenter" | "onmouseleave">,
+): JSX.Element {
 	// @ts-expect-error this is valid.
 	// eslint-disable-next-line solid/reactivity
 	props.component ??= "div";

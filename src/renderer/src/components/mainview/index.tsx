@@ -8,6 +8,8 @@ import ConnectionStore from "@stores/connection";
 
 import GuildsList from "@components/guilds";
 
+import SideBar from "../sidebar";
+
 import "./style.scss";
 import shiggy from "@resources/shiggy.gif";
 
@@ -49,6 +51,7 @@ export default function MainView(): JSX.Element {
 				<SelectedGuildContext.Provider value={selectedGuild}>
 					<div class="main-view">
 						<GuildsList />
+						<SideBar />
 						{JSON.stringify(params)}
 						{/* <ChannelsSidebar />
 				<div class="channel-wrapper">

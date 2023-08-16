@@ -7,7 +7,7 @@ import logger from "@renderer/modules/logger";
 import { GUILD_CREATE, ready_guild_properties } from "@renderer/constants/gatewaytypes";
 import { batch, createMemo } from "solid-js";
 
-type stored_guild = Omit<ready_guild_properties, "features"> & {
+type stored_guild = DistributiveOmit<ready_guild_properties, "features"> & {
 	joined_at: string;
 	large: boolean;
 	lazy: boolean;
@@ -23,7 +23,6 @@ const guildIds = createMemo(() => Object.keys(guilds));
 export default new (class GuildStore extends Store {
 	constructor() {
 		super({
-			// lets hope this doesnt happen often
 			GUILD_CREATE: (guild: GUILD_CREATE) => {
 				if (guild.unavailable) return void unavailableGuilds.add(guild.id);
 				unavailableGuilds.delete(guild.id);

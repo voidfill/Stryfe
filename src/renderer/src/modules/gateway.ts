@@ -219,6 +219,11 @@ export default class GatewaySocket {
 						this.#state = ConnectionState.Connected;
 						Dispatcher.emit("GATEWAY_CONNECT");
 						break;
+					case "RESUMED":
+						this.#attempts = 0;
+						this.#state = ConnectionState.Connected;
+						this.#helloTimeout &&= clearTimeout(this.#helloTimeout) as undefined;
+						Dispatcher.emit("GATEWAY_CONNECT");
 				}
 
 				// @ts-expect-error were not gonna validate this
