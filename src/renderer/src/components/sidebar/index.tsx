@@ -1,8 +1,10 @@
-import { JSX, For, Show } from "solid-js";
+import { JSX, Show } from "solid-js";
 
 import PrivateChannels from "./privatechannels";
 import { useParams } from "@solidjs/router";
 import ServerChannels from "./serverchannels";
+
+import "./style.scss";
 
 export default function SideBar(): JSX.Element {
 	const params = useParams();

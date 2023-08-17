@@ -1,6 +1,7 @@
 $primary: #73648a;
 $secondary: #453750;
-$tertiary: #0c0910;
+$tertiary: #292030;
+$quaternary: #0c0910;
 $accent-primary: #9882ac;
 $accent-secondary: #a393bf;
 
@@ -9,6 +10,7 @@ $accent-secondary: #a393bf;
 	--background-primary: #{$primary};
 	--background-secondary: #{$secondary};
 	--background-tertiary: #{$tertiary};
+	--background-quaternary: #{$quaternary};
 	--accent-primary: #{$accent-primary};
 	--accent-secondary: #{$accent-secondary};
 	--text-normal: white;
@@ -31,7 +33,7 @@ textarea {
 }
 
 body {
-    background-color: var(--background-tertiary);
+	background-color: var(--background-quaternary);
 	margin: 0;
 	user-select: none;
 	-webkit-user-select: none;
@@ -99,7 +101,7 @@ body {
 		left: 0;
 		right: 0;
 		bottom: 0;
-		background: var(--background-tertiary);
+		background: var(--background-quaternary);
 		display: flex;
 		flex-direction: column;
 		height: 100vh;

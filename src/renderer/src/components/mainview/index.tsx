@@ -25,7 +25,7 @@ export default function MainView(): JSX.Element {
 
 	const params = useParams(),
 		navigate = useNavigate(),
-		selectedChannel = createSelector(() => params.channel),
+		selectedChannel = createSelector(() => params.channelId),
 		selectedGuild = createSelector(() => params.guildId);
 
 	createEffect(() => {

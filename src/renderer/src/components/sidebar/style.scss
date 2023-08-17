@@ -1,0 +1,28 @@
+.sidebar {
+	display: flex;
+	flex-shrink: 0;
+	flex-direction: column;
+	overflow: hidden;
+	height: 100%;
+	width: 240px;
+	background-color: var(--background-tertiary);
+
+	.user-area {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.channels {
+		overflow-y: scroll;
+		display: flex;
+		flex-direction: column;
+		flex-grow: 1;
+
+		.channel.selected {
+			background-color: var(--background-secondary);
+		}
+	}
+
+	.server-channels {
+	}
+}

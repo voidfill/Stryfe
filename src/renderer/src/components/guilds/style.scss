@@ -1,5 +1,6 @@
 .guilds-list {
 	display: flex;
+	flex-shrink: 0;
 	flex-direction: column;
 	overflow-y: scroll;
 	width: 72px;

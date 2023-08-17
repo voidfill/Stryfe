@@ -43,11 +43,12 @@ export class EventEmitter<
 		}
 	}
 
-	once<K extends keyof T>(event: K, listener: Listener<T[K]>): void {
+	once<K extends keyof T>(event: K, listener: Listener<T[K]>): () => void {
 		const remove = this.addListener(event, ((args) => {
 			remove();
 			listener(args);
 		}) as Listener<T[K]>); // we do a bit of trolling.
+		return remove;
 	}
 }
 

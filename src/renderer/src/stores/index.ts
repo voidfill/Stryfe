@@ -7,12 +7,14 @@ type dispatches = {
 };
 
 export default class Store {
+	#__registeredDispatches = new Set<() => void>();
+
 	constructor(dispatches: dispatches) {
 		for (const [key, value] of Object.entries(dispatches)) {
 			if (key.startsWith("once_")) {
-				Dispatcher.once(key.slice(5) as keyof validDispatches, value);
+				this.#__registeredDispatches.add(Dispatcher.once(key.slice(5) as keyof validDispatches, value));
 			} else {
-				Dispatcher.on(key as keyof validDispatches, value);
+				this.#__registeredDispatches.add(Dispatcher.on(key as keyof validDispatches, value));
 			}
 		}
 
@@ -20,5 +22,9 @@ export default class Store {
 			window.stores ??= {};
 			window.stores[this.constructor.name] = this;
 		}
+	}
+
+	__kill(): void {
+		for (const remove of this.#__registeredDispatches) remove();
 	}
 }

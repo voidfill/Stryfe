@@ -7,6 +7,7 @@ import { batch, createSignal, untrack } from "solid-js";
 import {
 	CHANNEL_CREATE,
 	CHANNEL_UPDATE,
+	GUILD_CREATE,
 	guild_announcement,
 	guild_category,
 	guild_directory,
@@ -187,21 +188,55 @@ export default new (class ChannelStore extends Store {
 				lastPinTimestamps.set(channel_id, last_pin_timestamp || undefined);
 			},
 			CHANNEL_UPDATE: (channel: CHANNEL_UPDATE) => {
-				if ("guild_id" in channel) {
-					const old = guildChannels[channel.id];
-					// @ts-expect-error parent_id doesnt exist on categories but thats ok, loose equal for undefined/null
-					if (old && (old.position != channel.position || old.parent_id != channel.parent_id)) scheduleChannelSort(channel.guild_id);
+				batch(() => {
+					if ("guild_id" in channel) {
+						const old = guildChannels[channel.id];
+						if (
+							old &&
+							sortedGuildChannels.get(channel.guild_id) &&
+							// @ts-expect-error parent_id doesnt exist on categories but thats ok, loose equal for undefined/null
+							(old.position != channel.position || old.parent_id != channel.parent_id)
+						)
+							scheduleChannelSort(channel.guild_id);
 
-					// @ts-expect-error dont worry about it
+						// @ts-expect-error dont worry about it
+						// eslint-disable-next-line @typescript-eslint/no-unused-vars
+						const { id, last_pin_timestamp, last_message_id, permission_overwrites, ...rest } = channel;
+						setGuildChannels(id, reconcile(rest));
+						return;
+					}
+
 					// eslint-disable-next-line @typescript-eslint/no-unused-vars
-					const { id, last_pin_timestamp, last_message_id, permission_overwrites, ...rest } = channel;
-					setGuildChannels(id, reconcile(rest));
-					return;
-				}
-
-				// eslint-disable-next-line @typescript-eslint/no-unused-vars
-				const { id, last_pin_timestamp, last_message_id, ...rest } = channel;
-				setDirectMessages(id, reconcile(rest));
+					const { id, last_pin_timestamp, last_message_id, ...rest } = channel;
+					setDirectMessages(id, reconcile(rest));
+				});
+			},
+			GUILD_CREATE: (guild: GUILD_CREATE) => {
+				if (guild.unavailable) return;
+				batch(() => {
+					channelsPerGuild.set(guild.id, new ReactiveSet(guild.channels.map((c) => c.id)));
+					for (const channel of guild.channels) {
+						// @ts-expect-error dont worry about it
+						// eslint-disable-next-line @typescript-eslint/no-unused-vars
+						const { id, last_pin_timestamp, last_message_id, permission_overwrites, ...rest } = channel;
+						setGuildChannels(id, rest);
+						channelsPerGuild.get(guild.id)!.add(id);
+						lastMessageIds.set(channel.id, last_message_id || undefined);
+						lastPinTimestamps.set(channel.id, last_pin_timestamp || undefined);
+					}
+				});
+			},
+			GUILD_DELETE: ({ id }) => {
+				batch(() => {
+					if (!channelsPerGuild.has(id)) return;
+					for (const channelId of channelsPerGuild.get(id)!) {
+						lastMessageIds.delete(channelId);
+						lastPinTimestamps.delete(channelId);
+						setGuildChannels(produce((channels) => delete channels[channelId]));
+					}
+					channelsPerGuild.delete(id);
+					sortedGuildChannels.delete(id);
+				});
 			},
 			MESSAGE_CREATE: ({ channel_id, id }) => {
 				batch(() => {
@@ -319,18 +354,18 @@ function sortGuildChannels(guildId: string): (typeof sortedGuildChannels extends
 				}
 			> = new Map();
 			let voiceLast = 0;
-			const text: Map<
+			const other: Map<
 				number,
 				{
 					id: string;
 					parent: string | null;
 				}
 			> = new Map();
-			let textLast = 0;
+			let otherLast = 0;
 			const categories: Map<string, number> = new Map();
 			const categoryCounter = new Set<number>();
 
-			for (const channelId of channelIds[guildId] ?? []) {
+			for (const channelId of channelIds ?? []) {
 				const channel = guildChannels[channelId];
 				if (channel.type === ChannelTypes.GUILD_CATEGORY) {
 					categories.set(channelId, channel.position);
@@ -344,18 +379,18 @@ function sortGuildChannels(guildId: string): (typeof sortedGuildChannels extends
 						voiceLast = channel.position;
 					}
 				} else {
-					text.set(channel.position, {
+					other.set(channel.position, {
 						id: channelId,
 						parent: channel.parent_id ?? null,
 					});
-					if (channel.position > textLast) {
-						textLast = channel.position;
+					if (channel.position > otherLast) {
+						otherLast = channel.position;
 					}
 				}
 			}
 
 			// check if all the positions were unique
-			if (channelIds.size !== categoryCounter.size + voice.size + text.size) {
+			if (channelIds.size !== categoryCounter.size + voice.size + other.size) {
 				return true; // failure
 			}
 
@@ -366,8 +401,8 @@ function sortGuildChannels(guildId: string): (typeof sortedGuildChannels extends
 					voice: [],
 				};
 			}
-			for (let i = 0; i <= textLast; i++) {
-				const el = text.get(i);
+			for (let i = 0; i <= otherLast; i++) {
+				const el = other.get(i);
 				if (!el) continue; // channel got deleted i presume
 
 				if (el.parent === null) {
