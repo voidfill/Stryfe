@@ -34,6 +34,9 @@
 		"@solid-primitives/map": "^0.4.7",
 		"@solid-primitives/set": "^0.4.7",
 		"@solidjs/router": "^0.8.2",
+		"@suid/icons-material": "^0.6.9",
+		"@suid/material": "^0.14.2",
+		"@suid/vite-plugin": "^0.1.4",
 		"@types/node": "^18.17.2",
 		"@typescript-eslint/eslint-plugin": "^5.62.0",
 		"@typescript-eslint/parser": "^5.62.0",
@@ -49,9 +52,11 @@
 		"nan": "^2.17.0",
 		"prettier": "^2.8.8",
 		"sass": "^1.64.2",
+		"solid-icons": "^1.0.11",
 		"solid-js": "^1.7.9",
 		"typescript": "^5.1.6",
 		"vite": "^4.4.8",
+		"vite-plugin-compile-time": "^0.2.1",
 		"vite-plugin-solid": "^2.7.0"
 	}
 }

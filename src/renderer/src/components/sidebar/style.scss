@@ -18,11 +18,16 @@
 		flex-direction: column;
 		flex-grow: 1;
 
-		.channel.selected {
-			background-color: var(--background-secondary);
-		}
-	}
+		.channel {
+			display: flex;
+			flex-direction: row;
+			margin: 0px 4px;
+			border-radius: 4px;
+			padding: 2px;
 
-	.server-channels {
+			&.selected {
+				background-color: var(--background-secondary);
+			}
+		}
 	}
 }

@@ -2,8 +2,10 @@ import { JSX, Show, createMemo } from "solid-js";
 
 import GuildStore from "@stores/guilds";
 import { HoverAnimationProvider, useAnimationContext } from "../common/animationcontext";
-import { useSelectedGuildContext } from "../common/selectioncontextprovider";
-import { NavLink } from "@solidjs/router";
+import { useSelectedGuildContext } from "../common/selectioncontext";
+import { NavLink, useParams } from "@solidjs/router";
+
+import { lastSelectedChannels } from "../mainview";
 
 function ImageOrAcronym(props: { id: string }): JSX.Element {
 	const doAnimate = useAnimationContext();
@@ -26,7 +28,9 @@ function Indicator(props: { id: string }): JSX.Element {
 }
 
 export default function Guild(props: { id: string }): JSX.Element {
+	const params = useParams();
 	const guild = createMemo(() => GuildStore.getGuild(props.id));
+	const selg = useSelectedGuildContext();
 
 	return (
 		<Show when={!GuildStore.isUnavailable(props.id) && guild()} fallback={<div class="guild unavailable" />}>
@@ -34,11 +38,11 @@ export default function Guild(props: { id: string }): JSX.Element {
 				classList={{
 					available: true,
 					guild: true,
-					selected: useSelectedGuildContext()(props.id),
+					selected: selg(props.id),
 				}}
 			>
 				<Indicator id={props.id} />
-				<NavLink href={`/channels/${props.id}`}>
+				<NavLink href={`/channels/${props.id}/${lastSelectedChannels[props.id] ?? ""}`}>
 					<ImageOrAcronym id={props.id} />
 				</NavLink>
 			</HoverAnimationProvider>

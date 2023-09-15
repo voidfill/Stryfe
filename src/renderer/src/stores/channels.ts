@@ -17,6 +17,9 @@ import {
 	guild_voice,
 } from "@constants/gatewaytypes";
 import { ChannelTypes } from "@constants/channel";
+import assets from "@constants/assets";
+
+import UserStore from "./users";
 
 const lastMessageIds = new ReactiveMap<string, string | undefined>();
 const lastPinTimestamps = new ReactiveMap<string, string | undefined>();
@@ -241,7 +244,13 @@ export default new (class ChannelStore extends Store {
 			MESSAGE_CREATE: ({ channel_id, id }) => {
 				batch(() => {
 					if (directMessages[channel_id]) {
-						setOrderedDirectMessages((old) => [[channel_id, BigInt(id)], ...old.filter((dm) => dm[0] !== channel_id)]);
+						setOrderedDirectMessages((old) => {
+							const beforeLast = lastMessageIds.get(channel_id);
+							const oldItem = beforeLast && old[orderedDMIndex(BigInt(beforeLast))];
+							if (oldItem && oldItem[0] !== channel_id) throw ":( not sure what to say, something bad happened";
+
+							return [oldItem || [channel_id, BigInt(id)], ...old.filter((dm) => dm[0] !== channel_id)];
+						});
 					}
 					lastMessageIds.set(channel_id, id);
 				});
@@ -308,9 +317,37 @@ export default new (class ChannelStore extends Store {
 		const channel = this.getDirectMessage(channelId);
 		if (!channel) return undefined;
 		if (channel.type === ChannelTypes.DM) {
-			return channel.recipient_ids[0];
+			const user = UserStore.getUser(channel.recipient_ids[0]);
+			return user && (user.global_name || user.username);
 		}
-		return channel.name || channel.recipient_ids.join(", ");
+		return (
+			channel.name ||
+			channel.recipient_ids
+				.map((id) => {
+					const user = UserStore.getUser(id);
+					return user && (user.global_name || user.username);
+				})
+				.join(", ")
+		);
+	}
+
+	getPrivateChannelIcon(channelId: string, size = 128, animate = false): string {
+		const channel = this.getDirectMessage(channelId);
+		if (!channel) return this.getRandomGroupIconUrl(channelId); // TODO: random for user
+
+		if (channel.type === ChannelTypes.DM) {
+			return UserStore.getAvatarUrl(channel.recipient_ids[0], size, animate);
+		}
+		if (channel.icon) {
+			return `https://cdn.discordapp.com/channel-icons/${channelId}/${channel.icon}.webp?size=${size}`;
+		}
+
+		return this.getRandomGroupIconUrl(channelId);
+	}
+
+	getRandomGroupIconUrl(channelId?: string): string {
+		const index = channelId ? Number(channelId) % assets.groupIcons.length : Math.floor(Math.random() * assets.groupIcons.length);
+		return "/groupicons/" + assets.groupIcons[index];
 	}
 
 	// eslint-disable-next-line solid/reactivity

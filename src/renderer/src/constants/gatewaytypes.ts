@@ -10,10 +10,15 @@ export type id_able = {
 
 export type guild_scheduled_event = id_able & unknown;
 export type stage_instance = id_able & unknown;
+export type embedded_activity = unknown;
+export type message = id_able & {
+	author: user; // could be invalid user -> webhook
+	channel_id: string;
+};
 
 // ------------------------------ //
 
-export type guildMember = {
+export type guild_member = {
 	avatar?: string | null;
 	communication_disabled_until?: string | null;
 	deaf: boolean;
@@ -35,7 +40,7 @@ export type relationship = {
 	type: number;
 };
 
-export type merged_member = DistributiveOmit<guildMember, "user"> & {
+export type merged_member = DistributiveOmit<guild_member, "user"> & {
 	user_id: string;
 };
 
@@ -63,9 +68,11 @@ export type user = id_able & {
 	discriminator: string;
 	email?: string | null;
 	flags?: number;
+	global_name: string | null;
 	locale?: string;
 	mfa_enabled?: boolean;
 	premium_type?: PremiumTypes;
+	pronouns: string | null;
 	public_flags?: number;
 	system?: boolean;
 	username: string;
@@ -166,6 +173,37 @@ export type sticker = id_able & {
 	type: number;
 	user?: user;
 	version?: number;
+};
+
+export type client_status = {
+	desktop?: Status;
+	mobile?: Status;
+	web?: Status;
+};
+
+export type presence = {
+	activities: activity[];
+	client_status: client_status;
+	guild_id: string;
+	last_modified?: number;
+	status: "online" | "dnd" | "idle" | "offline";
+	user: user;
+};
+
+export type voiceState = {
+	channel_id: string;
+	deaf: boolean;
+	guild_id?: string;
+	member?: guild_member;
+	mute: boolean;
+	request_to_speak_timestamp: string | null;
+	self_deaf: boolean;
+	self_mute: boolean;
+	self_stream?: boolean;
+	self_video: boolean;
+	session_id: string;
+	suppress: boolean;
+	user_id: string;
 };
 
 export type forum_tag = {
@@ -473,12 +511,15 @@ export type __all = {
 	GUILD_UPDATE: GUILD_UPDATE;
 	MESSAGE_CREATE: MESSAGE_CREATE;
 	PASSIVE_UPDATE_V1: PASSIVE_UPDATE_V1;
+	PRESENCE_UPDATE: PRESENCE_UPDATE;
 	READY: READY;
+	READY_SUPPLEMENTAL: READY_SUPPLEMENTAL;
 	THREAD_CREATE: THREAD_CREATE;
 	THREAD_DELETE: THREAD_DELETE;
 	THREAD_LIST_SYNC: THREAD_LIST_SYNC;
 	THREAD_MEMBER_UPDATE: THREAD_MEMBER_UPDATE;
 	THREAD_UPDATE: THREAD_UPDATE;
+	TYPING_START: TYPING_START;
 };
 
 export type READY = {
@@ -513,8 +554,48 @@ export type READY = {
 		version: number;
 	};
 	user_settings_proto: string;
-	users: user[];
+	users: (id_able & {
+		avatar: string | null;
+		avatar_decoration?: unknown;
+		avatar_decoration_data?: unknown;
+		bot?: boolean;
+		discriminator: string;
+		display_name?: string;
+		global_name: string | null;
+		public_flags: number;
+		username: string;
+	})[];
 	v: number;
+};
+
+export type READY_SUPPLEMENTAL = {
+	guilds: (id_able & {
+		embedded_activities: embedded_activity[];
+		voice_states: voiceState[];
+	})[];
+	lazy_private_channels: any[]; // <---
+	merged_members: merged_member[][];
+	merged_presences: {
+		friends: {
+			activities: activity[];
+			client_status: client_status;
+			last_modified: number;
+			status: string;
+			user_id: string;
+		}[];
+		guilds: {
+			activities: activity[];
+			client_status: client_status;
+			status: string;
+			user_id: string;
+		}[][];
+	};
+};
+
+export type MESSAGE_CREATE = message & {
+	guild_id?: string;
+	member?: guild_member;
+	mentions: (user & { member?: guild_member })[];
 };
 
 export type GUILD_CREATE =
@@ -530,7 +611,7 @@ export type GUILD_CREATE =
 			large: boolean;
 			lazy: boolean;
 			member_count: number;
-			members: guildMember[];
+			members: guild_member[];
 			premium_subscription_count: number;
 			presences: unknown[];
 			properties: ready_guild_properties;
@@ -613,10 +694,6 @@ export type THREAD_MEMBER_UPDATE = thread_member & {
 	guild_id: string;
 };
 
-export type MESSAGE_CREATE = id_able & {
-	channel_id: string;
-};
-
 export type PASSIVE_UPDATE_V1 = {
 	channels?: (id_able & {
 		last_message_id?: string | null;
@@ -625,4 +702,16 @@ export type PASSIVE_UPDATE_V1 = {
 	guild_id: string;
 	members?: unknown;
 	voice_states?: unknown;
+};
+
+export type PRESENCE_UPDATE = DistributiveOmit<presence, "user"> & {
+	user: id_able;
+};
+
+export type TYPING_START = {
+	channel_id: string;
+	guild_id?: string;
+	member?: guild_member;
+	timestamp: number;
+	user_id: string;
 };

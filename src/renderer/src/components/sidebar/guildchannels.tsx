@@ -4,7 +4,7 @@ import ChannelStore from "@stores/channels";
 import { NavLink, useParams } from "@solidjs/router";
 import { createStore } from "solid-js/store";
 import Storage from "@renderer/modules/storage";
-import { useSelectedChannelContext } from "../common/selectioncontextprovider";
+import { useSelectedChannelContext } from "../common/selectioncontext";
 
 function TextChannel(props: { id: string; isCollapsed: Accessor<boolean> }): JSX.Element {
 	const channel = createMemo(() => ChannelStore.getGuildChannel(props.id));
@@ -77,13 +77,13 @@ function Category(props: { id: string; other: string[]; voice: string[] }): JSX.
 	);
 }
 
-export default function ServerChannels(): JSX.Element {
+export default function GuildChannels(): JSX.Element {
 	const params = useParams();
 	const channels = createMemo(() => ChannelStore.getSortedGuildChannels(params.guildId));
 
 	return (
 		<Show when={channels()}>
-			<div class="channels server-channels scroller scroller-thin">
+			<div class="channels guild-channels scroller scroller-thin">
 				<For each={channels()?.uncategorized.other}>{(id): JSX.Element => <TextChannel id={id} isCollapsed={(): boolean => false} />}</For>
 				<For each={channels()?.uncategorized.voice}>{(id): JSX.Element => <VoiceChannel id={id} isCollapsed={(): boolean => false} />}</For>
 				<For each={channels()?.categorized}>

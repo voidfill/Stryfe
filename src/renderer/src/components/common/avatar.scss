@@ -1,0 +1,52 @@
+.avatar .avatar-mask > rect {
+	transition: all 0.3s ease-in-out;
+}
+
+
+.status {
+	.status-status, mask > rect {
+		transition: all 0.3s ease-in-out;
+	}
+
+	&.status-typing .status-status,
+	&.status-offline .status-status {
+		fill: #747f8d;
+	}
+	&.status-streaming .status-status {
+		fill: rgb(89, 54, 149);
+	}
+	&.status-online .status-status {
+		fill: #3ba55d;
+	}
+	&.status-idle .status-status {
+		fill: #faa81a;
+	}
+	&.status-dnd .status-status {
+		fill: #ed4245;
+	}
+
+	circle {
+		fill: white;
+		opacity: 0;
+		animation-play-state: paused;
+	}
+
+	&.status-typing circle {
+		animation: opac 2s linear infinite;
+		animation-play-state: running;
+	}
+}
+
+@keyframes opac {
+    0% {
+        opacity: 0;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}

@@ -2,7 +2,7 @@ import { JSX, Show } from "solid-js";
 
 import PrivateChannels from "./privatechannels";
 import { useParams } from "@solidjs/router";
-import ServerChannels from "./serverchannels";
+import GuildChannels from "./guildchannels";
 
 import "./style.scss";
 
@@ -11,7 +11,7 @@ export default function SideBar(): JSX.Element {
 
 	return (
 		<div class="sidebar">
-			<Show when={params.guildId === "@me"} fallback={<ServerChannels />}>
+			<Show when={params.guildId === "@me"} fallback={<GuildChannels />}>
 				<PrivateChannels />
 			</Show>
 			<div class="user-area">User Area</div>
