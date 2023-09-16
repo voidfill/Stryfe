@@ -2,9 +2,18 @@
 	transition: all 0.3s ease-in-out;
 }
 
+.avatar {
+	overflow: visible;
+	overflow-clip-margin: content-box 100px; // yea yea whatever
+
+	img {
+		border-radius: 50%;
+	}
+}
 
 .status {
-	.status-status, mask > rect {
+	.status-status,
+	mask > rect {
 		transition: all 0.3s ease-in-out;
 	}
 
@@ -27,26 +36,38 @@
 
 	circle {
 		fill: white;
-		opacity: 0;
+		fill-opacity: 0;
+		transition-property: fill-opacity, cx;
+		transition-duration: 0.3s;
+		transition-timing-function: ease-in-out;
 		animation-play-state: paused;
+		animation: opac 2s linear infinite both;
 	}
 
 	&.status-typing circle {
-		animation: opac 2s linear infinite;
+		fill-opacity: 1;
 		animation-play-state: running;
 	}
 }
 
 @keyframes opac {
-    0% {
-        opacity: 0;
-    }
+	0% {
+		opacity: 0;
+	}
 
-    50% {
-        opacity: 1;
-    }
+	15% {
+		opacity: 0;
+	}
 
-    100% {
-        opacity: 0;
-    }
+	50% {
+		opacity: 1;
+	}
+
+	85% {
+		opacity: 0;
+	}
+
+	100% {
+		opacity: 0;
+	}
 }

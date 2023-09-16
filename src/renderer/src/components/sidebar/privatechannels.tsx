@@ -12,24 +12,23 @@ function PrivateChannel(props: { id: string }): JSX.Element {
 	const selc = useSelectedChannelContext();
 
 	return (
-		<HoverAnimationProvider>
-			<NavLink
-				href={`/channels/@me/${props.id}`}
-				classList={{
-					channel: true,
-					[`channel-type-${channel().type}`]: true,
-					selected: selc(props.id),
-				}}
-			>
-				<div class="channel-icon">
-					<Show when={channel().type === ChannelTypes.DM} fallback={<Avatar size={32} groupDMId={props.id} />}>
-						<Avatar size={32} userId={channel().recipient_ids[0]} showStatus={ShowStatus.ALWAYS} channelId={props.id} />
-					</Show>
-				</div>
-				<div class="channel-text">
-					<span class="channel-name">{channelName()}</span>
-				</div>
-			</NavLink>
+		<HoverAnimationProvider
+			component={NavLink}
+			href={`/channels/@me/${props.id}`}
+			classList={{
+				channel: true,
+				[`channel-type-${channel().type}`]: true,
+				selected: selc(props.id),
+			}}
+		>
+			<div class="channel-icon">
+				<Show when={channel().type === ChannelTypes.DM} fallback={<Avatar size={32} groupDMId={props.id} />}>
+					<Avatar size={32} userId={channel().recipient_ids[0]} showStatus={ShowStatus.ALWAYS} channelId={props.id} />
+				</Show>
+			</div>
+			<div class="channel-text">
+				<span class="channel-name">{channelName()}</span>
+			</div>
 		</HoverAnimationProvider>
 	);
 }

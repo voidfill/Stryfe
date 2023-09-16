@@ -6,17 +6,21 @@ import UserStore from "@stores/users";
 import ChannelStore from "@stores/channels";
 import StatusStore, { Status as StatusEnum } from "@stores/status";
 import TypingStore from "@stores/typing";
+import ActivityStore from "@stores/activity";
 
 import "./avatar.scss";
 
 const theta = (Math.PI * 25) / 100;
+
+// old mask instead of rect
+// <circle cx={props.size / 2} cy={props.size / 2} r={props.size / 2} fill="white" />
 
 function Mask(props: { isTyping: boolean; maskId: string; showStatus: boolean; size: number }): JSX.Element {
 	const statusRadius = createMemo(() => props.size / 2.5);
 
 	return (
 		<mask id={props.maskId} class="avatar-mask">
-			<circle cx={props.size / 2} cy={props.size / 2} r={props.size / 2} fill="white" />
+			<rect x={0} y={0} width={props.size} height={props.size} fill="white" />
 			<Show when={props.showStatus}>
 				<rect
 					x={props.size / 2 + (props.size / 2) * Math.cos(theta) - (props.isTyping ? statusRadius() * 1.1 : statusRadius() / 2)}
@@ -38,7 +42,7 @@ export const enum ShowStatus {
 }
 
 type avatarProps = {
-	size: number;
+	size: 16 | 20 | 24 | 32 | 40 | 56 | 80 | 128;
 } & (
 	| {
 			channelId?: string;
@@ -55,7 +59,6 @@ type avatarProps = {
 let maskCounter = 0;
 
 export default function Avatar(props: avatarProps): JSX.Element {
-	console.log("render");
 	const maskId = `avatar-mask-${maskCounter++}`;
 	const shouldAnimate = useAnimationContext();
 
@@ -85,22 +88,32 @@ export default function Avatar(props: avatarProps): JSX.Element {
 				return status() !== StatusEnum.OFFLINE;
 		}
 	});
+	const isStreaming = createMemo(() => "userId" in props && ActivityStore.isStreaming(props.userId));
 
 	return (
-		<svg class="avatar" width={props.size * 1.25} height={props.size * 1.1}>
-			<Mask size={props.size} maskId={maskId} showStatus={shouldShowStatus()} isTyping={isTyping()} />
-			<foreignObject height={props.size} width={props.size} style={{ mask: `url(#${maskId})` }}>
-				<img height={props.size} width={props.size} src={avatarUrl()} />
-			</foreignObject>
-			<Show when={shouldShowStatus()}>
-				<Status
-					isStreaming={false}
-					isTyping={isTyping()}
-					size={props.size / 3.2}
-					status={status()}
-					x={props.size / 2 + (props.size / 2) * Math.cos(theta) - props.size / 2.55}
-					y={props.size / 2 + (props.size / 2) * Math.sin(theta) - props.size / 6.5}
-				/>
+		<svg class="avatar" width={props.size} height={props.size}>
+			<Show
+				when={"userId" in props}
+				fallback={
+					<foreignObject height={props.size} width={props.size}>
+						<img height={props.size} width={props.size} src={avatarUrl()} />
+					</foreignObject>
+				}
+			>
+				<Mask size={props.size} maskId={maskId} showStatus={shouldShowStatus()} isTyping={isTyping()} />
+				<foreignObject height={props.size} width={props.size} style={{ mask: `url(#${maskId})` }}>
+					<img height={props.size} width={props.size} src={avatarUrl()} />
+				</foreignObject>
+				<Show when={shouldShowStatus()}>
+					<Status
+						isStreaming={isStreaming()}
+						isTyping={isTyping()}
+						size={props.size / 3.2}
+						status={status()}
+						x={props.size / 2 + (props.size / 2) * Math.cos(theta) - props.size / 2.55}
+						y={props.size / 2 + (props.size / 2) * Math.sin(theta) - props.size / 6.5}
+					/>
+				</Show>
 			</Show>
 		</svg>
 	);
@@ -136,7 +149,7 @@ export function Status(props: { isStreaming: boolean; isTyping: boolean; size: n
 				rx: "100%",
 				width: 0,
 				x: props.size * 1.25,
-				y: props.size * 0.25,
+				y: props.size * 0.3,
 			};
 		}
 
@@ -196,7 +209,7 @@ export function Status(props: { isStreaming: boolean; isTyping: boolean; size: n
 			<circle
 				class="typing-circle circle-0"
 				style={{ "animation-delay": "0.5s" }}
-				cx={props.size * 0.5}
+				cx={(props.isTyping ? 0.5 : 1.25) * props.size}
 				cy={props.size / 2}
 				r={props.size / 3}
 			/>
@@ -207,7 +220,13 @@ export function Status(props: { isStreaming: boolean; isTyping: boolean; size: n
 				cy={props.size / 2}
 				r={props.size / 3}
 			/>
-			<circle class="typing-circle circle-2" style={{ "animation-delay": "1.5s" }} cx={props.size * 2} cy={props.size / 2} r={props.size / 3} />
+			<circle
+				class="typing-circle circle-2"
+				style={{ "animation-delay": "1.5s" }}
+				cx={(props.isTyping ? 2 : 1.25) * props.size}
+				cy={props.size / 2}
+				r={props.size / 3}
+			/>
 		</svg>
 	);
 }

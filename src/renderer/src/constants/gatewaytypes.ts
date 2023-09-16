@@ -79,6 +79,15 @@ export type user = id_able & {
 	verified?: boolean;
 };
 
+export enum ActivityTypes {
+	PLAYING,
+	STREAMING,
+	LISTENING,
+	WATCHING,
+	CUSTOM,
+	COMPETING,
+}
+
 export type activity = {
 	application_id?: string;
 	assets?: {
@@ -118,7 +127,7 @@ export type activity = {
 		end?: number;
 		start?: number;
 	};
-	type: number;
+	type: ActivityTypes;
 	url?: string | null;
 };
 
@@ -577,18 +586,22 @@ export type READY_SUPPLEMENTAL = {
 	merged_members: merged_member[][];
 	merged_presences: {
 		friends: {
-			activities: activity[];
+			activities: activity[] | null;
 			client_status: client_status;
 			last_modified: number;
 			status: string;
 			user_id: string;
 		}[];
-		guilds: {
-			activities: activity[];
-			client_status: client_status;
-			status: string;
-			user_id: string;
-		}[][];
+		guilds: (
+			| {
+					activities: activity[] | null;
+					broadcast: unknown;
+					client_status: client_status;
+					status: string;
+					user_id: string;
+			  }[]
+			| null
+		)[];
 	};
 };
 

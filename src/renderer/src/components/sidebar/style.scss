@@ -19,14 +19,20 @@
 		flex-grow: 1;
 
 		.channel {
-			display: flex;
-			flex-direction: row;
-			margin: 0px 4px;
-			border-radius: 4px;
-			padding: 2px;
-
 			&.selected {
 				background-color: var(--background-secondary);
+			}
+		}
+
+		&.private-channels {
+			.channel {
+				display: flex;
+				flex-direction: row;
+				border-radius: 4px;
+
+				.channel-icon {
+					padding-right: 10px;
+				}
 			}
 		}
 	}

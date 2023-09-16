@@ -48,6 +48,13 @@ export default new (class TypingStore extends Store {
 		});
 	}
 
+	// only for debugging purposes
+	// eslint-disable-next-line solid/reactivity
+	setInfinite(channelId: string, userId: string): void {
+		if (!typing[channelId]) setTyping(channelId, {});
+		setTyping(channelId, userId, 10);
+	}
+
 	// eslint-disable-next-line solid/reactivity
 	getTyping(channelId: string): [string, number][] {
 		return (typing[channelId] && Object.entries(typing[channelId])) || [];
