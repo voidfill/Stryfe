@@ -1,14 +1,14 @@
+import { NavLink } from "@solidjs/router";
 import { For, JSX } from "solid-js";
-
-import Guild from "./guild";
 
 import GuildStore from "@stores/guilds";
 
-import "./style.scss";
-import { NavLink } from "@solidjs/router";
 import { TiHome } from "solid-icons/ti";
 
 import { lastSelectedChannels } from "../mainview";
+import Guild from "./guild";
+
+import "./style.scss";
 
 export default function GuildsList(): JSX.Element {
 	return (

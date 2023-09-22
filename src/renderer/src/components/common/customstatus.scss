@@ -1,0 +1,15 @@
+.custom-status {
+	display: flex;
+	flex-direction: row;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	// TODO: idk css trolley
+
+	> span {
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+}

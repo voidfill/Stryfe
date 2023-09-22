@@ -1,10 +1,10 @@
-import { JSX, Show, createMemo } from "solid-js";
+import { NavLink, useParams } from "@solidjs/router";
+import { createMemo, JSX, Show } from "solid-js";
 
 import GuildStore from "@stores/guilds";
+
 import { HoverAnimationProvider, useAnimationContext } from "../common/animationcontext";
 import { useSelectedGuildContext } from "../common/selectioncontext";
-import { NavLink, useParams } from "@solidjs/router";
-
 import { lastSelectedChannels } from "../mainview";
 
 function ImageOrAcronym(props: { id: string }): JSX.Element {

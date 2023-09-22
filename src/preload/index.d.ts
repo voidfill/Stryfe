@@ -1,6 +1,8 @@
 import { ElectronAPI } from "@electron-toolkit/preload";
-import { ipc } from "./index";
 import os from "os";
+
+import { ipc } from "./index";
+
 import Store from "@renderer/stores";
 
 declare global {

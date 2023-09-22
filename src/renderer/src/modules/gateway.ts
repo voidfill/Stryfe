@@ -1,10 +1,11 @@
-import pako from "pako";
+import { gatewayDispatchesObj as validDispatches, GatewayPayload, OPCodes, SocketGatewayCloseCodes } from "@constants/gateway";
 
-import { Logger } from "./logger";
-import Dispatcher from "./dispatcher";
-import { clearToken } from "./token";
-import { OPCodes, GatewayPayload, SocketGatewayCloseCodes, gatewayDispatchesObj as validDispatches } from "@constants/gateway";
 import { ClientProperties } from "./discordversion";
+import Dispatcher from "./dispatcher";
+import { Logger } from "./logger";
+import { clearToken } from "./token";
+
+import pako from "pako";
 
 const logger = new Logger("WebSocket", "blue");
 

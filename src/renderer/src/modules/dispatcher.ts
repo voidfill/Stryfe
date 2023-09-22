@@ -1,6 +1,6 @@
-import { gatewayDispatches } from "./gateway";
 import { __all } from "@constants/gatewaytypes";
 
+import { gatewayDispatches } from "./gateway";
 import { Logger } from "./logger";
 const logger = new Logger("Dispatcher", "purple");
 

@@ -1,10 +1,14 @@
-import { For, JSX, Show, createMemo } from "solid-js";
 import { NavLink } from "@solidjs/router";
-import { ChannelTypes } from "@renderer/constants/channel";
+import { createMemo, For, JSX, Show } from "solid-js";
+
 import ChannelStore from "@stores/channels";
-import { useSelectedChannelContext } from "../common/selectioncontext";
+
 import { HoverAnimationProvider } from "../common/animationcontext";
 import Avatar, { ShowStatus } from "../common/avatar";
+import CustomStatus from "../common/customstatus";
+import { useSelectedChannelContext } from "../common/selectioncontext";
+
+import { ChannelTypes } from "@renderer/constants/channel";
 
 function PrivateChannel(props: { id: string }): JSX.Element {
 	const channel = createMemo(() => ChannelStore.getDirectMessage(props.id));
@@ -18,6 +22,7 @@ function PrivateChannel(props: { id: string }): JSX.Element {
 			classList={{
 				channel: true,
 				[`channel-type-${channel().type}`]: true,
+				[`channel-${props.id}`]: true,
 				selected: selc(props.id),
 			}}
 		>
@@ -28,6 +33,9 @@ function PrivateChannel(props: { id: string }): JSX.Element {
 			</div>
 			<div class="channel-text">
 				<span class="channel-name">{channelName()}</span>
+				<Show when={channel().type === ChannelTypes.DM}>
+					<CustomStatus userId={channel().recipient_ids[0]} />
+				</Show>
 			</div>
 		</HoverAnimationProvider>
 	);

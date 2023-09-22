@@ -1,6 +1,9 @@
-import { client_status } from "@renderer/constants/gatewaytypes";
-import Store from ".";
+import { batch } from "solid-js";
 import { createStore } from "solid-js/store";
+
+import Store from ".";
+
+import { client_status } from "@renderer/constants/gatewaytypes";
 
 export const enum Status {
 	OFFLINE,
@@ -32,22 +35,29 @@ const [statuses, setStatuses] = createStore<{
 	[key: string]: Statuses;
 }>({});
 
-// TODO: Ready, sessions replace, basically self.
+// TODO: sessions replace, basically self.
 export default new (class StatusStore extends Store {
 	constructor() {
 		super({
 			PRESENCE_UPDATE: ({ user, client_status }) => {
 				setStatuses(user.id, convertStatus(client_status));
 			},
+			READY: ({ session_id, sessions, user }) => {
+				const session = sessions.find((s) => s.session_id === session_id);
+				if (!session) return;
+				setStatuses(user.id, [0, sm.get(session.status) || Status.OFFLINE, 0]);
+			},
 			READY_SUPPLEMENTAL: ({ merged_presences: { friends, guilds } }) => {
-				for (const friend of friends) {
-					setStatuses(friend.user_id, convertStatus(friend.client_status));
-				}
-				for (const guild of guilds) {
-					for (const member of guild || []) {
-						setStatuses(member.user_id, convertStatus(member.client_status));
+				batch(() => {
+					for (const friend of friends) {
+						setStatuses(friend.user_id, convertStatus(friend.client_status));
 					}
-				}
+					for (const guild of guilds) {
+						for (const member of guild || []) {
+							setStatuses(member.user_id, convertStatus(member.client_status));
+						}
+					}
+				});
 			},
 		});
 	}

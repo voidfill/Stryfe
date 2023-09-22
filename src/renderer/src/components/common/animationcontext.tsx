@@ -1,5 +1,6 @@
 import { createContext, createMemo, createSignal, JSX, useContext, ValidComponent } from "solid-js";
 import { Dynamic, DynamicProps } from "solid-js/web";
+
 import WindowStore from "@stores/window";
 
 export const AnimationContext = createContext(() => false as boolean);

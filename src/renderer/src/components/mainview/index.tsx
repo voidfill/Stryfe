@@ -1,21 +1,25 @@
 import { Navigate, useNavigate, useParams } from "@solidjs/router";
-import { JSX, Show, createEffect, createMemo, createSelector, untrack } from "solid-js";
+import { createEffect, createMemo, createSelector, JSX, Show, untrack } from "solid-js";
 import { createStore } from "solid-js/store";
+
 import Storage from "@modules/storage";
 
-import ConnectionStore from "@stores/connection";
 import ChannelStore from "@stores/channels";
+import ConnectionStore from "@stores/connection";
 
-import { SelectedChannelContext, SelectedGuildContext } from "../common/selectioncontext";
 import GuildsList from "@components/guilds";
+
+import Chat from "../chat";
+import { SelectedChannelContext, SelectedGuildContext } from "../common/selectioncontext";
+import FriendsView from "../FriendsView";
+import MemberList from "../memberlist";
 import SideBar from "../sidebar";
 import HeaderBar, { showMembers } from "./headerbar";
-import FriendsView from "../FriendsView";
-import Chat from "../chat";
-import MemberList from "../memberlist";
 
 import "./style.scss";
+
 import shiggy from "@resources/shiggy.gif";
+
 import { ChannelTypes } from "@renderer/constants/channel";
 
 const [lastSelectedChannels, setLastSelectedChannels] = createStore<{

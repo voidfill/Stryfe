@@ -1,6 +1,7 @@
-import { createStore, produce } from "solid-js/store";
-import Store from ".";
 import { batch } from "solid-js";
+import { createStore, produce } from "solid-js/store";
+
+import Store from ".";
 
 const [typing, setTyping] = createStore<{
 	[channelId: string]: {

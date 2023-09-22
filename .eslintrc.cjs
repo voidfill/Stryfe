@@ -28,7 +28,7 @@ module.exports = {
 		ecmaVersion: "latest",
 		sourceType: "module",
 	},
-	plugins: ["@typescript-eslint", "solid", "sort-keys-plus", "typescript-sort-keys"],
+	plugins: ["@typescript-eslint", "solid", "sort-keys-plus", "typescript-sort-keys", "simple-import-sort"],
 	root: true,
 	rules: {
 		"@typescript-eslint/ban-ts-comment": ["error", { minimumDescriptionLength: 1, "ts-expect-error": "allow-with-description" }],
@@ -51,6 +51,24 @@ module.exports = {
 		"@typescript-eslint/no-non-null-assertion": "off",
 		"@typescript-eslint/no-var-requires": "off",
 		"no-fallthrough": ["error", { commentPattern: "@fallthrough" }],
+		"simple-import-sort/imports": [
+			"error",
+			{
+				groups: [
+					["^\\u0000"],
+					["^node:", "electron", "^path$", "^os$"],
+					["^@solidjs", "^solid-js", "^@solid-primitives"],
+					["^@constants"],
+					["^@modules"],
+					["^@stores"],
+					["^@components", "solid-icons"],
+					["^\\."],
+					["^node:.*\\u0000$", "^@?\\w.*\\u0000$", "^[^.].*\\u0000$", "^\\..*\\u0000$"],
+					["^.+\\.s?css$"],
+					["^@resources"],
+				],
+			},
+		],
 		"sort-keys-plus/sort-keys": ["warn", "asc", { caseSensitive: true, natural: true }], // if you rely on object key order, youre doing it wrong.
 		"typescript-sort-keys/interface": ["warn", "asc", { caseSensitive: true, natural: true }], // no autofixer sadly.
 	},

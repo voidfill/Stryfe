@@ -1,6 +1,6 @@
+import { electronAPI } from "@electron-toolkit/preload";
 import { contextBridge, ipcRenderer } from "electron";
 import os from "os";
-import { electronAPI } from "@electron-toolkit/preload";
 
 const canEncrypt = ipcRenderer.invoke("encryption:available");
 const isDev = ipcRenderer.invoke("is:dev");
@@ -9,6 +9,7 @@ export const ipc = {
 	encrypt: (data: string): Promise<string> => ipcRenderer.invoke("encryption:encrypt", data),
 	isEncryptionAvailable: (): Promise<boolean> => canEncrypt,
 	pack: (data: any): Promise<Uint8Array> => ipcRenderer.invoke("erl:pack", data),
+	setUserAgent: (ua: string): Promise<void> => ipcRenderer.invoke("useragent:set", ua),
 	unpack: (data: Uint8Array): Promise<any> => ipcRenderer.invoke("erl:unpack", data),
 	unpackStats: (): Promise<any> => ipcRenderer.invoke("erl:stats"),
 };

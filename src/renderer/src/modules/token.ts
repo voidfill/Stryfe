@@ -1,5 +1,5 @@
-import Storage from "@modules/storage";
 import Logger from "@modules/logger";
+import Storage from "@modules/storage";
 
 const tokenRegex = /\S+\.\S+\.\S+/;
 let token: string | null = null;

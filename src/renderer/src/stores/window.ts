@@ -1,4 +1,5 @@
 import { createSignal } from "solid-js";
+
 import Store from ".";
 
 const [height, setHeight] = createSignal(window.innerHeight);

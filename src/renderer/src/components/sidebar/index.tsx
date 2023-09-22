@@ -1,10 +1,65 @@
-import { JSX, Show } from "solid-js";
-
-import PrivateChannels from "./privatechannels";
 import { useParams } from "@solidjs/router";
+import { createMemo, JSX, Show } from "solid-js";
+
+import UserStore from "@stores/users";
+
+import { BiRegularMicrophone } from "solid-icons/bi";
+import { FiHeadphones } from "solid-icons/fi";
+import { IoSettingsOutline } from "solid-icons/io";
+
+import Avatar from "../common/avatar";
+import CustomStatus from "../common/customstatus";
 import GuildChannels from "./guildchannels";
+import PrivateChannels from "./privatechannels";
 
 import "./style.scss";
+
+import ActivityStore from "@renderer/stores/activities";
+
+function UserArea(): JSX.Element {
+	const self = createMemo(() => UserStore.getSelf());
+	const displayName = createMemo(() => self()?.global_name || self()?.username);
+	const hasCustomStatus = createMemo(() => {
+		const sid = self()?.id;
+		return !!sid && !!ActivityStore.getCustomStatus(sid);
+	});
+
+	return (
+		<div class="user-area">
+			<button class="avatar-wrapper">
+				<Show when={self()?.id} keyed>
+					{(id): JSX.Element => (
+						<>
+							<Avatar size={32} userId={id} noTyping />
+							<div class="user-info">
+								<span class="user-display-name">{displayName()}</span>
+								<Show when={hasCustomStatus()} fallback={<span class="user-name">{self()?.username}</span>}>
+									<div class="text-roll">
+										<div class="default status">
+											<CustomStatus userId={id} />
+										</div>
+										<span class="hover user-name">{self()?.username}</span>
+									</div>
+								</Show>
+							</div>
+						</>
+					)}
+				</Show>
+			</button>
+			<div class="user-buttons">
+				<button class="user-button mute" aria-roledescription="Mute">
+					<BiRegularMicrophone size={20} />
+				</button>
+				<button class="user-button deafen" aria-roledescription="Deafen">
+					<FiHeadphones size={20} />
+				</button>
+				<button class="user-button settings" aria-roledescription="Settings">
+					<IoSettingsOutline size={20} />
+				</button>
+			</div>
+		</div>
+	);
+}
 
 export default function SideBar(): JSX.Element {
 	const params = useParams();
@@ -14,7 +69,7 @@ export default function SideBar(): JSX.Element {
 			<Show when={params.guildId === "@me"} fallback={<GuildChannels />}>
 				<PrivateChannels />
 			</Show>
-			<div class="user-area">User Area</div>
+			<UserArea />
 		</div>
 	);
 }

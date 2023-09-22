@@ -39,6 +39,10 @@ body {
 	-webkit-user-select: none;
 	overflow: hidden;
 
+	#hidden {
+		display: none;
+	}
+
 	.scroller {
 		&.scroller-thin::-webkit-scrollbar {
 			width: 8px;

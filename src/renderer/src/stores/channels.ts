@@ -1,24 +1,24 @@
+import { batch, createSignal, untrack } from "solid-js";
+import { createStore, produce, reconcile } from "solid-js/store";
 import { ReactiveMap } from "@solid-primitives/map";
 import { ReactiveSet } from "@solid-primitives/set";
 
-import Store from ".";
-import { createStore, produce, reconcile } from "solid-js/store";
-import { batch, createSignal, untrack } from "solid-js";
+import assets from "@constants/assets";
+import { ChannelTypes } from "@constants/channel";
 import {
 	CHANNEL_CREATE,
 	CHANNEL_UPDATE,
-	GUILD_CREATE,
 	guild_announcement,
 	guild_category,
+	GUILD_CREATE,
 	guild_directory,
 	guild_forum,
 	guild_stage_voice,
 	guild_text,
 	guild_voice,
 } from "@constants/gatewaytypes";
-import { ChannelTypes } from "@constants/channel";
-import assets from "@constants/assets";
 
+import Store from ".";
 import UserStore from "./users";
 
 const lastMessageIds = new ReactiveMap<string, string | undefined>();
@@ -363,6 +363,10 @@ export default new (class ChannelStore extends Store {
 		const sorted = sortGuildChannels(guildId);
 		if (sorted) sortedGuildChannels.set(guildId, sorted);
 		return sorted;
+	}
+
+	hasThreads(channelId): boolean {
+		return threadsPerChannel.has(channelId) && threadsPerChannel.size > 0;
 	}
 })();
 

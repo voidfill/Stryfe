@@ -1,7 +1,7 @@
-import { JSX, createSignal } from "solid-js";
+import { useNavigate } from "@solidjs/router";
+import { createSignal, JSX } from "solid-js";
 
 import { setToken } from "@renderer/modules/token";
-import { useNavigate } from "@solidjs/router";
 
 export default function Token(): JSX.Element {
 	const [t, st] = createSignal("");

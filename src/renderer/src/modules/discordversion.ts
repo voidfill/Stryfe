@@ -6,12 +6,33 @@ function isValidTime(time: number): boolean {
 }
 const url = "https://cordapi.dolfi.es/api/v2/properties/" + window.os_type.toLowerCase();
 
-export async function getSuper(): Promise<string> {
+type superProps = {
+	encoded: string;
+	properties: {
+		browser: string;
+		browser_user_agent: string;
+		browser_version: string;
+		client_build_number: number;
+		client_event_source: null;
+		design_id: number;
+		device: string;
+		os: string;
+		os_version: string;
+		referrer: string;
+		referrer_current: string;
+		referring_domain: string;
+		referring_domain_current: string;
+		release_channel: string;
+		system_locale: string;
+	};
+};
+
+export async function getSuper(): Promise<superProps> {
 	return new Promise((resolve, reject) => {
 		let didResolve = false;
 
 		if (Storage.has("super_properties")) {
-			const c = Storage.get("super_properties", ["", 0] as [string, number]);
+			const c = Storage.get("super_properties", [{}, 0] as [superProps, number]);
 			if (c[0] && isValidTime(c[1])) (didResolve = true) && resolve(c[0]);
 		}
 
@@ -19,7 +40,7 @@ export async function getSuper(): Promise<string> {
 			method: "POST",
 		}).then((r) => {
 			if (!r.ok) return !didResolve && reject("Invalid response");
-			return r.text().then((r) => {
+			return r.json().then((r: superProps) => {
 				if (!r) return !didResolve && reject("Invalid response");
 				Storage.set("super_properties", [r, Date.now()]);
 				!didResolve && resolve(r);

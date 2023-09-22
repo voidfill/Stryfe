@@ -1,9 +1,11 @@
-import { app, shell, BrowserWindow, safeStorage, ipcMain } from "electron";
-import { pack, unpack, stats as erlStats } from "erl";
-import { electronApp, optimizer, is } from "@electron-toolkit/utils";
+import { electronApp, is, optimizer } from "@electron-toolkit/utils";
+import { app, BrowserWindow, ipcMain, safeStorage, shell } from "electron";
 import { join } from "path";
+import os from "os";
 
 import icon from "../../build/icon.png?asset";
+
+import { pack, stats as erlStats, unpack } from "erl";
 
 const headers = new Set<[string, string[] | ((prev: any) => string[])]>([
 	["access-control-allow-origin", ["http://localhost:5173"]],
@@ -12,7 +14,7 @@ const headers = new Set<[string, string[] | ((prev: any) => string[])]>([
 ]);
 const toDelete = new Set(["content-security-policy-report-only", "content-security-policy", "x-frame-options"]);
 
-function createWindow(): void {
+function createWindow(): BrowserWindow {
 	const mainWindow = new BrowserWindow({
 		autoHideMenuBar: true,
 		height: 670,
@@ -75,7 +77,12 @@ function createWindow(): void {
 	} else {
 		mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
 	}
+
+	return mainWindow;
 }
+
+// https://peter.sh/experiments/chromium-command-line-switches/#password-store
+if (os.type() === "Linux") app.commandLine.appendSwitch("password-store", "gnome-libsecret");
 
 app.whenReady().then(() => {
 	electronApp.setAppUserModelId("com.electron");
@@ -97,7 +104,11 @@ app.whenReady().then(() => {
 		optimizer.watchWindowShortcuts(window);
 	});
 
-	createWindow();
+	const window = createWindow();
+
+	ipcMain.handle("useragent:set", (_, ua: string) => {
+		window.webContents.session.setUserAgent(ua);
+	});
 
 	app.on("activate", function () {
 		if (BrowserWindow.getAllWindows().length === 0) createWindow();

@@ -1,12 +1,14 @@
-import { Routes, Route, Navigate, useParams, useNavigate } from "@solidjs/router";
+import { Navigate, Route, Routes, useNavigate, useParams } from "@solidjs/router";
+import { createSignal, JSX, lazy, Show } from "solid-js";
+
 import Storage from "@modules/storage";
-import { JSX, Show, createSignal, lazy } from "solid-js";
 
 import MainView from "@components/mainview";
 const Login = lazy(() => import("@components/login"));
 
-import "./app.scss";
 import { FocusAnimationProvider } from "./components/common/animationcontext";
+
+import "./app.scss";
 
 const [canEncrypt, setCanEncrypt] = createSignal(false);
 window.ipc.isEncryptionAvailable().then(setCanEncrypt);

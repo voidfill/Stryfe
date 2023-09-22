@@ -1,9 +1,11 @@
-import { user_self } from "@renderer/constants/gatewaytypes";
-import Store from ".";
-import { createStore } from "solid-js/store";
 import { batch } from "solid-js";
+import { createStore } from "solid-js/store";
 
 import assets from "@constants/assets";
+
+import Store from ".";
+
+import { user_self } from "@renderer/constants/gatewaytypes";
 
 // maybe decoration? i dont plan on rendering it though
 type storedUser = {
@@ -39,6 +41,11 @@ export default new (class UserStore extends Store {
 				});
 			},
 		});
+	}
+
+	// eslint-disable-next-line solid/reactivity
+	getSelfId(): string | undefined {
+		return "id" in self ? self.id : undefined;
 	}
 
 	getSelf(): user_self | undefined {

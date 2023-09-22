@@ -1,11 +1,12 @@
+import { batch, createMemo } from "solid-js";
 import { createStore, produce, reconcile } from "solid-js/store";
-import { ReactiveSet } from "@solid-primitives/set";
 import { ReactiveMap } from "@solid-primitives/map";
+import { ReactiveSet } from "@solid-primitives/set";
 
 import Store from ".";
-import logger from "@renderer/modules/logger";
+
 import { GUILD_CREATE, ready_guild_properties } from "@renderer/constants/gatewaytypes";
-import { batch, createMemo } from "solid-js";
+import logger from "@renderer/modules/logger";
 
 type stored_guild = DistributiveOmit<ready_guild_properties, "features"> & {
 	joined_at: string;

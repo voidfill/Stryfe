@@ -1,12 +1,12 @@
-import { JSX, Show, createMemo } from "solid-js";
+import { createMemo, JSX, Show } from "solid-js";
 
-import { useAnimationContext } from "./animationcontext";
-
-import UserStore from "@stores/users";
+import ActivityStore from "@stores/activities";
 import ChannelStore from "@stores/channels";
 import StatusStore, { Status as StatusEnum } from "@stores/status";
 import TypingStore from "@stores/typing";
-import ActivityStore from "@stores/activity";
+import UserStore from "@stores/users";
+
+import { useAnimationContext } from "./animationcontext";
 
 import "./avatar.scss";
 
@@ -16,7 +16,7 @@ const theta = (Math.PI * 25) / 100;
 // <circle cx={props.size / 2} cy={props.size / 2} r={props.size / 2} fill="white" />
 
 function Mask(props: { isTyping: boolean; maskId: string; showStatus: boolean; size: number }): JSX.Element {
-	const statusRadius = createMemo(() => props.size / 2.5);
+	const statusRadius = createMemo(() => props.size / 2.25);
 
 	return (
 		<mask id={props.maskId} class="avatar-mask">

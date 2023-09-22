@@ -1,5 +1,5 @@
 import { ChannelTypes } from "./channel";
-import { PremiumTypes, PlatformTypes } from "./user";
+import { PlatformTypes, PremiumTypes } from "./user";
 
 export type id_able = {
 	id: string;
@@ -523,6 +523,7 @@ export type __all = {
 	PRESENCE_UPDATE: PRESENCE_UPDATE;
 	READY: READY;
 	READY_SUPPLEMENTAL: READY_SUPPLEMENTAL;
+	SESSIONS_REPLACE: SESSIONS_REPLACE;
 	THREAD_CREATE: THREAD_CREATE;
 	THREAD_DELETE: THREAD_DELETE;
 	THREAD_LIST_SYNC: THREAD_LIST_SYNC;
@@ -728,3 +729,5 @@ export type TYPING_START = {
 	timestamp: number;
 	user_id: string;
 };
+
+export type SESSIONS_REPLACE = session[];

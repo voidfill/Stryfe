@@ -1,5 +1,6 @@
+import { createSignal, JSX } from "solid-js";
+
 import Storage from "@renderer/modules/storage";
-import { JSX, createSignal } from "solid-js";
 
 const [showMembers, setShowMembers] = createSignal(Storage.get("showMembers", true));
 export { showMembers };
