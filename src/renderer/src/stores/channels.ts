@@ -13,6 +13,7 @@ import {
 	GUILD_CREATE,
 	guild_directory,
 	guild_forum,
+	guild_media_forum,
 	guild_stage_voice,
 	guild_text,
 	guild_voice,
@@ -26,7 +27,7 @@ const lastPinTimestamps = new ReactiveMap<string, string | undefined>();
 
 const [guildChannels, setGuildChannels] = createStore<{
 	[channelId: string]: DistributiveOmit<
-		guild_text | guild_voice | guild_stage_voice | guild_category | guild_announcement | guild_directory | guild_forum,
+		guild_text | guild_voice | guild_stage_voice | guild_category | guild_announcement | guild_directory | guild_forum | guild_media_forum,
 		"id" | "last_message_id" | "last_pin_timestamp" | "permission_overwrites"
 	> & {
 		parent_id?: string | null;
@@ -347,7 +348,7 @@ export default new (class ChannelStore extends Store {
 
 	getRandomGroupIconUrl(channelId?: string): string {
 		const index = channelId ? Number(channelId) % assets.groupIcons.length : Math.floor(Math.random() * assets.groupIcons.length);
-		return "/groupicons/" + assets.groupIcons[index];
+		return "groupicons/" + assets.groupIcons[index];
 	}
 
 	// eslint-disable-next-line solid/reactivity

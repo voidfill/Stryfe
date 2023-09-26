@@ -1,6 +1,6 @@
 import "solid-devtools";
 
-import { Router } from "@solidjs/router";
+import { hashIntegration, Router } from "@solidjs/router";
 import { render } from "solid-js/web";
 
 import WebSocket from "@modules/gateway";
@@ -39,7 +39,7 @@ window.addEventListener("keydown", (e): void => {
 
 render(
 	() => (
-		<Router>
+		<Router source={hashIntegration()}>
 			<App />
 		</Router>
 	),

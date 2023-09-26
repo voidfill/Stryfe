@@ -4,7 +4,7 @@ import { createStore } from "solid-js/store";
 
 import ChannelStore from "@stores/channels";
 
-import { FaSolidChevronDown, FaSolidHashtag, FaSolidLock, FaSolidTriangleExclamation } from "solid-icons/fa";
+import { FaSolidChevronDown, FaSolidHashtag, FaSolidImage, FaSolidLock, FaSolidTriangleExclamation } from "solid-icons/fa";
 import { HiOutlineChatBubbleLeftRight, HiOutlineSpeakerWave, HiSolidChatBubbleLeft } from "solid-icons/hi";
 import { RiBusinessMegaphoneLine, RiMapSignalTowerLine } from "solid-icons/ri";
 
@@ -87,6 +87,8 @@ function TextChannel(props: { id: string; isCollapsed: Accessor<boolean> }): JSX
 										return RiBusinessMegaphoneLine;
 									case ChannelTypes.GUILD_FORUM:
 										return HiOutlineChatBubbleLeftRight;
+									case ChannelTypes.GUILD_MEDIA:
+										return FaSolidImage;
 
 									default:
 										throw "Tried to render channel icon for unknown channel type.";

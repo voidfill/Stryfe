@@ -377,6 +377,10 @@ export type guild_forum = id_able &
 		type: ChannelTypes.GUILD_FORUM;
 	};
 
+export type guild_media_forum = DistributiveOmit<guild_forum, "type"> & {
+	type: ChannelTypes.GUILD_MEDIA;
+};
+
 export type public_thread = id_able & {
 	flags: number;
 	guild_id: string;

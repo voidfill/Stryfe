@@ -11,4 +11,5 @@ export const enum ChannelTypes {
 	GUILD_STAGE_VOICE,
 	GUILD_DIRECTORY,
 	GUILD_FORUM,
+	GUILD_MEDIA,
 }

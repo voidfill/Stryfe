@@ -68,6 +68,6 @@ export default new (class UserStore extends Store {
 	getRandomAvatarUrl(userId?: string): string {
 		const index = userId ? Number(userId) % assets.avatars.length : Math.floor(Math.random() * assets.avatars.length);
 
-		return `/avatars/${assets.avatars[index]}`;
+		return `avatars/${assets.avatars[index]}`;
 	}
 })();
