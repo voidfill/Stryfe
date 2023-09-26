@@ -1,5 +1,5 @@
 import { NavLink, useParams } from "@solidjs/router";
-import { Accessor, createEffect, createMemo, For, JSX, Show, untrack } from "solid-js";
+import { Accessor, createContext, createEffect, createMemo, For, JSX, onCleanup, Show, untrack } from "solid-js";
 import { createStore } from "solid-js/store";
 
 import ChannelStore from "@stores/channels";
@@ -12,6 +12,8 @@ import { useSelectedChannelContext } from "../common/selectioncontext";
 
 import { ChannelTypes } from "@renderer/constants/channel";
 import Storage from "@renderer/modules/storage";
+
+const refMap = new Map<string, any>();
 
 function ModifiedIcon<T extends (props: { size: string }) => JSX.Element>(props: {
 	hasThreads: boolean;
@@ -62,6 +64,10 @@ function TextChannel(props: { id: string; isCollapsed: Accessor<boolean> }): JSX
 
 	const hasThreads = createMemo(() => ChannelStore.hasThreads(props.id));
 
+	onCleanup(() => {
+		refMap.delete(props.id);
+	});
+
 	return (
 		<Show when={(!props.isCollapsed() || selc(props.id)) && channel()} keyed>
 			{(channel): JSX.Element => (
@@ -72,6 +78,9 @@ function TextChannel(props: { id: string; isCollapsed: Accessor<boolean> }): JSX
 						[`channel-type-${channel.type}`]: true,
 						[`channel-${props.id}`]: true,
 						selected: selc(props.id),
+					}}
+					ref={(el): void => {
+						refMap.set(props.id, el);
 					}}
 				>
 					<div class="channel-icon">
@@ -108,6 +117,10 @@ function VoiceChannel(props: { id: string; isCollapsed: Accessor<boolean> }): JS
 	const params = useParams();
 	const selc = useSelectedChannelContext();
 
+	onCleanup(() => {
+		refMap.delete(props.id);
+	});
+
 	return (
 		<Show when={(!props.isCollapsed() || selc(props.id)) && channel()} keyed>
 			{(channel): JSX.Element => (
@@ -118,6 +131,9 @@ function VoiceChannel(props: { id: string; isCollapsed: Accessor<boolean> }): JS
 						[`channel-type-${channel.type}`]: true,
 						[`channel-${props.id}`]: true,
 						selected: selc(props.id),
+					}}
+					ref={(el): void => {
+						refMap.set(props.id, el);
 					}}
 				>
 					<div class="channel-icon">
@@ -145,6 +161,10 @@ function Category(props: { id: string; other: string[]; voice: string[] }): JSX.
 	const isCollapsed = createMemo(() => collapsed[props.id] ?? false);
 	const toggleCollapsed = (): void => setCollapsed(props.id, !isCollapsed());
 
+	onCleanup(() => {
+		refMap.delete(props.id); // not sure yet if we need to have categories in the refmap but we'll see
+	});
+
 	return (
 		<Show when={category()} keyed>
 			{(category): JSX.Element => (
@@ -158,6 +178,9 @@ function Category(props: { id: string; other: string[]; voice: string[] }): JSX.
 							collapsed: isCollapsed(),
 						}}
 						onClick={toggleCollapsed}
+						ref={(el): void => {
+							refMap.set(props.id, el);
+						}}
 					>
 						<div class="channel-icon">
 							<FaSolidChevronDown size={12} />
@@ -172,13 +195,42 @@ function Category(props: { id: string; other: string[]; voice: string[] }): JSX.
 	);
 }
 
+const scrollPositions = new Map<string, number>();
+
 export default function GuildChannels(): JSX.Element {
 	const params = useParams();
 	const channels = createMemo(() => ChannelStore.getSortedGuildChannels(params.guildId));
+	let ref: HTMLDivElement;
+
+	createEffect(() => {
+		const pos = scrollPositions.get(params.guildId);
+		if (!ref) return;
+		if (pos || pos === 0) return void ref.scrollTo({ behavior: "instant", top: pos });
+		refMap.get(untrack(() => params.channelId))?.scrollIntoView({ behavior: "instant", block: "center" });
+	});
+
+	let lastKnownScrollPosition = 0;
+	let ticking = false;
 
 	return (
 		<Show when={channels()}>
-			<div class="channels guild-channels scroller scroller-thin">
+			<div
+				class="channels guild-channels scroller scroller-thin"
+				ref={
+					// @ts-expect-error nuh uh
+					ref
+				}
+				onScroll={(): void => {
+					lastKnownScrollPosition = ref.scrollTop;
+					if (!ticking) {
+						window.requestAnimationFrame(() => {
+							scrollPositions.set(params.guildId, lastKnownScrollPosition);
+							ticking = false;
+						});
+						ticking = true;
+					}
+				}}
+			>
 				<For each={channels()?.uncategorized.other}>
 					{(id): JSX.Element => <TextChannel id={/*@once*/ id} isCollapsed={(): boolean => false} />}
 				</For>
