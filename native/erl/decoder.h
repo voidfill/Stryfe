@@ -8,8 +8,6 @@
 
 using namespace v8;
 
-uint32_t unpack_stats[256];
-
 #define PAST_BUFFER(size_) \
 	if(offset + size_ > this->size) { \
 		Nan::ThrowError("Reading passes the end of the buffer.");\
@@ -32,21 +30,12 @@ public:
 		}
 	}
 
-	Local<Value> static getUnpackStats() {
-		Local<Object> obj = Nan::New<Object>();
-		for(uint32_t i = 0; i < 256; i++) {
-			Nan::Set(obj, Nan::New<String>(std::to_string(i)).ToLocalChecked(), Nan::New<Number>(unpack_stats[i]));
-		}
-		return obj;
-	}
-
 	Local<Value> decode() {
 		if(isInvalid) {
 			return Nan::Undefined();
 		}
 
 		uint8_t tag = read8();
-		unpack_stats[tag]++;
 
 		switch(tag) {
 			case ATOM_EXT:

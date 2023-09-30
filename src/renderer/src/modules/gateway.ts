@@ -3,9 +3,21 @@ import { gatewayDispatchesObj as validDispatches, GatewayPayload, OPCodes, Socke
 import { ClientProperties } from "./discordversion";
 import Dispatcher from "./dispatcher";
 import { Logger } from "./logger";
+import packworker from "./packworker?worker";
 import { clearToken } from "./token";
+import unpackworker from "./unpackworker?worker";
 
-import pako from "pako";
+const upw = new unpackworker();
+const pw = new packworker();
+upw.onmessage = pw.onmessage = (): void => {};
+upw.onerror = (error: ErrorEvent): void => {
+	error.preventDefault();
+	console.error("Unpack worker error:", error);
+};
+pw.onerror = (error: ErrorEvent): void => {
+	error.preventDefault();
+	console.error("Pack worker error:", error);
+};
 
 const logger = new Logger("WebSocket", "blue");
 
@@ -36,8 +48,6 @@ export default class GatewaySocket {
 
 	#state: ConnectionState = ConnectionState.Disconnected;
 	#socket: WebSocket | null = null;
-	#inflate: pako.Inflate;
-	#inflate_chunks: Uint8Array[] = [];
 
 	#attempts = 0;
 	#seq = 0;
@@ -74,16 +84,9 @@ export default class GatewaySocket {
 		this.#clientProperties = clientProperties;
 		this.#gatewayVersion = gatewayVersion;
 
-		this.#makeInflator();
+		upw.onmessage = ({ data }): void => void this.#onData(data);
+		pw.onmessage = ({ data }): void => void this.#__send(data);
 		this.#createSocket();
-	}
-
-	#makeInflator(): void {
-		this.#inflate = new pako.Inflate({
-			chunkSize: 65536,
-		});
-		this.#inflate_chunks = [];
-		this.#inflate.onData = (data: Uint8Array): void => void this.#inflate_chunks.push(data);
 	}
 
 	#createSocket(): void {
@@ -91,7 +94,7 @@ export default class GatewaySocket {
 		this.#state = ConnectionState.Connecting;
 		this.#seq = 0;
 		this.#attempts++;
-		this.#makeInflator();
+		upw.postMessage("reset");
 		if (this.#socket?.readyState === WebSocket.OPEN) this.#socket.close();
 
 		this.#helloTimeout = setTimeout(() => {
@@ -100,29 +103,10 @@ export default class GatewaySocket {
 		this.#socket = new WebSocket(`${this.#gatewayURL}/?v=${this.#gatewayVersion}&compress=zlib-stream&encoding=etf`);
 		this.#socket.binaryType = "arraybuffer";
 
-		this.#socket.addEventListener("message", this.#handleMessage.bind(this));
+		this.#socket.addEventListener("message", ({ data }) => upw.postMessage(data, [data]));
 		this.#socket.addEventListener("open", this.#onOpen.bind(this));
 		this.#socket.addEventListener("close", this.handleClose.bind(this));
 		this.#socket.addEventListener("error", this.#handleError.bind(this));
-	}
-
-	async #handleMessage({ data }: MessageEvent<ArrayBuffer>): Promise<void> {
-		const len = data.byteLength,
-			doFlush = len >= 4 && new DataView(data).getUint32(len - 4, false) === 65535;
-		this.#inflate.push(new Uint8Array(data), doFlush && pako.Z_SYNC_FLUSH);
-		if (this.#inflate.err) logger.error("Failed to inflate message:", this.#inflate.msg);
-
-		if (doFlush && !this.#inflate.err) {
-			const rlen = this.#inflate_chunks.reduce((a, b) => a + b.byteLength, 0);
-			const buf = new Uint8Array(rlen);
-			let offset = 0;
-			for (const chunk of this.#inflate_chunks) {
-				buf.set(chunk, offset);
-				offset += chunk.byteLength;
-			}
-			this.#inflate_chunks = [];
-			window.ipc.unpack(buf).then(this.#onData.bind(this));
-		}
 	}
 
 	#onOpen(): void {
@@ -275,19 +259,17 @@ export default class GatewaySocket {
 		this.#heart.beat &&= clearInterval(this.#heart.beat) as undefined;
 	}
 
-	async #send(opcode: OPCodes, data: any): Promise<void> {
+	#send(opcode: OPCodes, data: any): void {
 		if (this.#socket?.readyState !== WebSocket.OPEN) return logger.warn("Attempted to send message while socket is not open");
 		if (this.#state !== ConnectionState.Connected && this.#state !== ConnectionState.Connecting && this.#state !== ConnectionState.Resuming)
 			return logger.warn("Attempted to send message while not connected");
+		logger.info("Trying to send message:", opcode, data);
+		pw.postMessage({ d: data, op: opcode });
+	}
 
+	#__send(data: Uint8Array): void {
 		try {
-			logger.info("Sending message:", opcode, data);
-			this.#socket.send(
-				await window.ipc.pack({
-					d: data,
-					op: opcode,
-				}),
-			);
+			this.#socket?.send(data);
 		} catch (error) {
 			logger.error("Failed to send message:", error);
 		}

@@ -26,11 +26,6 @@ void Pack(const FunctionCallbackInfo<Value> &info)
 	info.GetReturnValue().Set(encoder.output().ToLocalChecked());
 }
 
-void StatsGetter(const FunctionCallbackInfo<Value> &info)
-{
-	info.GetReturnValue().Set(Decoder::getUnpackStats());
-}
-
 void Unpack(const FunctionCallbackInfo<Value> &info)
 {
 	Isolate *isolate = info.GetIsolate();
@@ -66,7 +61,6 @@ void Init(Local<Object> exports)
 {
 	NODE_SET_METHOD(exports, "pack", Pack);
 	NODE_SET_METHOD(exports, "unpack", Unpack);
-	NODE_SET_METHOD(exports, "stats", StatsGetter);
 }
 
-NODE_MODULE(NODE_GYP_MODULE_NAME, Init)
+NAN_MODULE_WORKER_ENABLED(NODE_GYP_MODULE_NAME, Init)

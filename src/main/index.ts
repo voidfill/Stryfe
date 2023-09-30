@@ -5,8 +5,6 @@ import os from "os";
 
 import icon from "../../build/icon.png?asset";
 
-import { pack, stats as erlStats, unpack } from "erl";
-
 const headers = new Set<[string, string[] | ((prev: any) => string[])]>([
 	["access-control-allow-origin", ["http://localhost:5173"]],
 	["access-control-allow-headers", (p): [string] => [p + ", Credentials"]],
@@ -24,6 +22,7 @@ function createWindow(): BrowserWindow {
 		width: 900,
 		...(process.platform === "linux" ? { icon } : {}),
 		webPreferences: {
+			nodeIntegrationInWorker: true,
 			preload: join(__dirname, "../preload/index.js"),
 			sandbox: false,
 		},
@@ -89,15 +88,6 @@ app.whenReady().then(() => {
 	ipcMain.handle("encryption:available", () => safeStorage.isEncryptionAvailable());
 	ipcMain.handle("encryption:encrypt", (_, data: string) => safeStorage.encryptString(data).toString("base64"));
 	ipcMain.handle("encryption:decrypt", (_, data: string) => safeStorage.decryptString(Buffer.from(data, "base64")));
-	ipcMain.handle("erl:pack", (_, data: any) => pack(data));
-	ipcMain.handle("erl:unpack", (_, data: Buffer) => unpack(data));
-	ipcMain.handle("erl:stats", () => {
-		const stats = erlStats();
-		return Object.keys(stats)
-			.map((k) => ({ amount: stats[k], tag: k }))
-			.filter((e) => e.amount != 0)
-			.sort((a, b) => b.amount - a.amount);
-	});
 	ipcMain.handle("is:dev", () => is.dev);
 
 	app.on("browser-window-created", (_, window) => {
