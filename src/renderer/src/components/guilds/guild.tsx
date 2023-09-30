@@ -1,4 +1,4 @@
-import { NavLink, useParams } from "@solidjs/router";
+import { NavLink } from "@solidjs/router";
 import { createMemo, JSX, Show } from "solid-js";
 
 import GuildStore from "@stores/guilds";
@@ -28,16 +28,16 @@ function Indicator(props: { id: string }): JSX.Element {
 }
 
 export default function Guild(props: { id: string }): JSX.Element {
-	const params = useParams();
 	const guild = createMemo(() => GuildStore.getGuild(props.id));
 	const selg = useSelectedGuildContext();
 
 	return (
-		<Show when={!GuildStore.isUnavailable(props.id) && guild()} fallback={<div class="guild unavailable" />}>
+		<Show when={!GuildStore.isUnavailable(props.id) && guild()} fallback={<div class={`guild guild-${props.id} unavailable`} />}>
 			<HoverAnimationProvider
 				classList={{
 					available: true,
 					guild: true,
+					[`guild-${props.id}`]: true,
 					selected: selg(props.id),
 				}}
 			>

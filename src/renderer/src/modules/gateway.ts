@@ -3,9 +3,9 @@ import { gatewayDispatchesObj as validDispatches, GatewayPayload, OPCodes, Socke
 import { ClientProperties } from "./discordversion";
 import Dispatcher from "./dispatcher";
 import { Logger } from "./logger";
-import packworker from "./packworker?worker";
+import packworker from "./packworker?worker&inline";
 import { clearToken } from "./token";
-import unpackworker from "./unpackworker?worker";
+import unpackworker from "./unpackworker?worker&inline";
 
 const upw = new unpackworker();
 const pw = new packworker();

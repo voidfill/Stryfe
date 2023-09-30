@@ -1,68 +1,25 @@
 import { NavLink, useParams } from "@solidjs/router";
-import { Accessor, createContext, createEffect, createMemo, For, JSX, onCleanup, Show, untrack } from "solid-js";
+import { Accessor, createEffect, createMemo, For, JSX, onCleanup, Show, untrack } from "solid-js";
 import { createStore } from "solid-js/store";
 
+import { ChannelTypes } from "@constants/channel";
+
+import Storage from "@modules/storage";
+
 import ChannelStore from "@stores/channels";
+import GuildStore from "@stores/guilds";
 
-import { FaSolidChevronDown, FaSolidHashtag, FaSolidImage, FaSolidLock, FaSolidTriangleExclamation } from "solid-icons/fa";
-import { HiOutlineChatBubbleLeftRight, HiOutlineSpeakerWave, HiSolidChatBubbleLeft } from "solid-icons/hi";
-import { RiBusinessMegaphoneLine, RiMapSignalTowerLine } from "solid-icons/ri";
+import { useSelectedChannelContext } from "@components/common/selectioncontext";
+import { FaSolidChevronDown } from "solid-icons/fa";
 
-import { useSelectedChannelContext } from "../common/selectioncontext";
-
-import { ChannelTypes } from "@renderer/constants/channel";
-import Storage from "@renderer/modules/storage";
+import ChannelIcon from "../common/channelicon";
 
 const refMap = new Map<string, any>();
-
-function ModifiedIcon<T extends (props: { size: string }) => JSX.Element>(props: {
-	hasThreads: boolean;
-	icon: T;
-	isLimited: boolean;
-	isNSFW: boolean;
-}): JSX.Element {
-	const clipPath = createMemo(() => {
-		if (props.hasThreads && (props.isLimited || props.isNSFW)) return "polygon(55% 0, 55% 50%, 45% 50%, 45% 100%, 0 100%, 0 0)";
-		if (props.isLimited || props.isNSFW) return "polygon(55% 0, 55% 45%, 100% 45%, 100% 100%, 0 100%, 0 0)";
-		if (props.hasThreads) return "polygon(100% 50%, 45% 50%, 45% 100%, 0 100%, 0 0)";
-		return "polygon(0 0, 0 100%, 100% 100%, 100% 0)";
-	});
-
-	return (
-		<svg class="channel-icon" width="20px" height="20px">
-			<foreignObject
-				width="16px"
-				height="16px"
-				x="2px"
-				y="2px"
-				style={{
-					"clip-path": clipPath(),
-				}}
-			>
-				{
-					/* @once */ props.icon({
-						size: "16px",
-					})
-				}
-			</foreignObject>
-			<Show when={props.isLimited || props.isNSFW}>
-				<Show when={props.isNSFW} fallback={<FaSolidLock x="11px" y="0.5px" size="8px" />}>
-					<FaSolidTriangleExclamation x="11.5px" y="0.5px" size="8px" />
-				</Show>
-			</Show>
-			<Show when={props.hasThreads}>
-				<HiSolidChatBubbleLeft x="10px" y="9px" size="10px" />
-			</Show>
-		</svg>
-	);
-}
 
 function TextChannel(props: { id: string; isCollapsed: Accessor<boolean> }): JSX.Element {
 	const channel = createMemo(() => ChannelStore.getGuildChannel(props.id));
 	const params = useParams();
 	const selc = useSelectedChannelContext();
-
-	const hasThreads = createMemo(() => ChannelStore.hasThreads(props.id));
 
 	onCleanup(() => {
 		refMap.delete(props.id);
@@ -84,26 +41,7 @@ function TextChannel(props: { id: string; isCollapsed: Accessor<boolean> }): JSX
 					}}
 				>
 					<div class="channel-icon">
-						<ModifiedIcon
-							hasThreads={channel.type !== ChannelTypes.GUILD_FORUM && hasThreads()}
-							isNSFW={"nsfw" in channel && !!channel.nsfw}
-							isLimited={false}
-							icon={untrack(() => {
-								switch (channel.type) {
-									case ChannelTypes.GUILD_TEXT:
-										return FaSolidHashtag;
-									case ChannelTypes.GUILD_ANNOUNCEMENT:
-										return RiBusinessMegaphoneLine;
-									case ChannelTypes.GUILD_FORUM:
-										return HiOutlineChatBubbleLeftRight;
-									case ChannelTypes.GUILD_MEDIA:
-										return FaSolidImage;
-
-									default:
-										throw "Tried to render channel icon for unknown channel type.";
-								}
-							})}
-						/>
+						<ChannelIcon id={props.id} size={20} />
 					</div>
 					<span class="channel-name">{channel.name}</span>
 				</NavLink>
@@ -137,12 +75,7 @@ function VoiceChannel(props: { id: string; isCollapsed: Accessor<boolean> }): JS
 					}}
 				>
 					<div class="channel-icon">
-						<ModifiedIcon
-							hasThreads={false}
-							isNSFW={false}
-							isLimited={true}
-							icon={/* @once */ channel.type === ChannelTypes.GUILD_VOICE ? HiOutlineSpeakerWave : RiMapSignalTowerLine}
-						/>
+						<ChannelIcon id={props.id} size={20} />
 					</div>
 					<span class="channel-name">{channel.name}</span>
 				</NavLink>
@@ -200,6 +133,7 @@ const scrollPositions = new Map<string, number>();
 export default function GuildChannels(): JSX.Element {
 	const params = useParams();
 	const channels = createMemo(() => ChannelStore.getSortedGuildChannels(params.guildId));
+	const guildName = createMemo(() => GuildStore.getGuild(params.guildId)?.name);
 	let ref: HTMLDivElement;
 
 	createEffect(() => {
@@ -214,8 +148,13 @@ export default function GuildChannels(): JSX.Element {
 
 	return (
 		<Show when={channels()}>
+			<button class="guild-header">
+				<div class="boost-icon" />
+				<span class="guild-name">{guildName()}</span>
+				<FaSolidChevronDown class="header-context-menu-icon" size={16} />
+			</button>
 			<div
-				class="channels guild-channels scroller scroller-thin"
+				class="channels guild-channels scroller scroller-thin scroller-hover-thumb"
 				ref={
 					// @ts-expect-error nuh uh
 					ref

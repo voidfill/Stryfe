@@ -15,4 +15,35 @@
 	height: 100%;
 	display: flex;
 	flex-direction: row;
+
+	.channel-wrapper {
+		display: flex;
+		flex-direction: column;
+		background-color: var(--background-secondary);
+		flex-grow: 1;
+
+		.header-bar {
+			height: 48px;
+			flex-shrink: 0;
+			box-shadow: 0 1px 0 0 var(--accent-secondary);
+			display: flex;
+			flex-direction: row;
+			align-items: center;
+			padding: 0 8px;
+
+			.icon {
+				color: var(--accent-secondary);
+				filter: brightness(1);
+				transition: all 0.1s ease-in-out;
+			}
+
+			> *:hover .icon {
+					filter: brightness(1.5);
+				}
+
+			> button {
+				cursor: pointer;
+			}
+		}
+	}
 }

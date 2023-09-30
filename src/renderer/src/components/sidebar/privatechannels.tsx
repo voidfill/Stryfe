@@ -1,4 +1,4 @@
-import { NavLink } from "@solidjs/router";
+import { NavLink, useParams } from "@solidjs/router";
 import { createMemo, For, JSX, onMount, Show } from "solid-js";
 
 import ChannelStore from "@stores/channels";
@@ -44,6 +44,7 @@ function PrivateChannel(props: { id: string }): JSX.Element {
 let lastKnownScrollPosition = 0;
 
 export default function PrivateChannels(): JSX.Element {
+	const params = useParams();
 	let ref: HTMLDivElement;
 
 	onMount(() => {
@@ -52,7 +53,7 @@ export default function PrivateChannels(): JSX.Element {
 
 	return (
 		<div
-			class="channels private-channels scroller scroller-thin"
+			class="channels private-channels scroller scroller-thin scroller-hover-thumb"
 			ref={
 				// @ts-expect-error nuh uh
 				ref
@@ -61,7 +62,15 @@ export default function PrivateChannels(): JSX.Element {
 				lastKnownScrollPosition = ref.scrollTop;
 			}}
 		>
-			<div class="friends-button">Friends</div>
+			<NavLink
+				href="/channels/@me"
+				classList={{
+					"friends-button": true,
+					selected: !params.channelId,
+				}}
+			>
+				Friends
+			</NavLink>
 			<div class="private-channels-header">Direct Messages</div>
 			<For each={ChannelStore.getOrderedDirectMessages()}>{(channel): JSX.Element => <PrivateChannel id={channel[0]} />}</For>
 		</div>

@@ -14,7 +14,7 @@ import { SelectedChannelContext, SelectedGuildContext } from "../common/selectio
 import FriendsView from "../FriendsView";
 import MemberList from "../memberlist";
 import SideBar from "../sidebar";
-import HeaderBar, { showMembers } from "./headerbar";
+import HeaderBar, { showMembers, showUserProfile } from "./headerbar";
 
 import "./style.scss";
 
@@ -97,6 +97,9 @@ export default function MainView(): JSX.Element {
 									<Chat />
 									<Show when={showMembers() && params.channelId && currChannel()?.type !== ChannelTypes.DM}>
 										<MemberList />
+									</Show>
+									<Show when={showUserProfile() && currChannel()?.type === ChannelTypes.DM}>
+										<span>DM User Profile</span>
 									</Show>
 								</Show>
 							</div>

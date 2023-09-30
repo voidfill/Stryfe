@@ -366,8 +366,18 @@ export default new (class ChannelStore extends Store {
 		return sorted;
 	}
 
-	hasThreads(channelId): boolean {
-		return threadsPerChannel.has(channelId) && threadsPerChannel.size > 0;
+	hasThreads(channelId: string): boolean {
+		return threadsPerChannel.has(channelId) && (threadsPerChannel.get(channelId)?.size ?? 0) > 0;
+	}
+
+	// eslint-disable-next-line solid/reactivity
+	getThread(threadId: string): any {
+		return threads[threadId];
+	}
+
+	// eslint-disable-next-line solid/reactivity
+	getChannel(channelId: string): (typeof guildChannels)[string] | (typeof directMessages)[string] | (typeof threads)[string] | undefined {
+		return guildChannels[channelId] ?? directMessages[channelId] ?? threads[channelId];
 	}
 })();
 
