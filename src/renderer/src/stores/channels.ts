@@ -129,6 +129,9 @@ function orderedDMIndex(bigint: bigint): number {
 	}
 	return low;
 }
+const [dmForUser, setDMForUser] = createStore<{
+	[userId: string]: string;
+}>({});
 
 const [threads, setThreads] = createStore<{
 	[channelId: string]: any;
@@ -163,6 +166,9 @@ export default new (class ChannelStore extends Store {
 						...rest,
 						recipient_ids: recipients.map((r) => r.id),
 					});
+					if (channel.type === ChannelTypes.DM && !dmForUser[channel.recipients[0].id]) {
+						setDMForUser(channel.recipients[0].id, channel.id);
+					}
 
 					const index = orderedDMIndex(BigInt(channel.last_message_id || channel.id));
 					setOrderedDirectMessages((old) => {
@@ -181,7 +187,10 @@ export default new (class ChannelStore extends Store {
 						removeSortedGuildChannel(id);
 						return;
 					}
-
+					const type = directMessages[id]?.type;
+					if (type === ChannelTypes.DM) {
+						setDMForUser(produce((dms) => delete dms[directMessages[id].recipient_ids[0]]));
+					}
 					setOrderedDirectMessages((old) => old.filter((dm) => dm[0] !== id));
 					setDirectMessages(produce((channels) => delete channels[id]));
 					lastMessageIds.delete(id);
@@ -289,6 +298,9 @@ export default new (class ChannelStore extends Store {
 						});
 						lastMessageIds.set(id, last_message_id || id);
 						lastPinTimestamps.set(id, last_pin_timestamp || undefined);
+						if (channel.type === ChannelTypes.DM) {
+							setDMForUser(channel.recipient_ids[0], channel.id);
+						}
 					}
 				});
 			},
@@ -378,6 +390,11 @@ export default new (class ChannelStore extends Store {
 	// eslint-disable-next-line solid/reactivity
 	getChannel(channelId: string): (typeof guildChannels)[string] | (typeof directMessages)[string] | (typeof threads)[string] | undefined {
 		return guildChannels[channelId] ?? directMessages[channelId] ?? threads[channelId];
+	}
+
+	// eslint-disable-next-line solid/reactivity
+	getDMForUser(userId: string): string | undefined {
+		return dmForUser[userId];
 	}
 })();
 

@@ -3,12 +3,16 @@ import { createMemo, For, JSX, onMount, Show } from "solid-js";
 
 import ChannelStore from "@stores/channels";
 
-import { HoverAnimationProvider } from "../common/animationcontext";
+import { FiUsers } from "solid-icons/fi";
+
+import { HoverAnimationDirective, HoverAnimationProvider } from "../common/animationcontext";
 import Avatar, { ShowStatus } from "../common/avatar";
 import CustomStatus from "../common/customstatus";
 import { useSelectedChannelContext } from "../common/selectioncontext";
 
 import { ChannelTypes } from "@renderer/constants/channel";
+
+HoverAnimationDirective;
 
 function PrivateChannel(props: { id: string }): JSX.Element {
 	const channel = createMemo(() => ChannelStore.getDirectMessage(props.id));
@@ -69,6 +73,7 @@ export default function PrivateChannels(): JSX.Element {
 					selected: !params.channelId,
 				}}
 			>
+				<FiUsers size={24} />
 				Friends
 			</NavLink>
 			<div class="private-channels-header">Direct Messages</div>

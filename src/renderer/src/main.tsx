@@ -14,6 +14,7 @@ import { attachDevtoolsOverlay } from "@solid-devtools/overlay";
 attachDevtoolsOverlay();
 
 import App from "./app";
+
 (async (): Promise<void> => {
 	if (!(await window.ipc.isEncryptionAvailable()) || !Storage.has("token")) return;
 	try {

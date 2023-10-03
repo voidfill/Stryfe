@@ -6,9 +6,12 @@ import Storage from "@modules/storage";
 import MainView from "@components/mainview";
 const Login = lazy(() => import("@components/login"));
 
-import { FocusAnimationProvider } from "./components/common/animationcontext";
+import { FocusAnimationDirective } from "./components/common/animationcontext";
+import Layers from "./modules/layers";
 
 import "./app.scss";
+
+FocusAnimationDirective;
 
 const [canEncrypt, setCanEncrypt] = createSignal(false);
 window.ipc.isEncryptionAvailable().then(setCanEncrypt);
@@ -29,7 +32,7 @@ function NotFoundPage(): JSX.Element {
 
 export default function App(): JSX.Element {
 	return (
-		<FocusAnimationProvider component={"div"} class={`app platform-${window.os_type}`}>
+		<div class={`app platform-${window.os_type}`} use:FocusAnimationDirective>
 			<Show
 				when={canEncrypt()}
 				fallback={
@@ -39,6 +42,7 @@ export default function App(): JSX.Element {
 					</div>
 				}
 			>
+				<Layers />
 				<div class="base">
 					<Routes>
 						<Route path="/" element={<Navigate href={Storage.has("token") ? "/channels/@me" : "/login"} />} />
@@ -56,6 +60,6 @@ export default function App(): JSX.Element {
 					</Routes>
 				</div>
 			</Show>
-		</FocusAnimationProvider>
+		</div>
 	);
 }

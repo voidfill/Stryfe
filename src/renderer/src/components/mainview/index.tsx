@@ -11,9 +11,9 @@ import GuildsList from "@components/guilds";
 
 import Chat from "../chat";
 import { SelectedChannelContext, SelectedGuildContext } from "../common/selectioncontext";
-import FriendsView from "../FriendsView";
 import MemberList from "../memberlist";
 import SideBar from "../sidebar";
+import FriendsView from "./friendsview";
 import HeaderBar, { showMembers, showUserProfile } from "./headerbar";
 
 import "./style.scss";

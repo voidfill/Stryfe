@@ -21,6 +21,7 @@
 		flex-direction: column;
 		background-color: var(--background-secondary);
 		flex-grow: 1;
+		overflow: hidden;
 
 		.header-bar {
 			height: 48px;
@@ -38,12 +39,32 @@
 			}
 
 			> *:hover .icon {
-					filter: brightness(1.5);
-				}
+				filter: brightness(1.5);
+			}
 
 			> button {
 				cursor: pointer;
 			}
+
+			> * {
+				margin: 0 8px;
+				white-space: nowrap;
+			}
+
+			.friends-button {
+				padding: 4px 8px;
+				border-radius: 4px;
+				transition: background-color 0.1s ease-in-out;
+
+				&:hover,
+				&.selected {
+					background-color: var(--accent-primary);
+				}
+			}
+		}
+
+		.channel {
+			overflow: hidden;
 		}
 	}
 }

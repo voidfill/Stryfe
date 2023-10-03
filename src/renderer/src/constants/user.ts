@@ -23,3 +23,13 @@ export enum PlatformTypes {
 	GITHUB = "github",
 	PLAYSTATION = "playstation",
 }
+
+export enum RelationshipTypes {
+	NONE,
+	FRIEND,
+	BLOCKED,
+	PENDING_INCOMING,
+	PENDING_OUTGOING,
+	IMPLICIT,
+	SUGGESTION,
+}

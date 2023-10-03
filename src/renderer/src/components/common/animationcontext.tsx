@@ -1,4 +1,4 @@
-import { createContext, createMemo, createSignal, JSX, useContext, ValidComponent } from "solid-js";
+import { createContext, createMemo, createRenderEffect, createSignal, getOwner, JSX as _JSX, useContext, ValidComponent } from "solid-js";
 import { Dynamic, DynamicProps } from "solid-js/web";
 
 import WindowStore from "@stores/window";
@@ -6,9 +6,10 @@ import WindowStore from "@stores/window";
 export const AnimationContext = createContext(() => false as boolean);
 export const useAnimationContext = (): (() => boolean) => useContext(AnimationContext);
 
+// Sadly need these since directives dont support custom components.
 export function HoverAnimationProvider<T extends ValidComponent>(
 	props: DistributiveOmit<DynamicProps<T>, "onmouseenter" | "onmouseleave">,
-): JSX.Element {
+): _JSX.Element {
 	// @ts-expect-error this is valid.
 	// eslint-disable-next-line solid/reactivity
 	props.component ??= "div";
@@ -25,8 +26,7 @@ export function HoverAnimationProvider<T extends ValidComponent>(
 		</AnimationContext.Provider>
 	);
 }
-
-export function FocusAnimationProvider<T extends ValidComponent>(props: DynamicProps<T>): JSX.Element {
+export function FocusAnimationProvider<T extends ValidComponent>(props: DynamicProps<T>): _JSX.Element {
 	// @ts-expect-error this is valid.
 	// eslint-disable-next-line solid/reactivity
 	props.component ??= "div";
@@ -35,4 +35,35 @@ export function FocusAnimationProvider<T extends ValidComponent>(props: DynamicP
 			<Dynamic {...props} />
 		</AnimationContext.Provider>
 	);
+}
+
+export function FocusAnimationDirective(): void {
+	const owner = getOwner();
+
+	createRenderEffect(() => {
+		owner!.context = { ...owner!.context, [AnimationContext.id]: WindowStore.isFocused };
+	});
+}
+
+export function HoverAnimationDirective(el: Element): void {
+	const [isHover, setIsHover] = createSignal(false),
+		memo = createMemo(() => isHover() && WindowStore.isFocused()),
+		owner = getOwner();
+
+	createRenderEffect(() => {
+		owner!.context = { ...owner!.context, [AnimationContext.id]: memo };
+	});
+
+	el.addEventListener("mouseenter", (): void => void setIsHover(true));
+	el.addEventListener("mouseleave", (): void => void setIsHover(false));
+}
+
+declare module "solid-js" {
+	// eslint-disable-next-line
+	namespace JSX {
+		interface Directives {
+			FocusAnimationDirective: any;
+			HoverAnimationDirective: any;
+		}
+	}
 }

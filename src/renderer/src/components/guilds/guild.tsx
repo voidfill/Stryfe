@@ -3,9 +3,13 @@ import { createMemo, JSX, Show } from "solid-js";
 
 import GuildStore from "@stores/guilds";
 
-import { HoverAnimationProvider, useAnimationContext } from "../common/animationcontext";
+import { HoverAnimationDirective, useAnimationContext } from "../common/animationcontext";
 import { useSelectedGuildContext } from "../common/selectioncontext";
+import TooltipDirective, { TooltipColors, TooltipPosition } from "../common/tooltip";
 import { lastSelectedChannels } from "../mainview";
+
+HoverAnimationDirective;
+TooltipDirective;
 
 function ImageOrAcronym(props: { id: string }): JSX.Element {
 	const doAnimate = useAnimationContext();
@@ -33,7 +37,7 @@ export default function Guild(props: { id: string }): JSX.Element {
 
 	return (
 		<Show when={!GuildStore.isUnavailable(props.id) && guild()} fallback={<div class={`guild guild-${props.id} unavailable`} />}>
-			<HoverAnimationProvider
+			<div
 				classList={{
 					available: true,
 					guild: true,
@@ -43,9 +47,19 @@ export default function Guild(props: { id: string }): JSX.Element {
 			>
 				<Indicator id={props.id} />
 				<NavLink href={`/channels/${props.id}/${lastSelectedChannels[props.id] ?? ""}`}>
-					<ImageOrAcronym id={props.id} />
+					<div
+						class="guild-icon-container"
+						use:HoverAnimationDirective
+						use:TooltipDirective={{
+							color: TooltipColors.BLACK,
+							content: <div>{guild()?.name}</div>,
+							position: TooltipPosition.RIGHT,
+						}}
+					>
+						<ImageOrAcronym id={props.id} />
+					</div>
 				</NavLink>
-			</HoverAnimationProvider>
+			</div>
 		</Show>
 	);
 }
