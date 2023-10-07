@@ -125,7 +125,7 @@ const TooltipElement: ParentComponent<TooltipElementProps> = (props) => {
 
 type TooltipProps = {
 	color?: TooltipColors;
-	content: _JSX.Element;
+	content: () => _JSX.Element;
 	delay?: number;
 	pointerEvents?: boolean;
 	position?: TooltipPosition;
@@ -162,7 +162,7 @@ export default function Tooltip(element: Element, value: Accessor<TooltipProps>)
 				pointerEvents={value().pointerEvents}
 				onMount={(): void => void setHidden(false)}
 			>
-				{value().content}
+				{value().content()}
 			</TooltipElement>
 		));
 	};

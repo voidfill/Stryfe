@@ -6,11 +6,13 @@ import os from "os";
 import icon from "../../build/icon.png?asset";
 
 const headers = new Set<[string, string[] | ((prev: any) => string[])]>([
-	["access-control-allow-origin", ["http://localhost:5173"]],
+	["access-control-allow-origin", ["https://discord.com", "https://cordapi.dolfi.es"]],
 	["access-control-allow-headers", (p): [string] => [p + ", Credentials"]],
 	["set-cookie", (p): string[] => p.map((c: string) => (~c.indexOf("SameSite") ? c : c + "; SameSite=None"))],
 ]);
-const toDelete = new Set(["content-security-policy-report-only", "content-security-policy", "x-frame-options"]);
+
+const allowOriginList = ["https://discord.com", "https://cordapi.dolfi.es"];
+const toDelete = new Set(["access-control-allow-origin", "content-security-policy-report-only", "content-security-policy", "x-frame-options"]);
 
 function createWindow(): BrowserWindow {
 	const mainWindow = new BrowserWindow({
@@ -33,18 +35,26 @@ function createWindow(): BrowserWindow {
 
 		const currHeaders = Object.keys(details.responseHeaders);
 
-		for (const [key, value] of headers) {
-			const k = currHeaders.find((h) => h.toLowerCase() === key.toLowerCase());
-			if (!k && typeof value === "function") continue;
+		for (const header of currHeaders) {
+			if (toDelete.has(header.toLowerCase())) {
+				delete details.responseHeaders[header];
+				continue;
+			}
 
-			details.responseHeaders[k ?? key] = typeof value === "function" ? value(details.responseHeaders[key]) : value;
+			if (header.toLowerCase() === "access-control-allow-headers") {
+				// TODO: ? (p): [string] => [p + ", Credentials"]
+				continue;
+			}
+
+			if (header.toLowerCase() === "set-cookie") {
+				details.responseHeaders[header] = details.responseHeaders[header].map((c: string) =>
+					~c.indexOf("SameSite") ? c : c + "; SameSite=None",
+				);
+			}
 		}
 
-		for (const key of toDelete) {
-			const k = currHeaders.find((h) => h.toLowerCase() === key);
-			if (!k) continue;
-
-			delete details.responseHeaders[k];
+		for (const origin of allowOriginList) {
+			if (details.url.toLowerCase().includes(origin)) details.responseHeaders["access-control-allow-origin"] = ["http://localhost"];
 		}
 
 		callback({ cancel: false, responseHeaders: details.responseHeaders });
@@ -52,7 +62,7 @@ function createWindow(): BrowserWindow {
 
 	mainWindow.webContents.session.webRequest.onBeforeSendHeaders(
 		{
-			urls: ["https://*.discord.com/*"],
+			urls: ["*://*/*"],
 		},
 		(details, callback) => {
 			details.requestHeaders["Origin"] = details.requestHeaders["Referer"] = "https://discord.com";

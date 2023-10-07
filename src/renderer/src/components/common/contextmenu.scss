@@ -1,0 +1,116 @@
+:root {
+	--ctx-background: var(--background-quaternary);
+	--ctx-separator: #333;
+	--ctx-text: #fff;
+	--ctx-border-radius: 4px;
+
+	--ctx-primary: #123456;
+	--ctx-red: #ff0000;
+	--ctx-yellow: #ffff00;
+	--ctx-green: #00ff00;
+}
+
+.ctxmenu {
+	background-color: transparent;
+
+	&.submenu {
+		margin: 0;
+		padding: 0 var(--padding);
+	}
+
+	.ctxmenu-bg {
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+		min-width: 188px;
+		max-width: 320px;
+		max-height: calc(100vh - 32px);
+
+		background-color: var(--ctx-background);
+		padding: var(--padding);
+		border-radius: var(--ctx-border-radius);
+		box-shadow: 0px 20px 40px rgba(0, 0, 0, 0.5);
+
+		.ctxmenu-item {
+			background-color: transparent;
+			padding: 6px 8px;
+			line-height: 18px;
+			font-size: 100%;
+			margin: 2px 0;
+			display: flex;
+			flex-direction: row;
+			overflow: hidden;
+			width: calc(100% - var(--padding) - 8px);
+
+			.ctx-label {
+				flex-grow: 1;
+				flex-shrink: 1;
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
+
+			&.color-primary {
+				color: var(--ctx-text);
+
+				.checkbox {
+					accent-color: var(--ctx-text);
+				}
+			}
+
+			&.color-red {
+				color: var(--ctx-red);
+
+				.ctx-checkbox {
+					accent-color: var(--ctx-red);
+				}
+			}
+
+			&.color-yellow {
+				color: var(--ctx-yellow);
+
+				.ctx-checkbox {
+					accent-color: var(--ctx-yellow);
+				}
+			}
+
+			&.color-green {
+				color: var(--ctx-green);
+
+				.ctx-checkbox {
+					accent-color: var(--ctx-green);
+				}
+			}
+
+			&.selected {
+				&.color-primary {
+					background-color: var(--ctx-primary);
+				}
+
+				&.color-red {
+					background-color: var(--ctx-red);
+					color: var(--ctx-text);
+				}
+
+				&.color-yellow {
+					background-color: var(--ctx-yellow);
+					color: var(--ctx-text);
+				}
+
+				&.color-green {
+					background-color: var(--ctx-green);
+					color: var(--ctx-text);
+				}
+			}
+
+			.ctx-checkbox {
+				background-color: transparent;
+			}
+		}
+
+		.ctxmenu-separator {
+			margin: 4px;
+			border-bottom: 1px solid var(--ctx-separator);
+		}
+	}
+}
