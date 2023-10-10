@@ -1,7 +1,6 @@
 import { bytecodePlugin, defineConfig, externalizeDepsPlugin } from "electron-vite";
 import { resolve } from "path";
 
-import suidPlugin from "@suid/vite-plugin";
 import devtools from "solid-devtools/vite";
 import compileTime from "vite-plugin-compile-time";
 import solid from "vite-plugin-solid";
@@ -18,7 +17,6 @@ export default defineConfig({
 	renderer: {
 		plugins: [
 			solid(),
-			suidPlugin(),
 			compileTime(),
 			...(solidDevtoolsEnabled
 				? [

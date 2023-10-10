@@ -33,6 +33,8 @@ function createWindow(): BrowserWindow {
 	mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
 		if (!details.responseHeaders) return callback({ cancel: false });
 
+		let didSetCredentials = false;
+
 		const currHeaders = Object.keys(details.responseHeaders);
 
 		for (const header of currHeaders) {
@@ -42,19 +44,26 @@ function createWindow(): BrowserWindow {
 			}
 
 			if (header.toLowerCase() === "access-control-allow-headers") {
-				// TODO: ? (p): [string] => [p + ", Credentials"]
+				if (!details.url.startsWith("https://discord.com")) continue;
+				details.responseHeaders[header] = [details.responseHeaders[header][0] + ", Credentials"];
+				didSetCredentials = true;
 				continue;
 			}
 
 			if (header.toLowerCase() === "set-cookie") {
 				details.responseHeaders[header] = details.responseHeaders[header].map((c: string) =>
-					~c.indexOf("SameSite") ? c : c + "; SameSite=None",
+					~c.indexOf("SameSite") ? c.replace(/SameSite=.+\W*/, "SameSite=None ") : c + "; SameSite=None",
 				);
 			}
 		}
 
+		if (details.url.startsWith("https://discord.com") && !didSetCredentials) {
+			details.responseHeaders["access-control-allow-headers"] = ["Credentials"];
+		}
+
 		for (const origin of allowOriginList) {
-			if (details.url.toLowerCase().includes(origin)) details.responseHeaders["access-control-allow-origin"] = ["http://localhost"];
+			if (details.url.toLowerCase().includes(origin))
+				details.responseHeaders["access-control-allow-origin"] = [process.env["ELECTRON_RENDERER_URL"]!];
 		}
 
 		callback({ cancel: false, responseHeaders: details.responseHeaders });
@@ -92,6 +101,11 @@ function createWindow(): BrowserWindow {
 
 // https://peter.sh/experiments/chromium-command-line-switches/#password-store
 if (os.type() === "Linux") app.commandLine.appendSwitch("password-store", "gnome-libsecret");
+
+if (is.dev) {
+	app.commandLine.appendSwitch("user-data-dir");
+	app.commandLine.appendSwitch("disable-web-security"); // yea. prod loading doesnt even seem to care
+}
 
 app.whenReady().then(() => {
 	electronApp.setAppUserModelId("com.electron");
