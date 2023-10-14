@@ -3,6 +3,9 @@ import { type JSX as sJSX } from "solid-js/jsx-runtime";
 
 import { addLayer, removeLayer } from "@modules/layers";
 
+import { BiSolidCopyAlt } from "solid-icons/bi";
+import { FaSolidChevronRight } from "solid-icons/fa";
+
 import "./contextmenu.scss";
 
 declare module "solid-js" {
@@ -55,6 +58,17 @@ type menuItem =
 export const Separator: menuItem = {
 	type: "separator",
 };
+
+export const Id = (id: string, name: string): menuItem => ({
+	action: () => navigator.clipboard.writeText(id),
+	icon: BiSolidCopyAlt,
+	label: name,
+	type: "icon",
+});
+
+export function Optional(bool: boolean, element: menuItem | menuItem[]): menuItem[] {
+	return bool ? (Array.isArray(element) ? element : [element]) : [];
+}
 
 type contextmenuProps = {
 	menu: menuItem[];
@@ -195,6 +209,7 @@ function Menu(props: {
 												e.preventDefault();
 												if (item.disabled) return;
 												item.action();
+												props.hide();
 											}}
 											onMouseEnter={(): void => {
 												if (item.disabled) return;
@@ -220,6 +235,7 @@ function Menu(props: {
 												e.preventDefault();
 												if (item.disabled) return;
 												item.action();
+												props.hide();
 											}}
 											onMouseEnter={(): void => {
 												if (item.disabled) return;
@@ -229,7 +245,7 @@ function Menu(props: {
 											<span class="ctx-label">{item.label}</span>
 											<div class="ctx-icon">
 												{item.icon({
-													size: 16,
+													size: 18,
 												})}
 											</div>
 										</div>
@@ -275,10 +291,13 @@ function Menu(props: {
 													e.stopPropagation();
 													e.preventDefault();
 													item.action();
+													props.hide();
 												}}
 											>
 												<span class="ctx-label">{item.label}</span>
-												<div class="ctx-icon">{">"}</div>
+												<div class="ctx-icon">
+													<FaSolidChevronRight size={12} />
+												</div>
 												<Show when={isSelected()}>
 													<Menu
 														hide={props.hide}

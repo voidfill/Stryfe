@@ -41,6 +41,7 @@
 			flex-direction: row;
 			overflow: hidden;
 			width: calc(100% - var(--padding) - 8px);
+			border-radius: 4px;
 
 			.ctx-label {
 				flex-grow: 1;
@@ -50,11 +51,25 @@
 				text-overflow: ellipsis;
 			}
 
+			.ctx-icon {
+				height: 18px;
+				width: 18px;
+			}
+
+			&.disabled {
+				filter: brightness(0.6);
+			}
+
 			&.color-primary {
 				color: var(--ctx-text);
 
 				.checkbox {
 					accent-color: var(--ctx-text);
+				}
+
+				.ctx-icon {
+					color: var(--ctx-text);
+					fill: var(--ctx-text);
 				}
 			}
 
@@ -64,6 +79,11 @@
 				.ctx-checkbox {
 					accent-color: var(--ctx-red);
 				}
+
+				.ctx-icon {
+					color: var(--ctx-red);
+					fill: var(--ctx-red);
+				}
 			}
 
 			&.color-yellow {
@@ -72,6 +92,11 @@
 				.ctx-checkbox {
 					accent-color: var(--ctx-yellow);
 				}
+
+				.ctx-icon {
+					color: var(--ctx-yellow);
+					fill: var(--ctx-yellow);
+				}
 			}
 
 			&.color-green {
@@ -79,6 +104,11 @@
 
 				.ctx-checkbox {
 					accent-color: var(--ctx-green);
+				}
+
+				.ctx-icon {
+					color: var(--ctx-green);
+					fill: var(--ctx-green);
 				}
 			}
 

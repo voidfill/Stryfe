@@ -1,13 +1,17 @@
 import { NavLink } from "@solidjs/router";
-import { createMemo, createSignal, JSX, Show } from "solid-js";
+import { createEffect, createMemo, JSX, Show } from "solid-js";
+import { createStore } from "solid-js/store";
 
 import GuildStore from "@stores/guilds";
+import UserStore from "@stores/users";
 
 import { HoverAnimationDirective, useAnimationContext } from "../common/animationcontext";
-import { Colors, ContextmenuDirective, Separator } from "../common/contextmenu";
+import { Colors, ContextmenuDirective, Id, Optional, Separator } from "../common/contextmenu";
 import { useSelectedGuildContext } from "../common/selectioncontext";
 import TooltipDirective, { TooltipColors, TooltipPosition } from "../common/tooltip";
 import { lastSelectedChannels } from "../mainview";
+
+import Storage from "@renderer/modules/storage";
 
 HoverAnimationDirective;
 TooltipDirective;
@@ -33,6 +37,13 @@ function Indicator(props: { id: string }): JSX.Element {
 	);
 }
 
+const [hideMuted, setHideMuted] = createStore<{
+	[id: string]: boolean;
+}>(Storage.get("hideMutedChannels", {}));
+createEffect(() => {
+	Storage.set("hideMutedChannels", hideMuted);
+});
+
 export default function Guild(props: { id: string }): JSX.Element {
 	const guild = createMemo(() => GuildStore.getGuild(props.id));
 	const selg = useSelectedGuildContext();
@@ -56,6 +67,87 @@ export default function Guild(props: { id: string }): JSX.Element {
 							color: TooltipColors.BLACK,
 							content: () => <div>{guild()?.name}</div>,
 							position: TooltipPosition.RIGHT,
+						}}
+						use:ContextmenuDirective={{
+							menu: [
+								{
+									action: (): void => {},
+									label: "Mark as Read",
+									type: "text",
+								},
+								Separator,
+								{
+									action: (): void => {},
+									label: "Invite People",
+									type: "text",
+								},
+								Separator,
+								{
+									action: (): void => {},
+									label: "Mute Server",
+									submenu: [
+										{
+											action: (): void => {},
+											label: "For 15 Minutes",
+											type: "text",
+										},
+										{
+											action: (): void => {},
+											label: "For 1 Hour",
+											type: "text",
+										},
+										{
+											action: (): void => {},
+											label: "For 3 Hours",
+											type: "text",
+										},
+										{
+											action: (): void => {},
+											label: "For 8 Hours",
+											type: "text",
+										},
+										{
+											action: (): void => {},
+											label: "For 24 Hours",
+											type: "text",
+										},
+										{
+											action: (): void => {},
+											label: "Until i turn it back on",
+											type: "text",
+										},
+									],
+									type: "submenu",
+								},
+								// Notification Settings
+								{
+									action: (): void => {
+										setHideMuted(props.id, !hideMuted[props.id]);
+									},
+									enabled: () => hideMuted[props.id],
+									label: "Hide Muted Channels",
+									type: "switch",
+								},
+								Separator,
+								// Server Settings
+								// Privacy Settings
+								{
+									action: (): void => {},
+									label: "Edit Server Profile",
+									type: "text",
+								},
+								// Edit Server Profile
+								// Create event
+								Separator,
+								...Optional(guild()?.owner_id !== UserStore.getSelfId(), {
+									action: (): void => {},
+									color: Colors.RED,
+									label: "Leave Server",
+									type: "text",
+								}),
+								Separator,
+								Id(props.id, "Copy Server ID"),
+							],
 						}}
 					>
 						<ImageOrAcronym id={props.id} />
