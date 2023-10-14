@@ -1,11 +1,8 @@
 import { bytecodePlugin, defineConfig, externalizeDepsPlugin } from "electron-vite";
 import { resolve } from "path";
 
-import devtools from "solid-devtools/vite";
 import compileTime from "vite-plugin-compile-time";
 import solid from "vite-plugin-solid";
-
-const solidDevtoolsEnabled = true; // devtools babel plugin kills startup performance, remove if you dont need it.
 
 export default defineConfig({
 	main: {
@@ -15,23 +12,7 @@ export default defineConfig({
 		plugins: [externalizeDepsPlugin(), bytecodePlugin()],
 	},
 	renderer: {
-		plugins: [
-			solid(),
-			compileTime(),
-			...(solidDevtoolsEnabled
-				? [
-						devtools({
-							autoname: true,
-							locator: {
-								componentLocation: true,
-								jsxLocation: true,
-								key: "Control",
-								targetIDE: "vscode",
-							},
-						}),
-				  ]
-				: []),
-		],
+		plugins: [solid(), compileTime()],
 		publicDir: resolve("src/renderer/public"),
 		resolve: {
 			alias: {
