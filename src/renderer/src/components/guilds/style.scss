@@ -22,7 +22,7 @@
 			align-items: center;
 
 			.pill {
-				display: block;
+				display: none; // TODO: unread indicators
 				transition: all 0.2s;
 
 				background-color: white;
@@ -32,8 +32,22 @@
 			}
 		}
 
+		.guild-icon-container {
+			cursor: pointer;
+
+			&:active {
+				transform: translateY(1px) translateZ(0);
+			}
+		}
+
 		.guild-icon {
+			border-radius: 100%;
+			transition: border-radius 0.2s ease-in-out;
 			width: 48px;
+		}
+
+		&.selected .guild-icon, &:hover .guild-icon {
+			border-radius: 33%;
 		}
 	}
 }

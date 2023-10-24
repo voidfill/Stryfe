@@ -31,6 +31,19 @@ function convertStatus(status: client_status): Statuses {
 	];
 }
 
+export function statusToText(status: Status): string {
+	switch (status) {
+		case Status.OFFLINE:
+			return "offline";
+		case Status.ONLINE:
+			return "online";
+		case Status.IDLE:
+			return "idle";
+		case Status.DND:
+			return "do not disturb";
+	}
+}
+
 const [statuses, setStatuses] = createStore<{
 	[key: string]: Statuses;
 }>({});
@@ -76,5 +89,10 @@ export default new (class StatusStore extends Store {
 		if (!status) return null;
 
 		return status[0] ? "mobile" : status[2] ? "web" : status[1] ? "desktop" : null;
+	}
+
+	// eslint-disable-next-line solid/reactivity
+	getFullStatus(id: string): Statuses | undefined {
+		return statuses[id];
 	}
 })();

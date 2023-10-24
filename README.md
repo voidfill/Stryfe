@@ -1,6 +1,6 @@
-# stryfe
+# Stryfe
 
-An Electron application with Solid and TypeScript
+A Discord Client built with Solidjs and Electron.
 
 ## Recommended IDE Setup
 
@@ -11,24 +11,11 @@ An Electron application with Solid and TypeScript
 ### Install
 
 ```bash
-$ npm install
+$ pnpm install
 ```
 
 ### Development
 
 ```bash
-$ npm run dev
-```
-
-### Build
-
-```bash
-# For windows
-$ npm run build:win
-
-# For macOS
-$ npm run build:mac
-
-# For Linux
-$ npm run build:linux
+$ pnpm run dev
 ```

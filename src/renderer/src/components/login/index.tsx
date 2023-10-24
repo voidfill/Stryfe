@@ -1,6 +1,8 @@
 import { createSignal, For, JSX, lazy } from "solid-js";
 import { Dynamic } from "solid-js/web";
 
+import "./style.scss";
+
 const items = [
 	{
 		component: lazy(() => import("./credentials")),

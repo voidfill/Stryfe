@@ -2,13 +2,16 @@ import { createMemo, JSX, Show } from "solid-js";
 
 import ActivityStore from "@stores/activities";
 import ChannelStore from "@stores/channels";
-import StatusStore, { Status as StatusEnum } from "@stores/status";
+import StatusStore, { Status as StatusEnum, statusToText } from "@stores/status";
 import TypingStore from "@stores/typing";
 import UserStore from "@stores/users";
 
 import { useAnimationContext } from "./animationcontext";
+import TooltipDirective from "./tooltip";
 
 import "./avatar.scss";
+
+TooltipDirective;
 
 const theta = (Math.PI * 25) / 100;
 
@@ -65,7 +68,7 @@ export default function Avatar(props: avatarProps): JSX.Element {
 	const avatarUrl = createMemo(() => {
 		if ("groupDMId" in props) return ChannelStore.getPrivateChannelIcon(props.groupDMId, props.size, shouldAnimate());
 
-		if ("guildId" in props) return "nya";
+		if ("guildId" in props) return ChannelStore.getRandomGroupIconUrl(); // TODO: server pfps
 
 		return UserStore.getAvatarUrl(props.userId, props.size, shouldAnimate());
 	});
@@ -106,6 +109,7 @@ export default function Avatar(props: avatarProps): JSX.Element {
 				</foreignObject>
 				<Show when={shouldShowStatus()}>
 					<Status
+						userId={("userId" in props && props.userId) || "this wont happen so its ok"}
 						isStreaming={isStreaming()}
 						isTyping={isTyping()}
 						size={props.size / 3.2}
@@ -119,7 +123,29 @@ export default function Avatar(props: avatarProps): JSX.Element {
 	);
 }
 
-export function Status(props: { isStreaming: boolean; isTyping: boolean; size: number; status: StatusEnum; x?: number; y?: number }): JSX.Element {
+// use:TooltipDirective={{
+// 	content: (): JSX.Element => (
+// 		<Show when={props.status !== StatusEnum.OFFLINE && fullStatus()} keyed fallback={<p>Offline</p>}>
+// 			{(fullStatus): JSX.Element => (
+// 				<div>
+// 					<p>Mobile: {statusToText(fullStatus[0])}</p>
+// 					<p>Desktop: {statusToText(fullStatus[1])}</p>
+// 					<p>Web: {statusToText(fullStatus[2])}</p>
+// 				</div>
+// 			)}
+// 		</Show>
+// 	),
+// }}
+
+export function Status(props: {
+	isStreaming: boolean;
+	isTyping: boolean;
+	size: number;
+	status: StatusEnum;
+	userId: string;
+	x?: number;
+	y?: number;
+}): JSX.Element {
 	const maskId = `status-mask-${maskCounter++}`;
 	const statusAsText = createMemo(() => {
 		if (props.isStreaming) return "streaming";
@@ -135,6 +161,7 @@ export function Status(props: { isStreaming: boolean; isTyping: boolean; size: n
 				return "offline";
 		}
 	});
+	const fullStatus = createMemo(() => StatusStore.getFullStatus(props.userId));
 
 	const antiRectProps = createMemo<{
 		height: number;
