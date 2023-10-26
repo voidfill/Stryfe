@@ -1,4 +1,6 @@
-import { boolean, nullable, number, object, optional, special, SpecialSchema, string } from "valibot";
+import { PremiumTypes } from "../user";
+
+import { boolean, nullable, number, object, optional, special, SpecialSchema, string, unknown } from "valibot";
 
 export function equal<T extends number | string | boolean>(v: T): SpecialSchema<T> {
 	return special((a) => a === v);
@@ -31,6 +33,37 @@ export const user = object({
 	id: string(),
 	public_flags: number(),
 	username: string(),
+});
+
+export const user_self = object({
+	accent_color: unknown(),
+	avatar: nullable(string()),
+	avatar_decoration_data: nullable(
+		object({
+			asset: string(),
+			sku_id: string(),
+		}),
+	),
+	banner: nullable(string()),
+	banner_color: unknown(),
+	bio: string(),
+	discriminator: string(),
+	display_name: optional(nullable(string())),
+	email: nullable(string()),
+	global_name: nullable(string()),
+	id: string(),
+	mfa_enabled: boolean(),
+	nsfw_allowed: boolean(),
+	phone: nullable(string()),
+	premium: boolean(),
+	premium_type: special<PremiumTypes>((a) => {
+		if (typeof a !== "number") return false;
+		return Object.values(PremiumTypes).includes(a as PremiumTypes);
+	}),
+	pronouns: string(),
+	purchased_flags: number(),
+	username: string(),
+	verified: boolean(),
 });
 
 export const hashes = object({

@@ -1,11 +1,13 @@
 import { CHANNEL_CREATE, CHANNEL_DELETE, CHANNEL_PINS_UPDATE, CHANNEL_RECIPIENT_ADD, CHANNEL_RECIPIENT_REMOVE, CHANNEL_UPDATE } from "./channels";
-import { GUILD_APPLICATION_INDEX_UPDATE, GUILD_AUDIT_LOG_ENTRY_CREATE, GUILD_CREATE, GUILD_DELETE } from "./guild";
+import { GUILD_APPLICATION_INDEX_UPDATE, GUILD_AUDIT_LOG_ENTRY_CREATE, GUILD_CREATE, GUILD_DELETE, GUILD_UPDATE } from "./guild";
 import { MESSAGE_ACK, MESSAGE_REACTION_ADD, MESSAGE_REACTION_REMOVE } from "./message";
 import { PRESENCE_UPDATE } from "./presence";
 import { PASSIVE_UPDATE_V1, READY, READY_SUPPLEMENTAL } from "./ready";
 import { SESSIONS_REPLACE } from "./ready/session";
 import { RELATIONSHIP_ADD, RELATIONSHIP_REMOVE } from "./relationship";
 import { TYPING_START } from "./typing";
+
+import { Output } from "valibot";
 
 export const dispatches = {
 	CHANNEL_CREATE,
@@ -18,6 +20,7 @@ export const dispatches = {
 	GUILD_AUDIT_LOG_ENTRY_CREATE,
 	GUILD_CREATE,
 	GUILD_DELETE,
+	GUILD_UPDATE,
 	MESSAGE_ACK,
 	MESSAGE_REACTION_ADD,
 	MESSAGE_REACTION_REMOVE,
@@ -29,4 +32,8 @@ export const dispatches = {
 	RELATIONSHIP_REMOVE,
 	SESSIONS_REPLACE,
 	TYPING_START,
+};
+
+export type _dispatches = {
+	[key in keyof typeof dispatches]: Output<(typeof dispatches)[key]>;
 };

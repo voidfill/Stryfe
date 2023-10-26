@@ -1,5 +1,5 @@
 import { private_channel } from "../channels";
-import { equal, status, user } from "../common";
+import { equal, status, user, user_self } from "../common";
 import { ready_guild, unavailable_guild } from "../guild";
 import guild_member from "../guild/member";
 import voice_state from "../guild/voicestate";
@@ -60,7 +60,7 @@ export const READY = object({
 	session_type: string(),
 	sessions: array(session),
 	tutorial: any(),
-	user: unknown(),
+	user: user_self,
 	user_guild_settings: unknown(),
 	user_settings_proto: string(),
 	users: array(user),

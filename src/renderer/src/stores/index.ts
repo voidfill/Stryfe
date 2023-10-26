@@ -1,15 +1,22 @@
-import Dispatcher, { dispatches as validDispatches, Listener } from "@modules/dispatcher";
+import Dispatcher, { dispatches as validDispatches } from "@modules/dispatcher";
+
+type dispatchesWithArgs = OmitByType<validDispatches, undefined>;
+type dispatchesWithoutArgs = PickByType<validDispatches, undefined>;
 
 type dispatches = {
-	[key in keyof validDispatches]?: Listener<validDispatches[key]>;
+	[key in keyof dispatchesWithArgs]: (args: dispatchesWithArgs[key]) => void;
 } & {
-	[key in keyof validDispatches as `once_${key}`]?: Listener<validDispatches[key]>;
+	[key in keyof dispatchesWithoutArgs]: () => void;
+} & {
+	[key in keyof dispatchesWithArgs as `once_${key}`]: (args: dispatchesWithArgs[key]) => void;
+} & {
+	[key in keyof dispatchesWithoutArgs as `once_${key}`]: () => void;
 };
 
 export default class Store {
 	#__registeredDispatches = new Set<() => void>();
 
-	constructor(dispatches: dispatches) {
+	constructor(dispatches: Partial<dispatches>) {
 		for (const [key, value] of Object.entries(dispatches)) {
 			if (key.startsWith("once_")) {
 				this.#__registeredDispatches.add(Dispatcher.once(key.slice(5) as keyof validDispatches, value));

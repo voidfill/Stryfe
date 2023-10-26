@@ -26,6 +26,7 @@ export default object({
 			}),
 		),
 	),
+	id: string(),
 	last_message_id: nullable(string()),
 	name: string(),
 	parent_id: optional(nullable(string())),
