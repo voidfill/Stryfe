@@ -1,0 +1,46 @@
+import { boolean, nullable, number, object, optional, special, SpecialSchema, string } from "valibot";
+
+export function equal<T extends number | string | boolean>(v: T): SpecialSchema<T> {
+	return special((a) => a === v);
+}
+export function equalArray<T extends readonly (number | string | boolean)[]>(v: T): SpecialSchema<T[number]> {
+	return special((a) => v.some((b) => a === b));
+}
+
+export const status = equalArray(["online", "idle", "dnd", "offline", "invisible", "unknown"] as const);
+
+export const permission_overwrite = object({
+	allow: string(),
+	deny: string(),
+	id: string(),
+	type: equalArray([0, 1] as const),
+});
+
+export const user = object({
+	avatar: nullable(string()),
+	avatar_decoration_data: nullable(
+		object({
+			asset: string(),
+			sku_id: string(),
+		}),
+	),
+	bot: optional(boolean()),
+	discriminator: string(),
+	display_name: optional(nullable(string())),
+	global_name: nullable(string()),
+	id: string(),
+	public_flags: number(),
+	username: string(),
+});
+
+export const hashes = object({
+	channels: object({
+		hash: string(),
+	}),
+	metadata: object({
+		hash: string(),
+	}),
+	roles: object({
+		hash: string(),
+	}),
+});

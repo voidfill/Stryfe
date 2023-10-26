@@ -1,4 +1,4 @@
-import { gatewayDispatchesObj as validDispatches, GatewayPayload, OPCodes, SocketGatewayCloseCodes } from "@constants/gateway";
+import { GatewayPayload, OPCodes, SocketGatewayCloseCodes } from "@constants/gateway";
 
 import { ClientProperties } from "./discordversion";
 import Dispatcher from "./dispatcher";
@@ -7,7 +7,7 @@ import packworker from "./packworker?worker&inline";
 import { clearToken } from "./token";
 import unpackworker from "./unpackworker?worker&inline";
 
-import { __allDispatches } from "@renderer/constants/schemas";
+import { dispatches as __allDispatches } from "@renderer/constants/schemata";
 import { safeParse } from "valibot";
 
 const upw = new unpackworker();

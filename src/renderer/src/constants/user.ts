@@ -33,3 +33,12 @@ export enum RelationshipTypes {
 	IMPLICIT,
 	SUGGESTION,
 }
+
+export enum ActivityTypes {
+	PLAYING,
+	STREAMING,
+	LISTENING,
+	WATCHING,
+	CUSTOM,
+	COMPETING,
+}
