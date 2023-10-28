@@ -1,6 +1,37 @@
+import { MessageType } from "@constants/message";
+
+import { user } from "../common";
 import guild_member from "../guild/member";
 
-import { boolean, nullable, number, object, optional, string } from "valibot";
+import { array, boolean, nullable, number, object, optional, special, string, unknown } from "valibot";
+
+export const MessageTypeSchema = special<MessageType>((value) => {
+	if (typeof value !== "number") return false;
+	return Object.values(MessageType).includes(value);
+});
+
+export const MESSAGE_CREATE = object({
+	attachments: nullable(array(unknown())),
+	author: user,
+	channel_id: string(),
+	components: nullable(array(unknown())),
+	content: string(),
+	edited_timestamp: nullable(string()),
+	embeds: nullable(array(unknown())),
+	flags: nullable(number()),
+	guild_id: optional(string()),
+	id: string(),
+	member: optional(guild_member),
+	mention_everyone: boolean(),
+	mention_roles: nullable(array(string())),
+	mentions: nullable(array(user)),
+	nonce: optional(nullable(string())),
+	pinned: boolean(),
+	referenced_message: nullable(unknown()),
+	timestamp: string(),
+	tts: boolean(),
+	type: MessageTypeSchema,
+});
 
 export const MESSAGE_ACK = object({
 	ack_type: optional(number()),

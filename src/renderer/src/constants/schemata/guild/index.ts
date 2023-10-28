@@ -96,7 +96,7 @@ export const GUILD_DELETE = object({
 	unavailable: optional(boolean()),
 });
 
-export const GUILD_APPLICATION_INDEX_UPDATE = object({
+export const GUILD_APPLICATION_COMMAND_INDEX_UPDATE = object({
 	application_command_counts: application_command_counts,
 	guild_hashes: hashes,
 	guild_id: string(),
