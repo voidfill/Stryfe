@@ -2,8 +2,11 @@ import { MessageType } from "@constants/message";
 
 import { user } from "../common";
 import guild_member from "../guild/member";
+import attachment from "./attachment";
+import component from "./component";
+import embed from "./embed";
 
-import { array, boolean, nullable, number, object, optional, special, string, unknown } from "valibot";
+import { array, boolean, nullable, number, object, omit, optional, special, string, unknown } from "valibot";
 
 export const MessageTypeSchema = special<MessageType>((value) => {
 	if (typeof value !== "number") return false;
@@ -11,17 +14,17 @@ export const MessageTypeSchema = special<MessageType>((value) => {
 });
 
 export const MESSAGE_CREATE = object({
-	attachments: nullable(array(unknown())),
+	attachments: nullable(array(attachment)),
 	author: user,
 	channel_id: string(),
-	components: nullable(array(unknown())),
+	components: nullable(array(component)),
 	content: string(),
 	edited_timestamp: nullable(string()),
-	embeds: nullable(array(unknown())),
+	embeds: nullable(array(embed)),
 	flags: nullable(number()),
 	guild_id: optional(string()),
 	id: string(),
-	member: optional(guild_member),
+	member: optional(omit(guild_member, ["user"])),
 	mention_everyone: boolean(),
 	mention_roles: nullable(array(string())),
 	mentions: nullable(array(user)),

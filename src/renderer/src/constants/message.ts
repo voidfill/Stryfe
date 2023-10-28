@@ -82,3 +82,10 @@ export const messageFlags = Object.freeze({
 	SUPPRESS_NOTIFICATIONS: 1 << 12,
 	IS_VOICE_MESSAGE: 1 << 13,
 });
+
+export const attachmentFlags = Object.freeze({
+	IS_CLIP: 1 << 0,
+	IS_THUMBNAIL: 1 << 1,
+	IS_REMIX: 1 << 2,
+	IS_SPOILER: 1 << 3,
+});
