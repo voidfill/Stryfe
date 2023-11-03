@@ -10,14 +10,13 @@ import stage_voice from "./stagevoice";
 import text from "./text";
 import voice from "./voice";
 
-import { discriminatedUnion } from "@renderer/constants/discriminatedUnion";
-import { array, merge, nullable, object, omit, optional, string } from "valibot";
+import { array, merge, nullable, object, omit, optional, string, variant } from "valibot";
 
-export const private_channel = discriminatedUnion("type", [directMessage, groupDirectMessage]);
+export const private_channel = variant("type", [directMessage, groupDirectMessage]);
 
-export const guild_channel = discriminatedUnion("type", [text, voice, stage_voice, category, announcement, directory, forum, media]);
+export const guild_channel = variant("type", [text, voice, stage_voice, category, announcement, directory, forum, media]);
 
-export const CHANNEL_CREATE = discriminatedUnion("type", [
+export const CHANNEL_CREATE = variant("type", [
 	merge([omit(directMessage, ["recipient_ids"]), object({ recipients: array(user) })]),
 	merge([omit(groupDirectMessage, ["recipient_ids"]), object({ recipients: array(user) })]),
 	//
@@ -33,7 +32,7 @@ export const CHANNEL_CREATE = discriminatedUnion("type", [
 
 export const CHANNEL_UPDATE = CHANNEL_CREATE;
 
-export const CHANNEL_DELETE = discriminatedUnion("type", [
+export const CHANNEL_DELETE = variant("type", [
 	omit(directMessage, ["is_spam", "recipient_ids"]),
 	omit(groupDirectMessage, ["recipient_ids"]),
 	//

@@ -1,7 +1,6 @@
 import { equal, equalArray } from "../common";
 
-import { discriminatedUnion } from "@renderer/constants/discriminatedUnion";
-import { array, boolean, number, object, optional, string } from "valibot";
+import { array, boolean, number, object, optional, string, variant } from "valibot";
 
 export const button = object({
 	custom_id: optional(string()), // either url or custom_id must be present. sadly there is no good way to do this with valibot
@@ -95,8 +94,8 @@ export const channelSelect = object({
 });
 
 export const actionRow = object({
-	components: array(discriminatedUnion("type", [button, stringSelect, textInput, userSelect, roleSelect, mentionableSelect, channelSelect])),
+	components: array(variant("type", [button, stringSelect, textInput, userSelect, roleSelect, mentionableSelect, channelSelect])),
 	type: equal(1),
 });
 
-export default discriminatedUnion("type", [actionRow, button, stringSelect, textInput, userSelect, roleSelect, mentionableSelect, channelSelect]);
+export default variant("type", [actionRow, button, stringSelect, textInput, userSelect, roleSelect, mentionableSelect, channelSelect]);
