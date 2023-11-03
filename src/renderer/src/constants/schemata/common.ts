@@ -20,18 +20,20 @@ export const permission_overwrite = object({
 
 export const user = object({
 	avatar: nullable(string()),
-	avatar_decoration_data: nullable(
-		object({
-			asset: string(),
-			sku_id: string(),
-		}),
+	avatar_decoration_data: optional(
+		nullable(
+			object({
+				asset: string(),
+				sku_id: string(),
+			}),
+		),
 	),
 	bot: optional(boolean()),
 	discriminator: string(),
 	display_name: optional(nullable(string())),
 	global_name: nullable(string()),
 	id: string(),
-	public_flags: number(),
+	public_flags: optional(number()),
 	username: string(),
 });
 
