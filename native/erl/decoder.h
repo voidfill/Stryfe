@@ -55,7 +55,7 @@ public:
 			case NIL_EXT:
 				return Nan::Null();
 			case STRING_EXT:
-				return Nan::New<String>(readString(read16())).ToLocalChecked();
+				return decodeStringExt();
 			case SMALL_ATOM_EXT:
 				return decodeSmallAtom();
 			case NEW_FLOAT_EXT:
@@ -74,6 +74,15 @@ public:
 	};
 
 	// decoding
+
+	Local<Value> decodeStringExt() {
+		uint16_t length = read16();
+		const char* str = readString(length);
+		if(str == NULL) {
+			return Nan::Undefined();
+		}
+		return Nan::New<String>(str, length).ToLocalChecked();
+	}
 
 	Local<Value> decodeMap() {
 		uint32_t arity = read32();

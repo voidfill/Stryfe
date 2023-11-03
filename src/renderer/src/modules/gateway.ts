@@ -1,4 +1,4 @@
-import { gatewayDispatchesObj as validDispatches, GatewayPayload, OPCodes, SocketGatewayCloseCodes } from "@constants/gateway";
+import { GatewayPayload, OPCodes, SocketGatewayCloseCodes } from "@constants/gateway";
 
 import { ClientProperties } from "./discordversion";
 import Dispatcher from "./dispatcher";
@@ -6,6 +6,9 @@ import { Logger } from "./logger";
 import packworker from "./packworker?worker&inline";
 import { clearToken } from "./token";
 import unpackworker from "./unpackworker?worker&inline";
+
+import { dispatches as __allDispatches } from "@renderer/constants/schemata";
+import { safeParse } from "valibot";
 
 const upw = new unpackworker();
 const pw = new packworker();
@@ -190,8 +193,17 @@ export default class GatewaySocket {
 		switch (data.op) {
 			case OPCodes.DISPATCH:
 				this.#seq = data.s;
-
-				if (!validDispatches[data.t]) logger.warn("Dispatch unaccounted for:", data.t, data.d);
+				if (window.isDev) {
+					if (data.t in __allDispatches) {
+						const res = safeParse(__allDispatches[data.t], data.d);
+						if (!res.success) {
+							logger.error("Failed to typecheck Dispatch:", res.issues, data.d);
+							throw "Failed to typecheck Dispatch";
+						}
+					} else {
+						logger.warn("Dispatch unaccounted for:", data.t, data.d);
+					}
+				}
 
 				switch (data.t) {
 					case "READY":
@@ -263,7 +275,7 @@ export default class GatewaySocket {
 		if (this.#socket?.readyState !== WebSocket.OPEN) return logger.warn("Attempted to send message while socket is not open");
 		if (this.#state !== ConnectionState.Connected && this.#state !== ConnectionState.Connecting && this.#state !== ConnectionState.Resuming)
 			return logger.warn("Attempted to send message while not connected");
-		logger.info("Trying to send message:", opcode, data);
+		if (opcode !== OPCodes.IDENTIFY && opcode !== OPCodes.RECONNECT) logger.info("Trying to send message:", opcode, data);
 		pw.postMessage({ d: data, op: opcode });
 	}
 

@@ -1,4 +1,4 @@
-import { __all } from "@constants/gatewaytypes";
+import { _dispatches } from "@constants/schemata";
 
 import { gatewayDispatches } from "./gateway";
 import { Logger } from "./logger";
@@ -53,7 +53,7 @@ export class EventEmitter<
 }
 
 // Types.
-export type dispatches = gatewayDispatches & __all;
+export type dispatches = gatewayDispatches & _dispatches;
 declare global {
 	interface Window {
 		Dispatcher: EventEmitter<dispatches>;

@@ -1,12 +1,17 @@
 import { batch } from "solid-js";
 import { createStore, reconcile } from "solid-js/store";
 
+import { activity as _activity } from "@constants/schemata/presence";
+
 import Store from ".";
 
-import { activity, ActivityTypes } from "@renderer/constants/gatewaytypes";
+import { ActivityTypes } from "@renderer/constants/user";
+import { Output } from "valibot";
+
+type _activity = Output<typeof _activity>;
 
 const [activities, setActivities] = createStore<{
-	[userId: string]: activity[] | undefined;
+	[userId: string]: _activity[] | undefined;
 }>({});
 
 let selfId = "selfId";
@@ -14,7 +19,7 @@ export default new (class ActivityStore extends Store {
 	constructor() {
 		super({
 			PRESENCE_UPDATE: ({ user, activities }) => {
-				setActivities(user.id, reconcile(activities));
+				setActivities(user.id, reconcile(activities || undefined));
 			},
 			READY: ({ user, sessions }) => {
 				selfId = user.id;
@@ -43,7 +48,7 @@ export default new (class ActivityStore extends Store {
 	}
 
 	// eslint-disable-next-line solid/reactivity
-	getActivities(userId: string): activity[] | undefined {
+	getActivities(userId: string): _activity[] | undefined {
 		return activities[userId];
 	}
 

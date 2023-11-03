@@ -10,3 +10,8 @@ type OmitByType<T, Value> = {
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 type DistributiveOmit<T, K extends PropertyKey> = T extends any ? Omit<T, K> : never;
+
+type Prettify<T> = {
+	[K in keyof T]: T[K];
+	// eslint-disable-next-line
+} & {};

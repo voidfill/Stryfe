@@ -3,12 +3,17 @@ import { createStore, produce, reconcile } from "solid-js/store";
 import { ReactiveMap } from "@solid-primitives/map";
 import { ReactiveSet } from "@solid-primitives/set";
 
+import { ready_guild_properties as _ready_guild_properties } from "@constants/schemata/guild";
+
+import logger from "@modules/logger";
+
 import Store from ".";
 
-import { GUILD_CREATE, ready_guild_properties } from "@renderer/constants/gatewaytypes";
-import logger from "@renderer/modules/logger";
+import { Output } from "valibot";
 
-type stored_guild = DistributiveOmit<ready_guild_properties, "features"> & {
+type ready_guild_properties = Output<typeof _ready_guild_properties>;
+
+type stored_guild = DistributiveOmit<ready_guild_properties, "features" | "id"> & {
 	joined_at: string;
 	large: boolean;
 	lazy: boolean;
@@ -24,7 +29,7 @@ const guildIds = createMemo(() => Object.keys(guilds));
 export default new (class GuildStore extends Store {
 	constructor() {
 		super({
-			GUILD_CREATE: (guild: GUILD_CREATE) => {
+			GUILD_CREATE: (guild) => {
 				if (guild.unavailable) return void unavailableGuilds.add(guild.id);
 				unavailableGuilds.delete(guild.id);
 

@@ -5,34 +5,22 @@ import { ReactiveSet } from "@solid-primitives/set";
 
 import assets from "@constants/assets";
 import { ChannelTypes } from "@constants/channel";
-import {
-	CHANNEL_CREATE,
-	CHANNEL_UPDATE,
-	guild_announcement,
-	guild_category,
-	GUILD_CREATE,
-	guild_directory,
-	guild_forum,
-	guild_media_forum,
-	guild_stage_voice,
-	guild_text,
-	guild_voice,
-} from "@constants/gatewaytypes";
 
 import Store from ".";
 import UserStore from "./users";
+
+import { guild_channel } from "@renderer/constants/schemata/channels";
+import { Output } from "valibot";
 
 const lastMessageIds = new ReactiveMap<string, string | undefined>();
 const lastPinTimestamps = new ReactiveMap<string, string | undefined>();
 
 const [guildChannels, setGuildChannels] = createStore<{
-	[channelId: string]: DistributiveOmit<
-		guild_text | guild_voice | guild_stage_voice | guild_category | guild_announcement | guild_directory | guild_forum | guild_media_forum,
-		"id" | "last_message_id" | "last_pin_timestamp" | "permission_overwrites"
-	> & {
+	[channelId: string]: DistributiveOmit<Output<typeof guild_channel>, "id" | "last_message_id" | "last_pin_timestamp" | "permission_overwrites"> & {
 		parent_id?: string | null;
 	};
 }>({});
+
 const channelsPerGuild = new ReactiveMap<string, ReactiveSet<string>>();
 const sortedGuildChannels = new ReactiveMap<
 	string,
@@ -141,7 +129,7 @@ const threadsPerChannel = new ReactiveMap<string, ReactiveSet<string>>();
 export default new (class ChannelStore extends Store {
 	constructor() {
 		super({
-			CHANNEL_CREATE: (channel: CHANNEL_CREATE) => {
+			CHANNEL_CREATE: (channel) => {
 				batch(() => {
 					// @ts-expect-error only undefined in categories, dont care.
 					lastMessageIds.set(channel.id, channel.last_message_id || channel.id);
@@ -177,13 +165,14 @@ export default new (class ChannelStore extends Store {
 					});
 				});
 			},
-			CHANNEL_DELETE: ({ id, guild_id }) => {
+			CHANNEL_DELETE: (channel) => {
 				batch(() => {
-					if (guild_id) {
+					const id = channel.id;
+					if ("guild_id" in channel) {
 						lastMessageIds.delete(id);
 						lastPinTimestamps.delete(id);
 						setGuildChannels(produce((channels) => delete channels[id]));
-						channelsPerGuild.get(guild_id)?.delete(id);
+						channelsPerGuild.get(channel.guild_id)?.delete(id);
 						removeSortedGuildChannel(id);
 						return;
 					}
@@ -200,7 +189,7 @@ export default new (class ChannelStore extends Store {
 			CHANNEL_PINS_UPDATE: ({ channel_id, last_pin_timestamp }) => {
 				lastPinTimestamps.set(channel_id, last_pin_timestamp || undefined);
 			},
-			CHANNEL_UPDATE: (channel: CHANNEL_UPDATE) => {
+			CHANNEL_UPDATE: (channel) => {
 				batch(() => {
 					if ("guild_id" in channel) {
 						const old = guildChannels[channel.id];
@@ -220,12 +209,12 @@ export default new (class ChannelStore extends Store {
 					}
 
 					// eslint-disable-next-line @typescript-eslint/no-unused-vars
-					const { id, last_pin_timestamp, last_message_id, ...rest } = channel;
-					setDirectMessages(id, reconcile(rest));
+					const { id, last_pin_timestamp, last_message_id, recipients, ...rest } = channel;
+					setDirectMessages(id, reconcile({ ...rest, recipient_ids: recipients.map((r) => r.id) }));
 				});
 			},
-			GUILD_CREATE: (guild: GUILD_CREATE) => {
-				if (guild.unavailable) return;
+			GUILD_CREATE: (guild) => {
+				if ("unavailable" in guild && guild.unavailable) return;
 				batch(() => {
 					channelsPerGuild.set(guild.id, new ReactiveSet(guild.channels.map((c) => c.id)));
 					for (const channel of guild.channels) {
@@ -276,10 +265,10 @@ export default new (class ChannelStore extends Store {
 			READY: ({ guilds, private_channels }) => {
 				batch(() => {
 					for (const guild of guilds) {
-						if (guild.unavailable) continue;
+						if ("unavailable" in guild && guild.unavailable) continue;
 						channelsPerGuild.set(guild.id, new ReactiveSet(guild.channels.map((c) => c.id)));
 						for (const channel of guild.channels) {
-							// @ts-expect-error dont worry about it
+							// @ts-expect-error this is okay since we || undefined
 							// eslint-disable-next-line @typescript-eslint/no-unused-vars
 							const { id, last_pin_timestamp, last_message_id, permission_overwrites, ...rest } = channel;
 							setGuildChannels(id, rest);

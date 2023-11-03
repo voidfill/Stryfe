@@ -5,7 +5,10 @@ import assets from "@constants/assets";
 
 import Store from ".";
 
-import { user_self } from "@renderer/constants/gatewaytypes";
+import { user_self as _user_self } from "@renderer/constants/schemata/common";
+import { Output } from "valibot";
+
+type user_self = Output<typeof _user_self>;
 
 // maybe decoration? i dont plan on rendering it though
 type storedUser = {
@@ -54,7 +57,7 @@ export default new (class UserStore extends Store {
 
 	// eslint-disable-next-line solid/reactivity
 	getUser(id: string): storedUser {
-		return "id" in self && self.id === id ? (self as storedUser) : users[id];
+		return "id" in self && self.id === id ? ({ ...self, bot: false, public_flags: 0 } as storedUser) : users[id];
 	}
 
 	getAvatarUrl(id: string, size = 128, animated = false): string {
