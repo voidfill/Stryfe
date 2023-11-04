@@ -31,7 +31,7 @@ export const READY = object({
 	guild_experiments: any(),
 	guild_join_requests: nullable(array(unknown())),
 	guilds: array(union([unavailable_guild, ready_guild])),
-	merged_members: array(tuple([merged_member])),
+	merged_members: array(nullable(tuple([merged_member]))),
 	private_channels: array(private_channel),
 	read_state: object({
 		entries: array(
@@ -72,9 +72,9 @@ export const READY_SUPPLEMENTAL = object({
 	game_invites: any(),
 	guilds: array(
 		object({
-			embedded_activities: nullable(unknown()),
+			embedded_activities: optional(nullable(unknown())),
 			id: string(),
-			voice_states: nullable(array(voice_state)),
+			voice_states: optional(nullable(array(voice_state))),
 		}),
 	),
 	lazy_private_channels: unknown(),
