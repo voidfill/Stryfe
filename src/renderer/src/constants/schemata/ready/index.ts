@@ -120,3 +120,7 @@ export const PASSIVE_UPDATE_V1 = object({
 	members: optional(nullable(array(guild_member))),
 	voice_states: optional(nullable(array(voice_state))),
 });
+
+export const RESUMED = object({
+	keythatdoesntexist: equal("TODO: fix"),
+});

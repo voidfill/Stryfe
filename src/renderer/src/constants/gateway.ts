@@ -1,3 +1,6 @@
+import { dispatches as __allDispatches } from "@renderer/constants/schemata";
+import { Output } from "valibot";
+
 export const enum OPCodes {
 	DISPATCH,
 	HEARTBEAT,
@@ -56,11 +59,13 @@ export type GatewayPayload =
 			t: null;
 	  }
 	| {
-			d: any;
-			op: OPCodes.DISPATCH;
-			s: number;
-			t: string;
-	  };
+			[key in keyof typeof __allDispatches]: {
+				d: Output<(typeof __allDispatches)[key]>;
+				op: OPCodes.DISPATCH;
+				s: number;
+				t: key;
+			};
+	  }[keyof typeof __allDispatches];
 
 const gatewayDispatches = [
 	"READY",

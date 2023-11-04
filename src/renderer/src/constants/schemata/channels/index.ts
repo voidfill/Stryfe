@@ -1,4 +1,4 @@
-import { hashes, user } from "../common";
+import { user } from "../common";
 import announcement from "./announcement";
 import category from "./category";
 import directMessage from "./directmessage";
@@ -16,18 +16,20 @@ export const private_channel = variant("type", [directMessage, groupDirectMessag
 
 export const guild_channel = variant("type", [text, voice, stage_voice, category, announcement, directory, forum, media]);
 
+const guildIdObject = object({ guild_id: string() });
+
 export const CHANNEL_CREATE = variant("type", [
 	merge([omit(directMessage, ["recipient_ids"]), object({ recipients: array(user) })]),
 	merge([omit(groupDirectMessage, ["recipient_ids"]), object({ recipients: array(user) })]),
 	//
-	merge([text, object({ guild_id: string() })]),
-	merge([voice, object({ guild_id: string() })]),
-	merge([stage_voice, object({ guild_id: string() })]),
-	merge([category, object({ guild_id: string() })]),
-	merge([announcement, object({ guild_id: string() })]),
-	merge([directory, object({ guild_id: string() })]),
-	merge([forum, object({ guild_id: string() })]),
-	merge([media, object({ guild_id: string() })]),
+	merge([text, guildIdObject]),
+	merge([voice, guildIdObject]),
+	merge([stage_voice, guildIdObject]),
+	merge([category, guildIdObject]),
+	merge([announcement, guildIdObject]),
+	merge([directory, guildIdObject]),
+	merge([forum, guildIdObject]),
+	merge([media, guildIdObject]),
 ]);
 
 export const CHANNEL_UPDATE = CHANNEL_CREATE;
@@ -36,70 +38,14 @@ export const CHANNEL_DELETE = variant("type", [
 	omit(directMessage, ["is_spam", "recipient_ids"]),
 	omit(groupDirectMessage, ["recipient_ids"]),
 	//
-	merge([
-		text,
-		object({
-			guild_hashes: hashes,
-			guild_id: string(),
-			hashes: hashes,
-		}),
-	]),
-	merge([
-		voice,
-		object({
-			guild_hashes: hashes,
-			guild_id: string(),
-			hashes: hashes,
-		}),
-	]),
-	merge([
-		stage_voice,
-		object({
-			guild_hashes: hashes,
-			guild_id: string(),
-			hashes: hashes,
-		}),
-	]),
-	merge([
-		category,
-		object({
-			guild_hashes: hashes,
-			guild_id: string(),
-			hashes: hashes,
-		}),
-	]),
-	merge([
-		announcement,
-		object({
-			guild_hashes: hashes,
-			guild_id: string(),
-			hashes: hashes,
-		}),
-	]),
-	merge([
-		directory,
-		object({
-			guild_hashes: hashes,
-			guild_id: string(),
-			hashes: hashes,
-		}),
-	]),
-	merge([
-		forum,
-		object({
-			guild_hashes: hashes,
-			guild_id: string(),
-			hashes: hashes,
-		}),
-	]),
-	merge([
-		media,
-		object({
-			guild_hashes: hashes,
-			guild_id: string(),
-			hashes: hashes,
-		}),
-	]),
+	merge([text, guildIdObject]),
+	merge([voice, guildIdObject]),
+	merge([stage_voice, guildIdObject]),
+	merge([category, guildIdObject]),
+	merge([announcement, guildIdObject]),
+	merge([directory, guildIdObject]),
+	merge([forum, guildIdObject]),
+	merge([media, guildIdObject]),
 ]);
 
 export const CHANNEL_PINS_UPDATE = object({

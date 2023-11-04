@@ -197,7 +197,7 @@ export default class GatewaySocket {
 					if (data.t in __allDispatches) {
 						const res = safeParse(__allDispatches[data.t], data.d);
 						if (!res.success) {
-							logger.error("Failed to typecheck Dispatch:", res.issues, data.d);
+							logger.error("Failed to typecheck Dispatch:", data.t, res.issues, data.d);
 							throw "Failed to typecheck Dispatch";
 						}
 					} else {
@@ -223,7 +223,6 @@ export default class GatewaySocket {
 						Dispatcher.emit("GATEWAY_CONNECT");
 				}
 
-				// @ts-expect-error were not gonna validate this
 				Dispatcher.emit(data.t, data.d);
 				break;
 
