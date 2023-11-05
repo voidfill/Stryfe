@@ -17,6 +17,9 @@ dependencies:
   bindings:
     specifier: ^1.5.0
     version: 1.5.0
+  discord-protos:
+    specifier: ^1.0.5
+    version: 1.0.5
   electron-updater:
     specifier: ^5.3.0
     version: 5.3.0
@@ -1134,6 +1137,10 @@ packages:
     requiresBuild: true
     dev: true
     optional: true
+
+  /@protobuf-ts/runtime@2.9.1:
+    resolution: {integrity: sha512-ZTc8b+pQ6bwxZa3qg9/IO/M/brRkvr0tic9cSGgAsDByfPrtatT2300wTIRLDk8X9WTW1tT+FhyqmcrbMHTeww==}
+    dev: false
 
   /@sindresorhus/is@4.6.0:
     resolution: {integrity: sha512-t09vSN3MdfsyCHoFcTRCH/iUtG7OJ0CsjzB8cjAmKc/va/kIgeDI/TxsigdncE/4be734m0cvIYwNaV4i2XqAw==}
@@ -2524,6 +2531,12 @@ packages:
     dependencies:
       path-type: 4.0.0
     dev: true
+
+  /discord-protos@1.0.5:
+    resolution: {integrity: sha512-924CFthTtgkwsjVp9tC6Pvj/C5b5HWQ68A6suiEz1Dkg+LqvVsvQAGgMhvYc/nXNcosqQIeBruSQBxv4wIxVvw==}
+    dependencies:
+      '@protobuf-ts/runtime': 2.9.1
+    dev: false
 
   /dmg-builder@23.6.0:
     resolution: {integrity: sha512-jFZvY1JohyHarIAlTbfQOk+HnceGjjAdFjVn3n8xlDWKsYNqbO4muca6qXEZTfGXeQMG7TYim6CeS5XKSfSsGA==}

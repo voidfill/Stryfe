@@ -44,10 +44,23 @@
 			border-radius: 100%;
 			transition: border-radius 0.2s ease-in-out;
 			width: 48px;
+
+			&.acronym {
+				height: 48px;
+				text-align: center;
+				vertical-align: middle;
+				line-height: 48px;
+				transition: background-color 0.2s ease-in-out;
+				background-color: var(--background-tertiary);
+			}
 		}
 
 		&.selected .guild-icon, &:hover .guild-icon {
 			border-radius: 33%;
+
+			&.acronym {
+				background-color: var(--background-secondary);
+			}
 		}
 	}
 }

@@ -218,11 +218,13 @@ export default function Tooltip(element: Element, value: Accessor<TooltipProps>)
 		element.addEventListener("mouseenter", handleMouseEnter);
 		element.addEventListener("mouseleave", handleMouseLeave);
 		element.addEventListener("mousedown", hide);
+		window.addEventListener("scroll", hide, true);
 
 		onCleanup(() => {
 			element.removeEventListener("mouseenter", handleMouseEnter);
 			element.removeEventListener("mouseleave", handleMouseLeave);
 			element.removeEventListener("mousedown", hide);
+			window.removeEventListener("scroll", hide, true);
 		});
 	});
 }

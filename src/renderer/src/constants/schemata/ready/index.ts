@@ -1,5 +1,5 @@
 import { private_channel } from "../channels";
-import { equal, status, user, user_self } from "../common";
+import { equal, equalArray, status, user, user_self } from "../common";
 import { ready_guild, unavailable_guild } from "../guild";
 import guild_member from "../guild/member";
 import voice_state from "../guild/voicestate";
@@ -8,6 +8,7 @@ import { relationship } from "../relationship";
 import connected_account from "./connectedaccount";
 import { session } from "./session";
 
+import { UserSettingsType } from "@renderer/stores/settings";
 import { any, array, boolean, merge, nullable, number, object, omit, optional, string, tuple, union, unknown } from "valibot";
 
 const merged_member = merge([
@@ -123,4 +124,16 @@ export const PASSIVE_UPDATE_V1 = object({
 
 export const RESUMED = object({
 	keythatdoesntexist: equal("TODO: fix"),
+});
+
+export const USER_SETTINGS_PROTO_UPDATE = object({
+	partial: boolean(),
+	settings: object({
+		proto: string(),
+		type: equalArray([
+			UserSettingsType.FRECENCY_AND_FAVORITES_SETTINGS,
+			UserSettingsType.PRELOADED_USER_SETTINGS,
+			UserSettingsType.TEST_SETTINGS,
+		] as const),
+	}),
 });

@@ -1,5 +1,5 @@
 import { guild_channel } from "../channels";
-import { equal, equalArray, hashes } from "../common";
+import { equal, equalArray } from "../common";
 import emoji from "./emoji";
 import guild_member from "./member";
 import role from "./role";
@@ -98,9 +98,8 @@ export const GUILD_DELETE = object({
 
 export const GUILD_APPLICATION_COMMAND_INDEX_UPDATE = object({
 	application_command_counts: application_command_counts,
-	guild_hashes: hashes,
+	bot_users: nullable(unknown()),
 	guild_id: string(),
-	hashes: hashes,
 	version: string(),
 });
 

@@ -67,15 +67,3 @@ export const user_self = object({
 	username: string(),
 	verified: boolean(),
 });
-
-export const hashes = object({
-	channels: object({
-		hash: string(),
-	}),
-	metadata: object({
-		hash: string(),
-	}),
-	roles: object({
-		hash: string(),
-	}),
-});
