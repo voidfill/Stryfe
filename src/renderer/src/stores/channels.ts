@@ -314,7 +314,7 @@ export default new (class ChannelStore extends Store {
 		return directMessages[channelId];
 	}
 
-	// TODO: usernames
+	// TODO: usernames // ? did i implement this and forget to remove?
 	getPrivateChannelName(channelId: string): string | undefined {
 		const channel = this.getDirectMessage(channelId);
 		if (!channel) return undefined;
