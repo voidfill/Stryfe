@@ -31,7 +31,7 @@ export const user = object({
 	bot: optional(boolean()),
 	discriminator: string(),
 	display_name: optional(nullable(string())),
-	global_name: nullable(string()),
+	global_name: optional(nullable(string())),
 	id: string(),
 	public_flags: optional(number()),
 	username: string(),

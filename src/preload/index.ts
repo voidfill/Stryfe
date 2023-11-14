@@ -11,9 +11,9 @@ export const ipc = {
 	setUserAgent: (ua: string): Promise<void> => ipcRenderer.invoke("useragent:set", ua),
 };
 
-const allowed = new Set(["Darwin", "Linux", "Windows"]);
 let osType = os.type();
-osType = allowed.has(osType) ? osType : "Windows";
+//const allowed = new Set(["Darwin", "Linux", "Windows"]);
+osType = "Windows"; //allowed.has(osType) ? osType : "Windows";
 
 (async (): Promise<void> => {
 	try {

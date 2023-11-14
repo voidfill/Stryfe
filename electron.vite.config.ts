@@ -12,6 +12,9 @@ export default defineConfig({
 		plugins: [externalizeDepsPlugin(), bytecodePlugin()],
 	},
 	renderer: {
+		build: {
+			sourcemap: "inline",
+		},
 		plugins: [solid(), compileTime()],
 		publicDir: resolve("src/renderer/public"),
 		resolve: {

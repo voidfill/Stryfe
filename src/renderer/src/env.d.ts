@@ -15,3 +15,5 @@ type Prettify<T> = {
 	[K in keyof T]: T[K];
 	// eslint-disable-next-line
 } & {};
+
+type AsyncReturnType<T extends (...args: any) => Promise<any>> = T extends (...args: any) => Promise<infer R> ? R : any;

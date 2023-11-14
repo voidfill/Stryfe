@@ -1,7 +1,7 @@
 import { equal, permission_overwrite } from "../common";
 
 import { ChannelTypes } from "@renderer/constants/channel";
-import { array, nullable, number, object, optional, string } from "valibot";
+import { array, boolean, nullable, number, object, optional, string } from "valibot";
 
 export default object({
 	flags: number(),
@@ -17,6 +17,7 @@ export default object({
 	last_message_id: nullable(string()),
 	last_pin_timestamp: optional(nullable(string())),
 	name: string(),
+	nsfw: optional(boolean()),
 	parent_id: optional(nullable(string())),
 	permission_overwrites: nullable(array(permission_overwrite)),
 	position: number(),

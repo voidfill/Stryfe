@@ -357,6 +357,34 @@ export default new (class ChannelStore extends Store {
 		return guildChannels[channelId];
 	}
 
+	// These functions purely exist as typeguards. They use getGuildChannel to still be reasonably patchable
+	// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+	getGuildCategoryChannel(channelId: string) {
+		const channel = this.getGuildChannel(channelId);
+		if (channel.type !== ChannelTypes.GUILD_CATEGORY) throw "Requested channel is not a category (typeguard)";
+		return channel;
+	}
+	// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+	getGuildVoiceChannel(channelId: string) {
+		const channel = this.getGuildChannel(channelId);
+		if (channel.type !== ChannelTypes.GUILD_VOICE && channel.type !== ChannelTypes.GUILD_STAGE_VOICE)
+			throw "Requested channel is not a voice channel (typeguard)";
+		return channel;
+	}
+	// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+	getGuildTextChannel(channelId: string) {
+		const channel = this.getGuildChannel(channelId);
+		if (
+			channel.type !== ChannelTypes.GUILD_TEXT &&
+			channel.type !== ChannelTypes.GUILD_ANNOUNCEMENT &&
+			channel.type !== ChannelTypes.GUILD_DIRECTORY &&
+			channel.type !== ChannelTypes.GUILD_FORUM &&
+			channel.type !== ChannelTypes.GUILD_MEDIA
+		)
+			throw "Requested channel is not a text channel (typeguard)";
+		return channel;
+	}
+
 	getSortedGuildChannels(guildId: string): (typeof sortedGuildChannels extends ReactiveMap<any, infer V> ? V : never) | undefined {
 		if (!channelsPerGuild.has(guildId)) return undefined;
 		if (sortedGuildChannels.has(guildId)) return sortedGuildChannels.get(guildId)!;

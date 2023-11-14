@@ -6,6 +6,7 @@ import { number, object, string, unknown } from "valibot";
 export default object({
 	TODO: unknown(),
 	id: string(),
+	name: string(),
 	position: number(),
 	type: equal(ChannelTypes.GUILD_DIRECTORY),
 });

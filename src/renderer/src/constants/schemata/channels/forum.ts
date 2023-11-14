@@ -41,6 +41,7 @@ export default object({
 	id: string(),
 	last_message_id: nullable(string()),
 	name: string(),
+	nsfw: optional(boolean()),
 	parent_id: optional(nullable(string())),
 	permission_overwrites: nullable(array(permission_overwrite)),
 	position: number(),

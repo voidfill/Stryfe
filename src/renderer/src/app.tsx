@@ -7,6 +7,7 @@ import MainView from "@components/mainview";
 const Login = lazy(() => import("@components/login"));
 
 import { FocusAnimationDirective } from "./components/common/animationcontext";
+import { setWindowTitle } from "./main";
 import Layers from "./modules/layers";
 
 import "./app.scss";
@@ -19,6 +20,8 @@ window.ipc.isEncryptionAvailable().then(setCanEncrypt);
 function NotFoundPage(): JSX.Element {
 	const params = useParams(),
 		navigate = useNavigate();
+
+	setWindowTitle("404 - Stryfe");
 
 	return (
 		<div class="not-found">

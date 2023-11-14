@@ -1,6 +1,6 @@
 import { GatewayPayload, OPCodes, SocketGatewayCloseCodes } from "@constants/gateway";
 
-import { ClientProperties } from "./discordversion";
+import { clientProperties } from "./discordversion";
 import Dispatcher from "./dispatcher";
 import { Logger } from "./logger";
 import packworker from "./packworker?worker&inline";
@@ -34,7 +34,6 @@ const enum ConnectionState {
 const HELLO_TIMEOUT = 20_000,
 	HEARTBEAT_MAX_RESUME_THRESHOLD = 60 * 3 * 1000,
 	MAX_RETRIES = 20,
-	native_build_number = 34898,
 	capabilities = 16381;
 
 export type gatewayDispatches = {
@@ -47,7 +46,7 @@ export default class GatewaySocket {
 	#gatewayURL = "wss://gateway.discord.gg";
 	#gatewayVersion: number;
 	#token: string;
-	#clientProperties: ClientProperties;
+	#clientProperties: clientProperties;
 
 	#state: ConnectionState = ConnectionState.Disconnected;
 	#socket: WebSocket | null = null;
@@ -82,7 +81,7 @@ export default class GatewaySocket {
 		return !!this.#sessionId && Date.now() - (this.#heart.lastAck ?? 0) < HEARTBEAT_MAX_RESUME_THRESHOLD;
 	}
 
-	constructor(token: string, clientProperties: ClientProperties, gatewayVersion = 9) {
+	constructor(token: string, clientProperties: clientProperties, gatewayVersion = 9) {
 		this.#token = token;
 		this.#clientProperties = clientProperties;
 		this.#gatewayVersion = gatewayVersion;
@@ -172,19 +171,7 @@ export default class GatewaySocket {
 				since: 0,
 				status: "unknown",
 			},
-			properties: {
-				browser: "Discord Client",
-				browser_user_agent: navigator.userAgent + " discord/" + this.#clientProperties.version,
-				client_build_number: this.#clientProperties.build_number,
-				client_event_source: null,
-				client_version: this.#clientProperties.version,
-				native_build_number: native_build_number,
-				os: window.os_type,
-				os_arch: window.os.arch(),
-				os_version: window.os.release(),
-				release_channel: "stable",
-				system_locale: "en-US",
-			},
+			properties: this.#clientProperties,
 			token: this.#token,
 		});
 	}
@@ -274,7 +261,7 @@ export default class GatewaySocket {
 		if (this.#socket?.readyState !== WebSocket.OPEN) return logger.warn("Attempted to send message while socket is not open");
 		if (this.#state !== ConnectionState.Connected && this.#state !== ConnectionState.Connecting && this.#state !== ConnectionState.Resuming)
 			return logger.warn("Attempted to send message while not connected");
-		if (opcode !== OPCodes.IDENTIFY && opcode !== OPCodes.RECONNECT) logger.info("Trying to send message:", opcode, data);
+		logger.info("Trying to send message:", opcode, data);
 		pw.postMessage({ d: data, op: opcode });
 	}
 

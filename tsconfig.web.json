@@ -18,6 +18,7 @@
 	  "@constants/*": ["src/renderer/src/constants/*"],
 	  "@resources/*": ["resources/*"],
     },
+	"noImplicitAny": true,
 	"types": ["vite-plugin-compile-time/client"]
   }
 }

@@ -6,6 +6,7 @@ import Storage from "@modules/storage";
 
 import ChannelStore from "@stores/channels";
 import ConnectionStore from "@stores/connection";
+import GuildStore from "@stores/guilds";
 
 import GuildsList from "@components/guilds";
 
@@ -21,6 +22,7 @@ import "./style.scss";
 import shiggy from "@resources/shiggy.gif";
 
 import { ChannelTypes } from "@renderer/constants/channel";
+import { setWindowTitle } from "@renderer/main";
 
 const [lastSelectedChannels, setLastSelectedChannels] = createStore<{
 	[key: string]: string | undefined;
@@ -44,20 +46,32 @@ export default function MainView(): JSX.Element {
 		setLastSelectedChannels(params.guildId, params.channelId);
 
 		if (!currChannel()) {
-			if (lastSelectedChannels[params.guildId]) {
-				navigate(`/channels/${params.guildId}/${lastSelectedChannels[params.guildId]}`);
-			} else {
+			if (lastSelectedChannels[params.guildId]) navigate(`/channels/${params.guildId}/${lastSelectedChannels[params.guildId]}`);
+			else {
 				const sortedChannels = ChannelStore.getSortedGuildChannels(params.guildId);
 				const channelId = sortedChannels?.uncategorized.other[0] || sortedChannels?.categorized[0]?.other[0];
-				if (channelId) {
-					navigate(`/channels/${params.guildId}/${channelId}`);
-				}
+				if (channelId) navigate(`/channels/${params.guildId}/${channelId}`);
 			}
 		}
 
 		untrack(() => {
 			Storage.set("lastSelectedChannels", lastSelectedChannels);
 		});
+	});
+
+	createEffect(() => {
+		const ch = currChannel();
+		if (params.guildId === "@me") {
+			if (ch)
+				setWindowTitle(
+					`${(currChannel().type === ChannelTypes.DM ? "@" : "") + ChannelStore.getPrivateChannelName(params.channelId)} - Stryfe`,
+				);
+			else setWindowTitle("Friends - Stryfe");
+			return;
+		}
+		if (ch)
+			setWindowTitle(`#${"name" in ch ? ch.name : params.channelId} | ${GuildStore.getGuild(params.guildId)?.name ?? params.guildId} - Stryfe`);
+		else setWindowTitle("Stryfe");
 	});
 
 	return (

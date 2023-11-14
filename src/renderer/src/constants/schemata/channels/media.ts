@@ -2,7 +2,7 @@ import { equal, equalArray, permission_overwrite } from "../common";
 import { default_reaction_emoji, icon_emoji, tag } from "./forum";
 
 import { ChannelTypes } from "@renderer/constants/channel";
-import { array, nullable, number, object, optional, string } from "valibot";
+import { array, boolean, nullable, number, object, optional, string } from "valibot";
 
 export default object({
 	available_tags: nullable(array(tag)),
@@ -16,6 +16,7 @@ export default object({
 	id: string(),
 	last_message_id: nullable(string()),
 	name: string(),
+	nsfw: optional(boolean()),
 	parent_id: optional(nullable(string())),
 	permission_overwrites: nullable(array(permission_overwrite)),
 	position: number(),

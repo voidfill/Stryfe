@@ -1,5 +1,3 @@
-import "solid-devtools";
-
 import { hashIntegration, Router } from "@solidjs/router";
 import { render } from "solid-js/web";
 
@@ -8,18 +6,20 @@ import logger from "@modules/logger";
 import Storage from "@modules/storage";
 import { getToken } from "@modules/token";
 
-import { getClientProps, getSuper } from "./modules/discordversion";
+import { getSuper } from "./modules/discordversion";
 
 import { attachDevtoolsOverlay } from "@solid-devtools/overlay";
 attachDevtoolsOverlay();
+
+import { createEffect, createSignal } from "solid-js";
 
 import App from "./app";
 
 (async (): Promise<void> => {
 	if (!(await window.ipc.isEncryptionAvailable()) || !Storage.has("token")) return;
 	try {
-		const [token, buildNumber, superProps] = await Promise.all([getToken(), getClientProps(), getSuper()]);
-		window.gateway = new WebSocket(token!, buildNumber);
+		const [token, superProps] = await Promise.all([getToken(), getSuper()]);
+		window.gateway = new WebSocket(token!, superProps.properties);
 	} catch (e) {
 		logger.error("Failed to get token or clientprops:", e);
 	}
@@ -46,3 +46,10 @@ render(
 	),
 	document.getElementById("root") as HTMLElement,
 );
+
+export const [windowTitle, setWindowTitle] = createSignal("Stryfe");
+
+const titleEl = document.getElementById("app-title") as HTMLElement;
+createEffect(() => {
+	titleEl.innerText = windowTitle();
+});

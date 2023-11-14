@@ -3,6 +3,8 @@ import { Dynamic } from "solid-js/web";
 
 import "./style.scss";
 
+import { setWindowTitle } from "@renderer/main";
+
 const items = [
 	{
 		component: lazy(() => import("./credentials")),
@@ -20,6 +22,8 @@ const items = [
 
 export default function Login(): JSX.Element {
 	const [selected, setSelected] = createSignal(0);
+
+	setWindowTitle("Login - Stryfe");
 
 	return (
 		<div class="login-page">

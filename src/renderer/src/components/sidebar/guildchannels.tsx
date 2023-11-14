@@ -17,7 +17,7 @@ import ChannelIcon from "../common/channelicon";
 const refMap = new Map<string, any>();
 
 function TextChannel(props: { id: string; isCollapsed: Accessor<boolean> }): JSX.Element {
-	const channel = createMemo(() => ChannelStore.getGuildChannel(props.id));
+	const channel = createMemo(() => ChannelStore.getGuildTextChannel(props.id));
 	const params = useParams();
 	const selc = useSelectedChannelContext();
 
@@ -51,7 +51,7 @@ function TextChannel(props: { id: string; isCollapsed: Accessor<boolean> }): JSX
 }
 
 function VoiceChannel(props: { id: string; isCollapsed: Accessor<boolean> }): JSX.Element {
-	const channel = createMemo(() => ChannelStore.getGuildChannel(props.id));
+	const channel = createMemo(() => ChannelStore.getGuildVoiceChannel(props.id));
 	const params = useParams();
 	const selc = useSelectedChannelContext();
 
@@ -90,7 +90,7 @@ createEffect(() => {
 });
 
 function Category(props: { id: string; other: string[]; voice: string[] }): JSX.Element {
-	const category = createMemo(() => ChannelStore.getGuildChannel(props.id));
+	const category = createMemo(() => ChannelStore.getGuildCategoryChannel(props.id));
 	const isCollapsed = createMemo(() => collapsed[props.id] ?? false);
 	const toggleCollapsed = (): void => setCollapsed(props.id, !isCollapsed());
 

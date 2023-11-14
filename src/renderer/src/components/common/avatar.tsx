@@ -162,6 +162,7 @@ export function Status(props: {
 		}
 	});
 	const fullStatus = createMemo(() => StatusStore.getFullStatus(props.userId));
+	// TODO: tooltip with statuses per platform
 
 	const antiRectProps = createMemo<{
 		height: number;
