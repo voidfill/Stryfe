@@ -14,6 +14,8 @@ const headers = new Set<[string, string[] | ((prev: any) => string[])]>([
 const allowOriginList = ["https://discord.com", "https://cordapi.dolfi.es"];
 const toDelete = new Set(["access-control-allow-origin", "content-security-policy-report-only", "content-security-policy", "x-frame-options"]);
 
+let newUserAgent = "";
+
 function createWindow(): BrowserWindow {
 	const mainWindow = new BrowserWindow({
 		autoHideMenuBar: true,
@@ -75,6 +77,9 @@ function createWindow(): BrowserWindow {
 		},
 		(details, callback) => {
 			details.requestHeaders["Origin"] = details.requestHeaders["Referer"] = "https://discord.com";
+			if (newUserAgent) {
+				details.requestHeaders["User-Agent"] = newUserAgent;
+			}
 
 			callback({ cancel: false, requestHeaders: details.requestHeaders });
 		},
@@ -113,16 +118,15 @@ app.whenReady().then(() => {
 	ipcMain.handle("encryption:encrypt", (_, data: string) => safeStorage.encryptString(data).toString("base64"));
 	ipcMain.handle("encryption:decrypt", (_, data: string) => safeStorage.decryptString(Buffer.from(data, "base64")));
 	ipcMain.handle("is:dev", () => is.dev);
+	ipcMain.handle("useragent:set", (_, ua: string) => {
+		newUserAgent = ua;
+	});
 
 	app.on("browser-window-created", (_, window) => {
 		optimizer.watchWindowShortcuts(window);
 	});
 
-	const window = createWindow();
-
-	ipcMain.handle("useragent:set", (_, ua: string) => {
-		window.webContents.session.setUserAgent(ua);
-	});
+	createWindow();
 
 	app.on("activate", function () {
 		if (BrowserWindow.getAllWindows().length === 0) createWindow();
