@@ -50,7 +50,14 @@ module.exports = {
 		"@typescript-eslint/no-explicit-any": "off", // i cant do this without any.
 		"@typescript-eslint/no-non-null-assertion": "off",
 		"@typescript-eslint/no-var-requires": "off",
-		"no-fallthrough": ["error", { commentPattern: "@fallthrough" }],
+		"no-fallthrough": ["error", { commentPattern: "@fallthrough" }], // no autofixer sadly.
+		"prettier/prettier": [
+			"error",
+			{
+				endOfLine: "auto",
+			},
+		],
+
 		"simple-import-sort/imports": [
 			"error",
 			{
@@ -70,6 +77,6 @@ module.exports = {
 			},
 		],
 		"sort-keys-plus/sort-keys": ["warn", "asc", { caseSensitive: true, natural: true }], // if you rely on object key order, youre doing it wrong.
-		"typescript-sort-keys/interface": ["warn", "asc", { caseSensitive: true, natural: true }], // no autofixer sadly.
+		"typescript-sort-keys/interface": ["warn", "asc", { caseSensitive: true, natural: true }],
 	},
 };
