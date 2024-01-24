@@ -48,7 +48,7 @@ export const activity = object({
 	name: string(),
 	party: optional(
 		object({
-			id: string(),
+			id: optional(string()),
 			size: optional(unknown()),
 		}),
 	),

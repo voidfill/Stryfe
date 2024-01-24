@@ -23,7 +23,7 @@ export const READY = object({
 	analytics_token: string(),
 	api_code_version: number(),
 	auth_session_id_hash: string(),
-	connected_accounts: array(connected_account),
+	connected_accounts: nullable(array(connected_account)),
 	consents: any(),
 	country_code: string(),
 	experiments: any(),
@@ -31,8 +31,8 @@ export const READY = object({
 	geo_ordered_rtc_regions: array(string()),
 	guild_experiments: any(),
 	guild_join_requests: nullable(array(unknown())),
-	guilds: array(union([unavailable_guild, ready_guild])),
-	merged_members: array(nullable(tuple([merged_member]))),
+	guilds: nullable(array(union([unavailable_guild, ready_guild]))),
+	merged_members: nullable(array(nullable(tuple([merged_member])))),
 	private_channels: array(private_channel),
 	read_state: object({
 		entries: array(
@@ -71,38 +71,42 @@ export const READY = object({
 export const READY_SUPPLEMENTAL = object({
 	disclose: array(string()),
 	game_invites: any(),
-	guilds: array(
-		object({
-			embedded_activities: optional(nullable(unknown())),
-			id: string(),
-			voice_states: optional(nullable(array(voice_state))),
-		}),
-	),
-	lazy_private_channels: unknown(),
-	merged_members: array(nullable(array(merged_member))),
-	merged_presences: object({
-		friends: array(
+	guilds: nullable(
+		array(
 			object({
-				activities: nullable(array(activity)),
-				client_status: client_status,
-				status: status,
-				user_id: string(),
+				embedded_activities: optional(nullable(unknown())),
+				id: string(),
+				voice_states: optional(nullable(array(voice_state))),
 			}),
 		),
-		guilds: array(
-			nullable(
-				array(
-					object({
-						activities: nullable(array(activity)),
-						broadcast: nullable(unknown()),
-						client_status: client_status,
-						status: status,
-						user_id: string(),
-					}),
+	),
+	lazy_private_channels: unknown(),
+	merged_members: nullable(array(nullable(array(merged_member)))),
+	merged_presences: nullable(
+		object({
+			friends: array(
+				object({
+					activities: nullable(array(activity)),
+					client_status: client_status,
+					status: status,
+					user_id: string(),
+				}),
+			),
+			guilds: array(
+				nullable(
+					array(
+						object({
+							activities: nullable(array(activity)),
+							broadcast: nullable(unknown()),
+							client_status: client_status,
+							status: status,
+							user_id: string(),
+						}),
+					),
 				),
 			),
-		),
-	}),
+		}),
+	),
 });
 
 export const PASSIVE_UPDATE_V1 = object({
