@@ -10,19 +10,27 @@ import unpackworker from "./unpackworker?worker&inline";
 import { dispatches as __allDispatches } from "@renderer/constants/schemata";
 import { safeParse } from "valibot";
 
+declare global {
+	interface customDispatches {
+		GATEWAY_CONNECT: undefined;
+		GATEWAY_DISCONNECT: undefined;
+		GATEWAY_GIVE_UP: undefined;
+	}
+}
+
+const logger = new Logger("WebSocket", "blue");
+
 const upw = new unpackworker();
 const pw = new packworker();
 upw.onmessage = pw.onmessage = (): void => {};
 upw.onerror = (error: ErrorEvent): void => {
 	error.preventDefault();
-	console.error("Unpack worker error:", error);
+	logger.error("Unpack worker error:", error);
 };
 pw.onerror = (error: ErrorEvent): void => {
 	error.preventDefault();
-	console.error("Pack worker error:", error);
+	logger.error("Pack worker error:", error);
 };
-
-const logger = new Logger("WebSocket", "blue");
 
 const enum ConnectionState {
 	Disconnected,
@@ -35,12 +43,6 @@ const HELLO_TIMEOUT = 20_000,
 	HEARTBEAT_MAX_RESUME_THRESHOLD = 60 * 3 * 1000,
 	MAX_RETRIES = 20,
 	capabilities = 16381;
-
-export type gatewayDispatches = {
-	GATEWAY_CONNECT: undefined;
-	GATEWAY_DISCONNECT: undefined;
-	GATEWAY_GIVE_UP: undefined;
-};
 
 export default class GatewaySocket {
 	#gatewayURL = "wss://gateway.discord.gg";

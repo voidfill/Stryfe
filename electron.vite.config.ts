@@ -13,7 +13,7 @@ export default defineConfig({
 	},
 	renderer: {
 		build: {
-			sourcemap: "inline",
+			minify: "esbuild",
 		},
 		plugins: [solid(), compileTime()],
 		publicDir: resolve("src/renderer/public"),

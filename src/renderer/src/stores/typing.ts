@@ -2,6 +2,9 @@ import { batch } from "solid-js";
 import { createStore, produce } from "solid-js/store";
 
 import Store from ".";
+import RelationshipStore from "./relationships";
+
+import { RelationshipTypes } from "@renderer/constants/user";
 
 const [typing, setTyping] = createStore<{
 	[channelId: string]: {
@@ -26,6 +29,8 @@ export default new (class TypingStore extends Store {
 				);
 			},
 			TYPING_START: ({ channel_id, user_id, timestamp }) => {
+				if (RelationshipStore.getRelationship(user_id)?.type === RelationshipTypes.BLOCKED) return;
+
 				batch(() => {
 					if (!typing[channel_id]) setTyping(channel_id, {});
 					setTyping(channel_id, user_id, timestamp);

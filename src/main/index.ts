@@ -1,15 +1,10 @@
-import { electronApp, is, optimizer } from "@electron-toolkit/utils";
+import { electronApp, is } from "@electron-toolkit/utils";
 import { app, BrowserWindow, ipcMain, safeStorage, shell } from "electron";
 import { join } from "path";
 import os from "os";
 
 import icon from "../../build/icon.png?asset";
-
-const headers = new Set<[string, string[] | ((prev: any) => string[])]>([
-	["access-control-allow-origin", ["https://discord.com", "https://cordapi.dolfi.es"]],
-	["access-control-allow-headers", (p): [string] => [p + ", Credentials"]],
-	["set-cookie", (p): string[] => p.map((c: string) => (~c.indexOf("SameSite") ? c : c + "; SameSite=None"))],
-]);
+import { getConstructorOptions, manageWindowState } from "./windowstate";
 
 const allowOriginList = ["https://discord.com", "https://cordapi.dolfi.es"];
 const toDelete = new Set(["access-control-allow-origin", "content-security-policy-report-only", "content-security-policy", "x-frame-options"]);
@@ -18,19 +13,21 @@ let newUserAgent = "";
 
 function createWindow(): BrowserWindow {
 	const mainWindow = new BrowserWindow({
-		autoHideMenuBar: true,
 		height: 670,
 		minHeight: 200,
 		minWidth: 300,
 		show: false,
-		width: 900,
-		...(process.platform === "linux" ? { icon } : {}),
 		webPreferences: {
 			nodeIntegrationInWorker: true,
 			preload: join(__dirname, "../preload/index.js"),
 			sandbox: false,
 		},
+		width: 900,
+		...(process.platform === "linux" ? { icon } : {}),
+		...getConstructorOptions(),
 	});
+
+	mainWindow.setMenuBarVisibility(false);
 
 	mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
 		if (!details.responseHeaders) return callback({ cancel: false });
@@ -86,8 +83,9 @@ function createWindow(): BrowserWindow {
 	);
 
 	mainWindow.on("ready-to-show", () => {
-		mainWindow.webContents.openDevTools();
+		if (is.dev) mainWindow.webContents.openDevTools();
 		mainWindow.show();
+		manageWindowState(mainWindow);
 	});
 
 	mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -110,6 +108,7 @@ if (os.type() === "Linux") app.commandLine.appendSwitch("password-store", "gnome
 if (is.dev) {
 	app.commandLine.appendSwitch("user-data-dir");
 	app.commandLine.appendSwitch("disable-web-security"); // yea. prod loading doesnt even seem to care
+	app.commandLine.appendSwitch("enable-precise-memory-info");
 }
 
 app.whenReady().then(() => {
@@ -120,10 +119,6 @@ app.whenReady().then(() => {
 	ipcMain.handle("is:dev", () => is.dev);
 	ipcMain.handle("useragent:set", (_, ua: string) => {
 		newUserAgent = ua;
-	});
-
-	app.on("browser-window-created", (_, window) => {
-		optimizer.watchWindowShortcuts(window);
 	});
 
 	createWindow();

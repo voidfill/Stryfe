@@ -1,6 +1,5 @@
 import { _dispatches } from "@constants/schemata";
 
-import { gatewayDispatches } from "./gateway";
 import { Logger } from "./logger";
 const logger = new Logger("Dispatcher", "purple");
 
@@ -52,9 +51,10 @@ export class EventEmitter<
 	}
 }
 
-// Types.
-export type dispatches = gatewayDispatches & _dispatches;
+export type dispatches = customDispatches & _dispatches;
 declare global {
+	// eslint-disable-next-line @typescript-eslint/no-empty-interface
+	interface customDispatches {}
 	interface Window {
 		Dispatcher: EventEmitter<dispatches>;
 	}
