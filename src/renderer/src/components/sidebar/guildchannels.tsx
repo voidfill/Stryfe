@@ -1,4 +1,4 @@
-import { NavLink, useParams } from "@solidjs/router";
+import { useParams } from "@solidjs/router";
 import { Accessor, createEffect, createMemo, For, JSX, onCleanup, Show, untrack } from "solid-js";
 import { createStore } from "solid-js/store";
 
@@ -28,7 +28,7 @@ function TextChannel(props: { id: string; isCollapsed: Accessor<boolean> }): JSX
 	return (
 		<Show when={(!props.isCollapsed() || selc(props.id)) && channel()} keyed>
 			{(channel): JSX.Element => (
-				<NavLink
+				<a
 					href={`/channels/${params.guildId}/${props.id}`}
 					classList={{
 						channel: true,
@@ -44,7 +44,7 @@ function TextChannel(props: { id: string; isCollapsed: Accessor<boolean> }): JSX
 						<ChannelIcon id={props.id} size={20} />
 					</div>
 					<span class="channel-name">{channel.name}</span>
-				</NavLink>
+				</a>
 			)}
 		</Show>
 	);
@@ -62,7 +62,7 @@ function VoiceChannel(props: { id: string; isCollapsed: Accessor<boolean> }): JS
 	return (
 		<Show when={(!props.isCollapsed() || selc(props.id)) && channel()} keyed>
 			{(channel): JSX.Element => (
-				<NavLink
+				<a
 					href={`/channels/${params.guildId}/${props.id}`}
 					classList={{
 						channel: true,
@@ -78,7 +78,7 @@ function VoiceChannel(props: { id: string; isCollapsed: Accessor<boolean> }): JS
 						<ChannelIcon id={props.id} size={20} />
 					</div>
 					<span class="channel-name">{channel.name}</span>
-				</NavLink>
+				</a>
 			)}
 		</Show>
 	);

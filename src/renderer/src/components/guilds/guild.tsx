@@ -1,4 +1,3 @@
-import { NavLink } from "@solidjs/router";
 import { createEffect, createMemo, JSX, Show } from "solid-js";
 import { createStore } from "solid-js/store";
 
@@ -59,7 +58,7 @@ export default function Guild(props: { id: string }): JSX.Element {
 				}}
 			>
 				<Indicator id={props.id} />
-				<NavLink href={`/channels/${props.id}/${lastSelectedChannels[props.id] ?? ""}`}>
+				<a href={`/channels/${props.id}/${lastSelectedChannels[props.id] ?? ""}`}>
 					<div
 						class="guild-icon-container"
 						use:HoverAnimationDirective
@@ -152,7 +151,7 @@ export default function Guild(props: { id: string }): JSX.Element {
 					>
 						<ImageOrAcronym id={props.id} />
 					</div>
-				</NavLink>
+				</a>
 			</div>
 		</Show>
 	);

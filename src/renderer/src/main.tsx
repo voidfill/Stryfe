@@ -1,4 +1,3 @@
-import { hashIntegration, Router } from "@solidjs/router";
 import { render } from "solid-js/web";
 
 import WebSocket from "@modules/gateway";
@@ -38,14 +37,7 @@ window.addEventListener("keydown", (e): void => {
 	}
 });
 
-render(
-	() => (
-		<Router source={hashIntegration()}>
-			<App />
-		</Router>
-	),
-	document.getElementById("root") as HTMLElement,
-);
+render(() => <App />, document.getElementById("root") as HTMLElement);
 
 export const [windowTitle, setWindowTitle] = createSignal("Stryfe");
 

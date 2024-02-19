@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes, useNavigate, useParams } from "@solidjs/router";
+import { HashRouter, Navigate, Route, useNavigate, useParams } from "@solidjs/router";
 import { createSignal, JSX, lazy, Show } from "solid-js";
 
 import Storage from "@modules/storage";
@@ -47,8 +47,8 @@ export default function App(): JSX.Element {
 			>
 				<Layers />
 				<div class="base">
-					<Routes>
-						<Route path="/" element={<Navigate href={Storage.has("token") ? "/channels/@me" : "/login"} />} />
+					<HashRouter>
+						<Route path="/" component={(): JSX.Element => <Navigate href={Storage.has("token") ? "/channels/@me" : "/login"} />} />
 						<Route path="/login" component={Login} />
 						<Route
 							path="/channels/:guildId/:channelId?/:messageId?"
@@ -60,7 +60,7 @@ export default function App(): JSX.Element {
 							}}
 						/>
 						<Route path={"/*path"} component={NotFoundPage} />
-					</Routes>
+					</HashRouter>
 				</div>
 			</Show>
 		</div>

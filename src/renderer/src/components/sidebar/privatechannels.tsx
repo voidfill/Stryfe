@@ -1,11 +1,11 @@
-import { NavLink, useParams } from "@solidjs/router";
+import { useParams } from "@solidjs/router";
 import { createMemo, For, JSX, onMount, Show } from "solid-js";
 
 import ChannelStore from "@stores/channels";
 
 import { FiUsers } from "solid-icons/fi";
 
-import { HoverAnimationDirective, HoverAnimationProvider } from "../common/animationcontext";
+import { HoverAnimationDirective } from "../common/animationcontext";
 import Avatar, { ShowStatus } from "../common/avatar";
 import CustomStatus from "../common/customstatus";
 import { useSelectedChannelContext } from "../common/selectioncontext";
@@ -20,8 +20,7 @@ function PrivateChannel(props: { id: string }): JSX.Element {
 	const selc = useSelectedChannelContext();
 
 	return (
-		<HoverAnimationProvider
-			component={NavLink}
+		<a
 			href={`/channels/@me/${props.id}`}
 			classList={{
 				channel: true,
@@ -29,6 +28,7 @@ function PrivateChannel(props: { id: string }): JSX.Element {
 				[`channel-${props.id}`]: true,
 				selected: selc(props.id),
 			}}
+			use:HoverAnimationDirective
 		>
 			<div class="channel-icon">
 				<Show when={channel().type === ChannelTypes.DM} fallback={<Avatar size={32} groupDMId={props.id} />}>
@@ -41,7 +41,7 @@ function PrivateChannel(props: { id: string }): JSX.Element {
 					<CustomStatus userId={channel().recipient_ids[0]} />
 				</Show>
 			</div>
-		</HoverAnimationProvider>
+		</a>
 	);
 }
 
@@ -66,7 +66,7 @@ export default function PrivateChannels(): JSX.Element {
 				lastKnownScrollPosition = ref.scrollTop;
 			}}
 		>
-			<NavLink
+			<a
 				href="/channels/@me"
 				classList={{
 					"friends-button": true,
@@ -75,7 +75,7 @@ export default function PrivateChannels(): JSX.Element {
 			>
 				<FiUsers size={24} />
 				Friends
-			</NavLink>
+			</a>
 			<div class="private-channels-header">Direct Messages</div>
 			<For each={ChannelStore.getOrderedDirectMessages()}>{(channel): JSX.Element => <PrivateChannel id={channel[0]} />}</For>
 		</div>
