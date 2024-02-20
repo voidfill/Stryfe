@@ -50,6 +50,8 @@
 
 		&.guild-channels {
 			.channel {
+				flex-shrink: 0;
+
 				&:hover,
 				&.selected {
 					.channel-icon,

@@ -1,7 +1,7 @@
-import { createEffect, createMemo, JSX, Show } from "solid-js";
-import { createStore } from "solid-js/store";
+import { createMemo, JSX, Show } from "solid-js";
 
 import GuildStore from "@stores/guilds";
+import SettingsStore from "@stores/settings";
 import UserStore from "@stores/users";
 
 import { HoverAnimationDirective, useAnimationContext } from "../common/animationcontext";
@@ -9,9 +9,6 @@ import { Colors, ContextmenuDirective, Id, Optional, Separator } from "../common
 import { useSelectedGuildContext } from "../common/selectioncontext";
 import TooltipDirective, { TooltipColors, TooltipPosition } from "../common/tooltip";
 import { lastSelectedChannels } from "../mainview";
-
-import Storage from "@renderer/modules/storage";
-
 HoverAnimationDirective;
 TooltipDirective;
 ContextmenuDirective;
@@ -35,13 +32,6 @@ function Indicator(props: { id: string }): JSX.Element {
 		</div>
 	);
 }
-
-const [hideMuted, setHideMuted] = createStore<{
-	[id: string]: boolean;
-}>(Storage.get("hideMutedChannels", {}));
-createEffect(() => {
-	Storage.set("hideMutedChannels", hideMuted);
-});
 
 export default function Guild(props: { id: string }): JSX.Element {
 	const guild = createMemo(() => GuildStore.getGuild(props.id));
@@ -121,9 +111,9 @@ export default function Guild(props: { id: string }): JSX.Element {
 								// Notification Settings
 								{
 									action: (): void => {
-										setHideMuted(props.id, !hideMuted[props.id]);
+										SettingsStore.toggleHideMutedChannels(props.id);
 									},
-									enabled: () => hideMuted[props.id],
+									enabled: () => SettingsStore.userGuildSettings[props.id]?.hide_muted_channels ?? false,
 									label: "Hide Muted Channels",
 									type: "switch",
 								},

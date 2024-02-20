@@ -44,10 +44,11 @@ type menuItem =
 			action: () => void;
 			color?: Colors;
 			label: string;
+			subText?: string;
 	  } & (
 			| {
 					disabled?: boolean;
-					type: "text";
+					type?: "text";
 			  }
 			| {
 					disabled?: boolean;
@@ -79,8 +80,8 @@ export const Id = (id: string, name: string): menuItem => ({
 	type: "icon",
 });
 
-export function Optional(bool: boolean, element: menuItem | menuItem[]): menuItem[] {
-	return bool ? (Array.isArray(element) ? element : [element]) : [];
+export function Optional(condition: any, element: menuItem | menuItem[]): menuItem[] {
+	return condition ? (Array.isArray(element) ? element : [element]) : [];
 }
 
 type contextmenuProps = {
@@ -207,7 +208,7 @@ function Menu(props: {
 								<Match when={item.type === "separator"}>
 									<div class="ctxmenu-separator" />
 								</Match>
-								<Match when={item.type === "text" && item} keyed>
+								<Match when={(!item.type || item.type === "text") && item} keyed>
 									{(item): sJSX.Element => (
 										<div
 											id={id()}
@@ -229,7 +230,12 @@ function Menu(props: {
 												props.selectedItem[1](id());
 											}}
 										>
-											<span class="ctx-label">{item.label}</span>
+											<div class="ctx-text">
+												<span class="ctx-label">{item.label}</span>
+												<Show when={item.subText}>
+													<span class="ctx-subtext">{item.subText}</span>
+												</Show>
+											</div>
 										</div>
 									)}
 								</Match>
@@ -255,7 +261,12 @@ function Menu(props: {
 												props.selectedItem[1](id());
 											}}
 										>
-											<span class="ctx-label">{item.label}</span>
+											<div class="ctx-text">
+												<span class="ctx-label">{item.label}</span>
+												<Show when={item.subText}>
+													<span class="ctx-subtext">{item.subText}</span>
+												</Show>
+											</div>
 											<div class="ctx-icon">
 												{item.icon({
 													size: 18,
@@ -280,7 +291,12 @@ function Menu(props: {
 											}}
 											onMouseEnter={(): void => props.selectedItem[1](id())}
 										>
-											<span class="ctx-label">{item.label}</span>
+											<div class="ctx-text">
+												<span class="ctx-label">{item.label}</span>
+												<Show when={item.subText}>
+													<span class="ctx-subtext">{item.subText}</span>
+												</Show>
+											</div>
 											<input class="ctx-checkbox" type="checkbox" checked={item.enabled()} />
 										</div>
 									)}
@@ -289,6 +305,34 @@ function Menu(props: {
 									{(item): sJSX.Element => {
 										const isSelected = createMemo(() => props.selectedItem[0]().startsWith(id()));
 										let smRef: HTMLDivElement | undefined;
+										let layerId: number | undefined;
+
+										onMount(() => {
+											createEffect(() => {
+												if (isSelected()) {
+													layerId = addLayer(() => (
+														<Menu
+															hide={props.hide}
+															ref={(): void => {}}
+															selectedItem={props.selectedItem}
+															id={id()}
+															menu={item.submenu}
+															searchable={item.searchable}
+															parentRect={smRef!.getBoundingClientRect() as DOMRect}
+															onmouseenter={(): void => props.selectedItem[1](id())}
+															onmouseleave={(): void => props.selectedItem[1]("")}
+															isSubmenu
+														/>
+													));
+												} else {
+													layerId = void removeLayer(layerId!);
+												}
+											});
+										});
+
+										onCleanup(() => {
+											layerId = void removeLayer(layerId!);
+										});
 
 										return (
 											<div
@@ -307,24 +351,15 @@ function Menu(props: {
 													props.hide();
 												}}
 											>
-												<span class="ctx-label">{item.label}</span>
+												<div class="ctx-text">
+													<span class="ctx-label">{item.label}</span>
+													<Show when={item.subText}>
+														<span class="ctx-subtext">{item.subText}</span>
+													</Show>
+												</div>
 												<div class="ctx-icon">
 													<FaSolidChevronRight size={12} />
 												</div>
-												<Show when={isSelected()}>
-													<Menu
-														hide={props.hide}
-														ref={(): void => {}}
-														selectedItem={props.selectedItem}
-														id={id()}
-														menu={item.submenu}
-														searchable={item.searchable}
-														parentRect={smRef!.getBoundingClientRect() as DOMRect}
-														onmouseenter={(): void => props.selectedItem[1](id())}
-														onmouseleave={(): void => props.selectedItem[1](id())}
-														isSubmenu
-													/>
-												</Show>
 											</div>
 										);
 									}}
@@ -384,6 +419,8 @@ export function ContextmenuDirective(element: Element, value: Accessor<contextme
 	}
 
 	function clickOutsideHandler(e: MouseEvent): void {
+		if (selectedItem().length) return;
+
 		if (layerId === undefined || !menu) return;
 		if (menu === e.target) return e.stopPropagation(), e.preventDefault();
 		if (!menu.contains(e.target as Node)) hide();

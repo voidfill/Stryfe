@@ -46,12 +46,26 @@
 			width: calc(100% - var(--padding) - 8px);
 			border-radius: 4px;
 
-			.ctx-label {
+			.ctx-text {
 				flex-grow: 1;
 				flex-shrink: 1;
-				white-space: nowrap;
 				overflow: hidden;
-				text-overflow: ellipsis;
+				display: flex;
+				flex-direction: column;
+				justify-content: center;
+
+				.ctx-label {
+					overflow: hidden;
+					white-space: nowrap;
+					text-overflow: ellipsis;
+				}
+
+				.ctx-subtext {
+					font-size: 80%;
+					overflow: hidden;
+					white-space: nowrap;
+					text-overflow: ellipsis;
+				}
 			}
 
 			.ctx-icon {

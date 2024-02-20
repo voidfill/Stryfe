@@ -1,4 +1,4 @@
-import { createEffect, createMemo, createSignal, JSX, onCleanup, onMount, Show } from "solid-js";
+import { createMemo, createSignal, JSX, onCleanup, onMount, Show } from "solid-js";
 
 import { BsCardText } from "solid-icons/bs";
 

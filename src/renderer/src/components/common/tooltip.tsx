@@ -1,15 +1,4 @@
-import {
-	Accessor,
-	createEffect,
-	createReaction,
-	createRenderEffect,
-	createSignal,
-	JSX as _JSX,
-	onCleanup,
-	onMount,
-	ParentComponent,
-	Ref,
-} from "solid-js";
+import { Accessor, createEffect, createRenderEffect, createSignal, JSX as _JSX, onCleanup, onMount, ParentComponent, Ref } from "solid-js";
 
 import "./tooltip.scss";
 
