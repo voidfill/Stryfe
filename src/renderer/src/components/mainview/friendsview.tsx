@@ -1,16 +1,21 @@
 import { useNavigate } from "@solidjs/router";
-import { createMemo, createSignal, For, JSX, Show, untrack } from "solid-js";
+import { createMemo, createSignal, For, JSX, Match, Show, Switch, untrack } from "solid-js";
 
+import ActivityStore from "@stores/activities";
 import ChannelStore from "@stores/channels";
 import RelationshipStore from "@stores/relationships";
-import StatusStore, { Status } from "@stores/status";
+import StatusStore, { Status, statusToEnglish } from "@stores/status";
 import UserStore from "@stores/users";
 
-import { FaSolidMagnifyingGlass, FaSolidXmark } from "solid-icons/fa";
+import { BsThreeDots } from "solid-icons/bs";
+import { FaSolidCheck, FaSolidMagnifyingGlass, FaSolidXmark } from "solid-icons/fa";
+import { IoChatbubbleEllipsesSharp } from "solid-icons/io";
 
 import { HoverAnimationDirective } from "../common/animationcontext";
 import Avatar, { ShowStatus } from "../common/avatar";
-import TooltipDirective, { TooltipPosition } from "../common/tooltip";
+import { Colors, ContextmenuDirective } from "../common/contextmenu";
+import CustomStatus from "../common/customstatus";
+import TooltipDirective from "../common/tooltip";
 import { friendsTab, FriendsTabs } from "./headerbar";
 
 import "./friendsview.scss";
@@ -19,6 +24,7 @@ import { RelationshipTypes } from "@renderer/constants/user";
 
 HoverAnimationDirective;
 TooltipDirective;
+ContextmenuDirective;
 
 function AddFriend(): JSX.Element {
 	return <div>Add Friend</div>;
@@ -45,6 +51,8 @@ function FriendItem(props: { id: string }): JSX.Element {
 	const navigate = useNavigate();
 	const user = createMemo(() => UserStore.getUser(props.id));
 	const relationship = createMemo(() => RelationshipStore.getRelationship(props.id));
+	const hasActivity = createMemo(() => ActivityStore.getActivities(props.id)?.length ?? 0 > 0);
+	const statusText = createMemo(() => statusToEnglish(StatusStore.getStatus(props.id)));
 
 	return (
 		<Show when={(user()?.global_name?.toLowerCase().includes(lower()) || user().username?.toLowerCase().includes(lower())) && user()} keyed>
@@ -52,6 +60,24 @@ function FriendItem(props: { id: string }): JSX.Element {
 				return (
 					<div
 						use:HoverAnimationDirective
+						use:ContextmenuDirective={{
+							menu: [
+								{
+									action: () => void 0,
+									label: "Profile",
+									type: "text",
+								},
+								{
+									action: (): void => {
+										const id = untrack((): string | undefined => ChannelStore.getDMForUser(props.id));
+										if (!id) return; // TODO: create dm, transition to it
+										return void navigate(`/channels/@me/${id}`);
+									},
+									label: "Message",
+									type: "text",
+								},
+							],
+						}}
 						class="friend-item"
 						onClick={(): void => {
 							const id = untrack((): string | undefined => ChannelStore.getDMForUser(props.id));
@@ -70,7 +96,9 @@ function FriendItem(props: { id: string }): JSX.Element {
 						<div class="friend-info">
 							<div class="username">
 								<span class="friend-global-name">{user.global_name || user.username}</span>
-								<span class="friend-username">{user.global_name ? user.username : "#" + user.discriminator}</span>
+								<span class="friend-username">
+									{user.global_name || user.discriminator === "0" ? user.username : "#" + user.discriminator}
+								</span>
 							</div>
 							<span class="friend-status">
 								<Show
@@ -86,9 +114,59 @@ function FriendItem(props: { id: string }): JSX.Element {
 										</Show>
 									}
 								>
-									"Status"
+									<Show when={hasActivity()} fallback={statusText()}>
+										<CustomStatus userId={props.id} inline />
+									</Show>
 								</Show>
 							</span>
+						</div>
+						<div class="friend-buttons">
+							<Switch>
+								<Match when={friendsTab() === FriendsTabs.ONLINE || friendsTab() === FriendsTabs.ALL}>
+									<button use:TooltipDirective={{ content: () => "Message" }} class="friend-button">
+										<IoChatbubbleEllipsesSharp size={20} />
+									</button>
+									<button
+										use:ContextmenuDirective={{
+											menu: [
+												{
+													action: () => void 0,
+													color: Colors.RED,
+													label: "Remove Friend",
+													type: "text",
+												},
+											],
+											showOn: "click",
+										}}
+										use:TooltipDirective={{ content: () => "More" }}
+										class="friend-button"
+									>
+										<BsThreeDots size={20} />
+									</button>
+								</Match>
+								<Match when={friendsTab() === FriendsTabs.PENDING}>
+									<Show
+										when={relationship()?.type === RelationshipTypes.PENDING_INCOMING}
+										fallback={
+											<button use:TooltipDirective={{ content: () => "Cancel" }} class="friend-button cancel">
+												<FaSolidXmark size={16} />
+											</button>
+										}
+									>
+										<button use:TooltipDirective={{ content: () => "Accept" }} class="friend-button accept">
+											<FaSolidCheck size={16} />
+										</button>
+										<button use:TooltipDirective={{ content: () => "Ignore" }} class="friend-button ignore">
+											<FaSolidXmark size={16} />
+										</button>
+									</Show>
+								</Match>
+								<Match when={friendsTab() === FriendsTabs.BLOCKED}>
+									<button use:TooltipDirective={{ content: () => "Unblock" }} class="friend-button unblock">
+										<FaSolidXmark size={16} />
+									</button>
+								</Match>
+							</Switch>
 						</div>
 					</div>
 				);

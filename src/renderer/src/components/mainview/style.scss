@@ -51,6 +51,10 @@
 				white-space: nowrap;
 			}
 
+			.divider {
+				flex-grow: 1;
+			}
+
 			.friends-button {
 				padding: 4px 8px;
 				border-radius: 4px;

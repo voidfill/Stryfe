@@ -27,12 +27,12 @@ export default new (class ActivityStore extends Store {
 				if (!sessions.length) return;
 				setActivities(user.id, reconcile(sessions[0].activities || undefined));
 			},
-			READY_SUPPLEMENTAL: ({ merged_presences: { friends, guilds } }) => {
+			READY_SUPPLEMENTAL: ({ merged_presences }) => {
 				batch(() => {
-					for (const friend of friends) {
+					for (const friend of merged_presences?.friends ?? []) {
 						setActivities(friend.user_id, reconcile(friend.activities || undefined));
 					}
-					for (const guild of guilds) {
+					for (const guild of merged_presences?.guilds ?? []) {
 						for (const presence of guild || []) {
 							setActivities(presence.user_id, reconcile(presence.activities || undefined));
 						}

@@ -4,12 +4,21 @@
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-	// TODO: idk css trolley
 
+	img {
+		margin-right: 4px;
+	}
 	> span {
+		font-size: 12px;
+		line-height: 16px;
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
 	}
 
+	.activity-box {
+		margin-left: 4px;
+		margin-top: 1px;
+		padding-right: 6px;
+	}
 }

@@ -1,4 +1,17 @@
-import { type Accessor, createEffect, createMemo, createRenderEffect, createSignal, For, Match, onCleanup, onMount, Show, Switch } from "solid-js";
+import {
+	type Accessor,
+	createEffect,
+	createMemo,
+	createRenderEffect,
+	createSignal,
+	For,
+	Match,
+	onCleanup,
+	onMount,
+	Show,
+	Switch,
+	untrack,
+} from "solid-js";
 import { type JSX as sJSX } from "solid-js/jsx-runtime";
 
 import { addLayer, removeLayer } from "@modules/layers";
@@ -153,7 +166,7 @@ function Menu(props: {
 			// eslint-disable-next-line solid/reactivity
 			onMouseLeave={/* @once */ props.onmouseleave}
 		>
-			<div class="ctxmenu-bg">
+			<div class="ctxmenu-bg scroller scroller-thin scroller scroller-hover-thumb">
 				<Show when={props.searchable}>
 					<input
 						id={props.id + "-search"}
@@ -419,11 +432,14 @@ export function ContextmenuDirective(element: Element, value: Accessor<contextme
 	function navDown(): void {}
 
 	createRenderEffect(() => {
-		element.addEventListener(value().showOn ?? "contextmenu", contextmenuHandler as (e: Event) => void);
+		element.addEventListener(untrack(() => value().showOn) ?? "contextmenu", contextmenuHandler as (e: Event) => void);
+		window.addEventListener("resize", hide);
 
 		onCleanup(() => {
-			element.removeEventListener(value().showOn ?? "contextmenu", contextmenuHandler as (e: Event) => void);
+			hide();
+			element.removeEventListener(untrack(() => value().showOn) ?? "contextmenu", contextmenuHandler as (e: Event) => void);
 
+			window.removeEventListener("resize", hide);
 			document.removeEventListener("mousedown", clickOutsideHandler as (e: Event) => void);
 			document.removeEventListener("contextmenu", clickOutsideHandler as (e: Event) => void);
 			document.removeEventListener("keydown", kbNavHandler as (e: Event) => void);

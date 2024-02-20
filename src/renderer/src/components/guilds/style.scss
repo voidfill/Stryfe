@@ -5,10 +5,18 @@
 	overflow-y: scroll;
 	width: 72px;
 	height: 100%;
+	padding-top: 8px;
 
 	.home-button {
+		height: 48px;
 		width: 48px;
-		margin-left: 12px;
+		margin: 0px 12px;
+		margin-bottom: 8px;
+		cursor: pointer;
+
+		&:active {
+			transform: translateY(1px) translateZ(0);
+		}
 	}
 
 	.guild {
@@ -55,7 +63,7 @@
 			}
 		}
 
-		&.selected .guild-icon, &:hover .guild-icon {
+		&.selected .guild-icon, .guild-icon:hover {
 			border-radius: 33%;
 
 			&.acronym {

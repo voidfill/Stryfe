@@ -111,11 +111,44 @@
 		}
 
 		&.private-channels {
+			padding-top: 6px;
+
+			.channel.friends-button {
+				padding: 8px 17px;
+
+				span {
+					padding-left: 8px;
+					font-size: 16px;
+					line-height: 24px;
+				}
+			}
+
+			.private-channels-header {
+				margin: 8px 0 8px 8px;
+			}
+
 			.channel {
 				height: 44px;
 				margin: 1px 0 1px 8px;
 				padding-left: 8px;
 				cursor: pointer;
+
+				.channel-text {
+					display: flex;
+					flex-direction: column;
+					justify-content: center;
+					overflow: hidden;
+					white-space: nowrap;
+
+					.channel-name {
+						font-size: 16px;
+						line-height: 20px;
+						overflow: hidden;
+						text-overflow: ellipsis;
+					}
+				}
+
+
 
 				&:hover {
 					background-color: var(--background-secondary);

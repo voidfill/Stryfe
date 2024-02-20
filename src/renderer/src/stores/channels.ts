@@ -264,7 +264,7 @@ export default new (class ChannelStore extends Store {
 			},
 			READY: ({ guilds, private_channels }) => {
 				batch(() => {
-					for (const guild of guilds) {
+					for (const guild of guilds ?? []) {
 						if ("unavailable" in guild && guild.unavailable) continue;
 						channelsPerGuild.set(guild.id, new ReactiveSet(guild.channels.map((c) => c.id)));
 						for (const channel of guild.channels) {
@@ -353,7 +353,7 @@ export default new (class ChannelStore extends Store {
 	}
 
 	// eslint-disable-next-line solid/reactivity
-	getGuildChannel(channelId: string): (typeof guildChannels)[string] {
+	getGuildChannel(channelId: string): (typeof guildChannels)[string] | undefined {
 		return guildChannels[channelId];
 	}
 
@@ -361,13 +361,13 @@ export default new (class ChannelStore extends Store {
 	// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 	getGuildCategoryChannel(channelId: string) {
 		const channel = this.getGuildChannel(channelId);
-		if (channel.type !== ChannelTypes.GUILD_CATEGORY) throw "Requested channel is not a category (typeguard)";
+		if (channel?.type !== ChannelTypes.GUILD_CATEGORY) throw "Requested channel is not a category (typeguard)";
 		return channel;
 	}
 	// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 	getGuildVoiceChannel(channelId: string) {
 		const channel = this.getGuildChannel(channelId);
-		if (channel.type !== ChannelTypes.GUILD_VOICE && channel.type !== ChannelTypes.GUILD_STAGE_VOICE)
+		if (channel?.type !== ChannelTypes.GUILD_VOICE && channel?.type !== ChannelTypes.GUILD_STAGE_VOICE)
 			throw "Requested channel is not a voice channel (typeguard)";
 		return channel;
 	}
@@ -375,11 +375,11 @@ export default new (class ChannelStore extends Store {
 	getGuildTextChannel(channelId: string) {
 		const channel = this.getGuildChannel(channelId);
 		if (
-			channel.type !== ChannelTypes.GUILD_TEXT &&
-			channel.type !== ChannelTypes.GUILD_ANNOUNCEMENT &&
-			channel.type !== ChannelTypes.GUILD_DIRECTORY &&
-			channel.type !== ChannelTypes.GUILD_FORUM &&
-			channel.type !== ChannelTypes.GUILD_MEDIA
+			channel?.type !== ChannelTypes.GUILD_TEXT &&
+			channel?.type !== ChannelTypes.GUILD_ANNOUNCEMENT &&
+			channel?.type !== ChannelTypes.GUILD_DIRECTORY &&
+			channel?.type !== ChannelTypes.GUILD_FORUM &&
+			channel?.type !== ChannelTypes.GUILD_MEDIA
 		)
 			throw "Requested channel is not a text channel (typeguard)";
 		return channel;
@@ -507,6 +507,9 @@ function sortGuildChannels(guildId: string): (typeof sortedGuildChannels extends
 					categorized[categories.get(el.parent)!].voice.push(el.id);
 				}
 			}
+			categorized = categorized.filter((c) => c);
+			uncategorized.other = uncategorized.other.filter((c) => c);
+			uncategorized.voice = uncategorized.voice.filter((c) => c);
 			return false; // yay!
 		}
 		function slowSort(): void {

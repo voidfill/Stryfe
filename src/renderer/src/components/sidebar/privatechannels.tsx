@@ -38,7 +38,7 @@ function PrivateChannel(props: { id: string }): JSX.Element {
 			<div class="channel-text">
 				<span class="channel-name">{channelName()}</span>
 				<Show when={channel().type === ChannelTypes.DM}>
-					<CustomStatus userId={channel().recipient_ids[0]} />
+					<CustomStatus userId={channel().recipient_ids[0]} inline />
 				</Show>
 			</div>
 		</a>
@@ -69,12 +69,13 @@ export default function PrivateChannels(): JSX.Element {
 			<a
 				href="/channels/@me"
 				classList={{
+					channel: true,
 					"friends-button": true,
 					selected: !params.channelId,
 				}}
 			>
 				<FiUsers size={24} />
-				Friends
+				<span>Friends</span>
 			</a>
 			<div class="private-channels-header">Direct Messages</div>
 			<For each={ChannelStore.getOrderedDirectMessages()}>{(channel): JSX.Element => <PrivateChannel id={channel[0]} />}</For>

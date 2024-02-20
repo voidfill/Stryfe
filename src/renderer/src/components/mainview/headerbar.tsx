@@ -99,6 +99,7 @@ export default function HeaderBar(): JSX.Element {
 					<span>Normal Channel</span>
 				</Match>
 			</Switch>
+			<div class="divider" />
 			<Show when={showHelp()}>
 				<button class="help-button" onClick={(): void => {}}>
 					<FiHelpCircle class="icon" size={24} />

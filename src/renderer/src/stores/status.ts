@@ -48,6 +48,20 @@ export function statusToText(status: Status): string {
 	}
 }
 
+// TODO: rename this garbage
+export function statusToEnglish(status: Status): string {
+	switch (status) {
+		case Status.OFFLINE:
+			return "Offline";
+		case Status.ONLINE:
+			return "Online";
+		case Status.IDLE:
+			return "Idle";
+		case Status.DND:
+			return "Do Not Disturb";
+	}
+}
+
 const [statuses, setStatuses] = createStore<{
 	[key: string]: Statuses;
 }>({});
@@ -64,12 +78,12 @@ export default new (class StatusStore extends Store {
 				if (!session) return;
 				setStatuses(user.id, [0, sm.get(session.status) || Status.OFFLINE, 0]);
 			},
-			READY_SUPPLEMENTAL: ({ merged_presences: { friends, guilds } }) => {
+			READY_SUPPLEMENTAL: ({ merged_presences }) => {
 				batch(() => {
-					for (const friend of friends) {
+					for (const friend of merged_presences?.friends ?? []) {
 						setStatuses(friend.user_id, convertStatus(friend.client_status));
 					}
-					for (const guild of guilds) {
+					for (const guild of merged_presences?.guilds ?? []) {
 						for (const member of guild || []) {
 							setStatuses(member.user_id, convertStatus(member.client_status));
 						}

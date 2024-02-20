@@ -1,4 +1,15 @@
-import { Accessor, createRenderEffect, createSignal, JSX as _JSX, onCleanup, onMount, ParentComponent, Ref } from "solid-js";
+import {
+	Accessor,
+	createEffect,
+	createReaction,
+	createRenderEffect,
+	createSignal,
+	JSX as _JSX,
+	onCleanup,
+	onMount,
+	ParentComponent,
+	Ref,
+} from "solid-js";
 
 import "./tooltip.scss";
 
@@ -130,6 +141,7 @@ type TooltipProps = {
 	pointerEvents?: boolean;
 	position?: TooltipPosition;
 	spacing?: number;
+	suppress?: boolean;
 };
 
 export default function Tooltip(element: Element, value: Accessor<TooltipProps>): void {
@@ -140,6 +152,10 @@ export default function Tooltip(element: Element, value: Accessor<TooltipProps>)
 	const [hidden, setHidden] = createSignal(true);
 
 	const show = (): void => {
+		if (value().suppress) {
+			return;
+		}
+
 		if (delayTimeout) {
 			clearTimeout(delayTimeout);
 			delayTimeout = undefined;
@@ -213,6 +229,12 @@ export default function Tooltip(element: Element, value: Accessor<TooltipProps>)
 		};
 		tooltip.addEventListener("mouseenter", tooltipEnter, { once: true });
 	};
+
+	createEffect(() => {
+		if (value().suppress) {
+			hide();
+		}
+	});
 
 	createRenderEffect(() => {
 		element.addEventListener("mouseenter", handleMouseEnter);
