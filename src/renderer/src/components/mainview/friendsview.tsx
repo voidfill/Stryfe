@@ -61,7 +61,7 @@ function FriendItem(props: { id: string }): JSX.Element {
 					<div
 						use:HoverAnimationDirective
 						use:ContextmenuDirective={{
-							menu: [
+							menu: () => [
 								{
 									action: () => void 0,
 									label: "Profile",
@@ -128,7 +128,7 @@ function FriendItem(props: { id: string }): JSX.Element {
 									</button>
 									<button
 										use:ContextmenuDirective={{
-											menu: [
+											menu: () => [
 												{
 													action: () => void 0,
 													color: Colors.RED,

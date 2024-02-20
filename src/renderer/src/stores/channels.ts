@@ -385,6 +385,12 @@ export default new (class ChannelStore extends Store {
 		return channel;
 	}
 
+	getGuildChannels(guildId: string): IterableIterator<string> | undefined {
+		const s = channelsPerGuild.get(guildId);
+		if (!s) return undefined;
+		return s.values();
+	}
+
 	getSortedGuildChannels(guildId: string): (typeof sortedGuildChannels extends ReactiveMap<any, infer V> ? V : never) | undefined {
 		if (!channelsPerGuild.has(guildId)) return undefined;
 		if (sortedGuildChannels.has(guildId)) return sortedGuildChannels.get(guildId)!;

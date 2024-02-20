@@ -14,29 +14,23 @@ export const enum UserSettingsType {
 	TEST_SETTINGS = 3, // explode
 }
 
-export const enum GuildNotificationLevel {
-	ALL_MESSAGES = 0,
-	ONLY_MENTIONS = 1,
-	NOTHING = 2,
-}
-
-export const enum ChannelNotificationLevel {
+export const enum NotificationLevel {
 	ALL_MESSAGES = 0,
 	ONLY_MENTIONS = 1,
 	NOTHING = 2,
 	PARENT_DEFAULT = 3,
 }
 
-export function notificationLevelToText(level: GuildNotificationLevel | ChannelNotificationLevel): string {
+export function notificationLevelToText(level: NotificationLevel, isTopLevel?: boolean): string {
 	switch (level) {
-		case GuildNotificationLevel.ALL_MESSAGES:
-			return "All messages";
-		case GuildNotificationLevel.ONLY_MENTIONS:
-			return "Only mentions";
-		case GuildNotificationLevel.NOTHING:
+		case NotificationLevel.ALL_MESSAGES:
+			return "All Messages";
+		case NotificationLevel.ONLY_MENTIONS:
+			return "Only @mentions";
+		case NotificationLevel.NOTHING:
 			return "Nothing";
-		case ChannelNotificationLevel.PARENT_DEFAULT:
-			return "Category default";
+		case NotificationLevel.PARENT_DEFAULT:
+			return isTopLevel ? "Use Server Default" : "Use Category Default";
 		default:
 			throw new Error("Unknown notification level");
 	}
@@ -83,26 +77,26 @@ function registerTimedGuildMute(guildId: string, config: { end_time: string | nu
 	muteTimers.set(guildId, timer);
 }
 
-const channelOverrideDefaults: DistributiveOmit<Output<typeof channel_override>, "channel_id"> = {
+const channelOverrideDefaults: DistributiveOmit<Output<typeof channel_override>, "channel_id"> = Object.freeze({
 	collapsed: false,
-	message_notifications: ChannelNotificationLevel.PARENT_DEFAULT,
+	message_notifications: NotificationLevel.PARENT_DEFAULT,
 	mute_config: null,
 	muted: false,
-};
+});
 
-const guildSettingsDefaults: DistributiveOmit<Output<typeof guild_settings_entry>, "guild_id" | "channel_overrides"> = {
+const guildSettingsDefaults: DistributiveOmit<Output<typeof guild_settings_entry>, "guild_id" | "channel_overrides"> = Object.freeze({
 	flags: 0,
 	hide_muted_channels: false,
-	message_notifications: GuildNotificationLevel.ONLY_MENTIONS,
+	message_notifications: NotificationLevel.ONLY_MENTIONS,
 	mobile_push: true,
 	mute_config: null,
 	mute_scheduled_events: false,
 	muted: false,
-	notify_highlights: 0,
+	notify_highlights: 1,
 	suppress_everyone: false,
 	suppress_roles: false,
 	version: 0,
-};
+});
 
 // thanks SO https://stackoverflow.com/a/21797381
 function base64ToUint8Array(base64: string): Uint8Array {
@@ -196,34 +190,35 @@ export default new (class SettingsStore extends Store {
 	channelOverrides = channelOverrides;
 
 	// eslint-disable-next-line solid/reactivity
-	getChannelNotificationLevel(channelId: string): ChannelNotificationLevel {
+	getChannelNotificationLevel(channelId: string): NotificationLevel {
 		const ch = channelOverrides[channelId];
-		if (!ch) return ChannelNotificationLevel.PARENT_DEFAULT;
+		if (!ch) return NotificationLevel.PARENT_DEFAULT;
 		return ch.message_notifications;
 	}
 
 	// eslint-disable-next-line solid/reactivity
-	getGuildNotificationLevel(guildId: string): GuildNotificationLevel {
+	getGuildNotificationLevel(guildId: string): NotificationLevel {
 		const guild = userGuildSettings[guildId];
 		if (!guild) return guildSettingsDefaults.message_notifications;
 		return guild.message_notifications;
 	}
 
 	// eslint-disable-next-line solid/reactivity
-	resolveChannelNotificationLevel(channelId: string, guildId: string, parentChannelId?: string): ChannelNotificationLevel {
+	resolveChannelNotificationLevel(channelId: string | undefined, guildId: string, parentChannelId?: string): NotificationLevel {
+		if (!channelId) return this.getGuildNotificationLevel(guildId);
 		const ch = ChannelStore.getGuildChannel(channelId);
 		if (!ch) throw new Error("Unknown channel");
 		const override = channelOverrides[channelId];
 
-		if (override && override.message_notifications !== ChannelNotificationLevel.PARENT_DEFAULT) return override.message_notifications;
+		if (override && override.message_notifications !== NotificationLevel.PARENT_DEFAULT) return override.message_notifications;
 		if (parentChannelId) return this.resolveChannelNotificationLevel(parentChannelId, guildId);
 
-		return this.getGuildNotificationLevel(guildId) as any as ChannelNotificationLevel;
+		return this.getGuildNotificationLevel(guildId);
 	}
 
 	toggleCollapsed(channelId: string): void {
 		const ch = untrack(() => channelOverrides[channelId]);
-		if (!ch) setChannelOverrides(channelId, channelOverrideDefaults);
+		if (!ch) setChannelOverrides(channelId, { ...channelOverrideDefaults });
 		setChannelOverrides(
 			channelId,
 			"collapsed",
@@ -233,9 +228,15 @@ export default new (class SettingsStore extends Store {
 		// TODO: send update to discord
 	}
 
+	collapse(channelId: string): void {
+		const ch = untrack(() => channelOverrides[channelId]);
+		if (!ch) setChannelOverrides(channelId, { ...channelOverrideDefaults });
+		setChannelOverrides(channelId, "collapsed", true);
+	}
+
 	muteChannel(channelId: string, seconds?: number): void {
 		const ch = untrack(() => channelOverrides[channelId]);
-		if (!ch) setChannelOverrides(channelId, channelOverrideDefaults);
+		if (!ch) setChannelOverrides(channelId, { ...channelOverrideDefaults });
 		setChannelOverrides(channelId, "muted", true);
 		if (seconds) {
 			const end = new Date(Date.now() + seconds * 1000).toISOString();
@@ -254,7 +255,7 @@ export default new (class SettingsStore extends Store {
 
 	muteGuild(guildId: string, seconds?: number): void {
 		const guild = untrack(() => userGuildSettings[guildId]);
-		if (!guild) setUserGuildSettings(guildId, guildSettingsDefaults);
+		if (!guild) setUserGuildSettings(guildId, { ...guildSettingsDefaults });
 		setUserGuildSettings(guildId, "muted", true);
 		if (seconds) {
 			const end = new Date(Date.now() + seconds * 1000).toISOString();
@@ -273,7 +274,7 @@ export default new (class SettingsStore extends Store {
 
 	toggleHideMutedChannels(guildId: string): void {
 		const guild = untrack(() => userGuildSettings[guildId]);
-		if (!guild) setUserGuildSettings(guildId, guildSettingsDefaults);
+		if (!guild) setUserGuildSettings(guildId, { ...guildSettingsDefaults });
 		setUserGuildSettings(
 			guildId,
 			"hide_muted_channels",
@@ -281,9 +282,62 @@ export default new (class SettingsStore extends Store {
 		);
 	}
 
-	setChannelNotificationLevel(channelId: string, level: ChannelNotificationLevel): void {
+	setChannelNotificationLevel(channelId: string, level: NotificationLevel): void {
 		const ch = untrack(() => channelOverrides[channelId]);
-		if (!ch) setChannelOverrides(channelId, channelOverrideDefaults);
+		if (!ch) setChannelOverrides(channelId, { ...channelOverrideDefaults });
 		setChannelOverrides(channelId, "message_notifications", level);
+	}
+
+	setGuildNotificationLevel(guildId: string, level: NotificationLevel): void {
+		const guild = untrack(() => userGuildSettings[guildId]);
+		if (!guild) setUserGuildSettings(guildId, { ...guildSettingsDefaults });
+		setUserGuildSettings(guildId, "message_notifications", level);
+	}
+
+	toggleSuppressEveryone(guildId: string): void {
+		const guild = untrack(() => userGuildSettings[guildId]);
+		if (!guild) setUserGuildSettings(guildId, { ...guildSettingsDefaults });
+		setUserGuildSettings(
+			guildId,
+			"suppress_everyone",
+			untrack(() => !guild?.suppress_everyone),
+		);
+	}
+
+	toggleSuppressRoles(guildId: string): void {
+		const guild = untrack(() => userGuildSettings[guildId]);
+		if (!guild) setUserGuildSettings(guildId, { ...guildSettingsDefaults });
+		setUserGuildSettings(
+			guildId,
+			"suppress_roles",
+			untrack(() => !guild?.suppress_roles),
+		);
+	}
+
+	// TODO: look into what the hell this even does
+	toggleSuppressHighlights(guildId: string): void {
+		const guild = untrack(() => userGuildSettings[guildId]);
+		if (!guild) setUserGuildSettings(guildId, { ...guildSettingsDefaults });
+		setUserGuildSettings(guildId, "notify_highlights", untrack(() => guild?.notify_highlights) === 2 ? 1 : 2);
+	}
+
+	toggleMuteScheduledEvents(guildId: string): void {
+		const guild = untrack(() => userGuildSettings[guildId]);
+		if (!guild) setUserGuildSettings(guildId, { ...guildSettingsDefaults });
+		setUserGuildSettings(
+			guildId,
+			"mute_scheduled_events",
+			untrack(() => !guild?.mute_scheduled_events),
+		);
+	}
+
+	toggleMobilePush(guildId: string): void {
+		const guild = untrack(() => userGuildSettings[guildId]);
+		if (!guild) setUserGuildSettings(guildId, { ...guildSettingsDefaults });
+		setUserGuildSettings(
+			guildId,
+			"mobile_push",
+			untrack(() => !guild?.mobile_push),
+		);
 	}
 })();

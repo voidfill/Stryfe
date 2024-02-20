@@ -1,7 +1,7 @@
 import { createMemo, JSX, Show } from "solid-js";
 
 import GuildStore from "@stores/guilds";
-import SettingsStore from "@stores/settings";
+import SettingsStore, { NotificationLevel, notificationLevelToText } from "@stores/settings";
 import UserStore from "@stores/users";
 
 import { HoverAnimationDirective, useAnimationContext } from "../common/animationcontext";
@@ -36,6 +36,7 @@ function Indicator(props: { id: string }): JSX.Element {
 export default function Guild(props: { id: string }): JSX.Element {
 	const guild = createMemo(() => GuildStore.getGuild(props.id));
 	const selg = useSelectedGuildContext();
+	const notificationLevel = createMemo(() => SettingsStore.getGuildNotificationLevel(props.id));
 
 	return (
 		<Show when={!GuildStore.isUnavailable(props.id) && guild()} fallback={<div class={`guild guild-${props.id} unavailable`} />}>
@@ -58,7 +59,7 @@ export default function Guild(props: { id: string }): JSX.Element {
 							position: TooltipPosition.RIGHT,
 						}}
 						use:ContextmenuDirective={{
-							menu: [
+							menu: () => [
 								{
 									action: (): void => {},
 									label: "Mark as Read",
@@ -71,44 +72,109 @@ export default function Guild(props: { id: string }): JSX.Element {
 									type: "text",
 								},
 								Separator,
+								SettingsStore.userGuildSettings[props.id]?.muted
+									? {
+											action: () => SettingsStore.unmuteGuild(props.id),
+											label: "Unmute Server",
+											subText: SettingsStore.userGuildSettings[props.id]?.mute_config?.end_time
+												? `Muted until ${SettingsStore.userGuildSettings[props.id]?.mute_config?.end_time}`
+												: undefined,
+									  }
+									: {
+											action: () => SettingsStore.muteGuild(props.id),
+											label: "Mute Server",
+											submenu: [
+												{
+													action: () => SettingsStore.muteGuild(props.id, 15 * 60),
+													label: "For 15 Minutes",
+													type: "text",
+												},
+												{
+													action: () => SettingsStore.muteGuild(props.id, 60 * 60),
+													label: "For 1 Hour",
+													type: "text",
+												},
+												{
+													action: () => SettingsStore.muteGuild(props.id, 3 * 60 * 60),
+													label: "For 3 Hours",
+													type: "text",
+												},
+												{
+													action: () => SettingsStore.muteGuild(props.id, 8 * 60 * 60),
+													label: "For 8 Hours",
+													type: "text",
+												},
+												{
+													action: () => SettingsStore.muteGuild(props.id, 24 * 60 * 60),
+													label: "For 24 Hours",
+													type: "text",
+												},
+												{
+													action: () => SettingsStore.muteGuild(props.id),
+													label: "Until i turn it back on",
+													type: "text",
+												},
+											],
+											type: "submenu",
+									  },
 								{
 									action: (): void => {},
-									label: "Mute Server",
+									label: "Notification Settings",
+									subText: notificationLevelToText(notificationLevel()),
 									submenu: [
 										{
-											action: (): void => {},
-											label: "For 15 Minutes",
-											type: "text",
+											action: () => SettingsStore.setGuildNotificationLevel(props.id, NotificationLevel.ALL_MESSAGES),
+											enabled: () => notificationLevel() === NotificationLevel.ALL_MESSAGES,
+											label: notificationLevelToText(NotificationLevel.ALL_MESSAGES),
+											type: "switch",
 										},
 										{
-											action: (): void => {},
-											label: "For 1 Hour",
-											type: "text",
+											action: () => SettingsStore.setGuildNotificationLevel(props.id, NotificationLevel.ONLY_MENTIONS),
+											enabled: () => notificationLevel() === NotificationLevel.ONLY_MENTIONS,
+											label: notificationLevelToText(NotificationLevel.ONLY_MENTIONS),
+											type: "switch",
 										},
 										{
-											action: (): void => {},
-											label: "For 3 Hours",
-											type: "text",
+											action: () => SettingsStore.setGuildNotificationLevel(props.id, NotificationLevel.NOTHING),
+											enabled: () => notificationLevel() === NotificationLevel.NOTHING,
+											label: notificationLevelToText(NotificationLevel.NOTHING),
+											type: "switch",
+										},
+										Separator,
+										{
+											action: () => SettingsStore.toggleSuppressEveryone(props.id),
+											enabled: () => SettingsStore.userGuildSettings[props.id]?.suppress_everyone ?? false,
+											label: "Suppress @everyone and @here",
+											type: "switch",
 										},
 										{
-											action: (): void => {},
-											label: "For 8 Hours",
-											type: "text",
+											action: () => SettingsStore.toggleSuppressRoles(props.id),
+											enabled: () => SettingsStore.userGuildSettings[props.id]?.suppress_roles ?? false,
+											label: "Suppress All Role @mentions",
+											type: "switch",
 										},
 										{
-											action: (): void => {},
-											label: "For 24 Hours",
-											type: "text",
+											action: () => SettingsStore.toggleSuppressHighlights(props.id),
+											enabled: () => (SettingsStore.userGuildSettings[props.id]?.notify_highlights ?? 1) === 2,
+											label: "Suppress Highlights",
+											type: "switch",
 										},
 										{
-											action: (): void => {},
-											label: "Until i turn it back on",
-											type: "text",
+											action: () => SettingsStore.toggleMuteScheduledEvents(props.id),
+											enabled: () => SettingsStore.userGuildSettings[props.id]?.mute_scheduled_events ?? false,
+											label: "Mute Scheduled Events",
+											type: "switch",
+										},
+										Separator,
+										{
+											action: () => SettingsStore.toggleMobilePush(props.id),
+											enabled: () => SettingsStore.userGuildSettings[props.id]?.mobile_push ?? false,
+											label: "Mobile Push Notifications",
+											type: "switch",
 										},
 									],
 									type: "submenu",
 								},
-								// Notification Settings
 								{
 									action: (): void => {
 										SettingsStore.toggleHideMutedChannels(props.id);
@@ -128,13 +194,15 @@ export default function Guild(props: { id: string }): JSX.Element {
 								// Edit Server Profile
 								// Create event
 								Separator,
-								...Optional(guild()?.owner_id !== UserStore.getSelfId(), {
-									action: (): void => {},
-									color: Colors.RED,
-									label: "Leave Server",
-									type: "text",
-								}),
-								Separator,
+								...Optional(guild()?.owner_id !== UserStore.getSelfId(), [
+									{
+										action: (): void => {},
+										color: Colors.RED,
+										label: "Leave Server",
+										type: "text",
+									},
+									Separator,
+								]),
 								Id(props.id, "Copy Server ID"),
 							],
 						}}

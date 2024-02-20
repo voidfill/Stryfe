@@ -45,6 +45,7 @@
 			overflow: hidden;
 			width: calc(100% - var(--padding) - 8px);
 			border-radius: 4px;
+			align-items: center;
 
 			.ctx-text {
 				flex-grow: 1;

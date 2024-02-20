@@ -39,7 +39,7 @@ export enum Colors {
 	YELLOW = "yellow",
 }
 
-type menuItem =
+export type menuItem =
 	| ({
 			action: () => void;
 			color?: Colors;
@@ -85,7 +85,7 @@ export function Optional(condition: any, element: menuItem | menuItem[]): menuIt
 }
 
 type contextmenuProps = {
-	menu: menuItem[];
+	menu: () => menuItem[];
 	searchable?: boolean;
 	showOn?: "contextmenu" | "click";
 };
@@ -402,7 +402,7 @@ export function ContextmenuDirective(element: Element, value: Accessor<contextme
 				ref={(e): void => {
 					menu = e;
 				}}
-				menu={value().menu}
+				menu={value().menu()}
 				searchable={value().searchable}
 				parentRect={
 					{

@@ -1,7 +1,9 @@
 import { equalArray } from "./common";
 
-import { ChannelNotificationLevel, GuildNotificationLevel, UserSettingsType } from "@renderer/stores/settings";
+import { NotificationLevel, UserSettingsType } from "@renderer/stores/settings";
 import { array, boolean, nullable, number, object, string } from "valibot";
+
+const nl = equalArray([NotificationLevel.ALL_MESSAGES, NotificationLevel.ONLY_MENTIONS, NotificationLevel.NOTHING, NotificationLevel.PARENT_DEFAULT]);
 
 const mute_config = object({
 	end_time: nullable(string()),
@@ -11,12 +13,7 @@ const mute_config = object({
 export const channel_override = object({
 	channel_id: string(),
 	collapsed: boolean(),
-	message_notifications: equalArray([
-		ChannelNotificationLevel.ALL_MESSAGES,
-		ChannelNotificationLevel.ONLY_MENTIONS,
-		ChannelNotificationLevel.NOTHING,
-		ChannelNotificationLevel.PARENT_DEFAULT,
-	]),
+	message_notifications: nl,
 	mute_config: nullable(mute_config),
 	muted: boolean(),
 });
@@ -26,7 +23,7 @@ export const guild_settings_entry = object({
 	flags: number(),
 	guild_id: string(),
 	hide_muted_channels: boolean(),
-	message_notifications: equalArray([GuildNotificationLevel.ALL_MESSAGES, GuildNotificationLevel.ONLY_MENTIONS, GuildNotificationLevel.NOTHING]),
+	message_notifications: nl,
 	mobile_push: boolean(),
 	mute_config: nullable(mute_config),
 	mute_scheduled_events: boolean(),
