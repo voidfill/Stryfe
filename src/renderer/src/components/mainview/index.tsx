@@ -1,6 +1,5 @@
 import { Navigate, useNavigate, useParams } from "@solidjs/router";
 import { createEffect, createMemo, createSelector, JSX, Show, untrack } from "solid-js";
-import { createStore } from "solid-js/store";
 
 import Storage from "@modules/storage";
 
@@ -15,19 +14,15 @@ import { SelectedChannelContext, SelectedGuildContext } from "../common/selectio
 import MemberList from "../memberlist";
 import SideBar from "../sidebar";
 import FriendsView from "./friendsview";
-import HeaderBar, { showMembers, showUserProfile } from "./headerbar";
+import HeaderBar from "./headerbar";
 
 import "./style.scss";
 
 import shiggy from "@resources/shiggy.gif";
 
 import { ChannelTypes } from "@renderer/constants/channel";
-import { setWindowTitle } from "@renderer/main";
-
-const [lastSelectedChannels, setLastSelectedChannels] = createStore<{
-	[key: string]: string | undefined;
-}>({ ...Storage.get("lastSelectedChannels", {}), "@me": undefined });
-export { lastSelectedChannels };
+import { setWindowTitle, showMembers, showUserProfile } from "@renderer/signals";
+import { lastSelectedChannels, setLastSelectedChannels } from "@renderer/signals";
 
 export default function MainView(): JSX.Element {
 	// we do not want to run all the setup if its just gonna navigate away.
@@ -64,7 +59,7 @@ export default function MainView(): JSX.Element {
 		if (params.guildId === "@me") {
 			if (ch)
 				setWindowTitle(
-					`${(currChannel().type === ChannelTypes.DM ? "@" : "") + ChannelStore.getPrivateChannelName(params.channelId)} - Stryfe`,
+					`${(currChannel()?.type === ChannelTypes.DM ? "@" : "") + ChannelStore.getPrivateChannelName(params.channelId)} - Stryfe`,
 				);
 			else setWindowTitle("Friends - Stryfe");
 			return;

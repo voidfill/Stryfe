@@ -8,7 +8,8 @@ import { HoverAnimationDirective, useAnimationContext } from "../common/animatio
 import { Colors, ContextmenuDirective, Id, Optional, Separator } from "../common/contextmenu";
 import { useSelectedGuildContext } from "../common/selectioncontext";
 import TooltipDirective, { TooltipColors, TooltipPosition } from "../common/tooltip";
-import { lastSelectedChannels } from "../mainview";
+
+import { lastSelectedChannels } from "@renderer/signals";
 HoverAnimationDirective;
 TooltipDirective;
 ContextmenuDirective;

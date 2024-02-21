@@ -6,6 +6,14 @@ import os from "os";
 import icon from "../../build/icon.png?asset";
 import { getConstructorOptions, manageWindowState } from "./windowstate";
 
+let osType: string = process.platform;
+osType =
+	{
+		darwin: "Macos",
+		linux: "Linux",
+		win32: "Windows",
+	}[osType] || "Windows";
+
 const allowOriginList = ["https://discord.com", "https://cordapi.dolfi.es"];
 const toDelete = new Set(["access-control-allow-origin", "content-security-policy-report-only", "content-security-policy", "x-frame-options"]);
 
@@ -17,6 +25,7 @@ function createWindow(): BrowserWindow {
 		minHeight: 200,
 		minWidth: 300,
 		show: false,
+		titleBarStyle: osType === "Linux" ? "default" : "hidden",
 		webPreferences: {
 			nodeIntegrationInWorker: true,
 			preload: join(__dirname, "../preload/index.js"),
@@ -120,8 +129,13 @@ app.whenReady().then(() => {
 	ipcMain.handle("useragent:set", (_, ua: string) => {
 		newUserAgent = ua;
 	});
+	ipcMain.handle("os:type", () => osType);
 
-	createWindow();
+	const bw = createWindow();
+
+	ipcMain.handle("window:close", () => bw.close());
+	ipcMain.handle("window:minimize", () => bw.minimize());
+	ipcMain.handle("window:maximize", () => bw.maximize());
 
 	app.on("activate", function () {
 		if (BrowserWindow.getAllWindows().length === 0) createWindow();

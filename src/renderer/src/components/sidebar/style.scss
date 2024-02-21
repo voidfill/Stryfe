@@ -1,3 +1,9 @@
+.platform-windows, .platform-macos {
+	.sidebar {
+		border-top-left-radius: 8px;
+	}
+}
+
 .sidebar {
 	display: flex;
 	flex-shrink: 0;

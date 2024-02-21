@@ -65,7 +65,7 @@ export const activity = object({
 	timestamps: optional(
 		object({
 			end: optional(string()),
-			start: optional(string()),
+			start: optional(union([number(), string()])),
 		}),
 	),
 	type: activity_type,

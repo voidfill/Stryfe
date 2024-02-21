@@ -10,9 +10,10 @@ import { getSuper } from "./modules/discordversion";
 import { attachDevtoolsOverlay } from "@solid-devtools/overlay";
 attachDevtoolsOverlay();
 
-import { createEffect, createSignal } from "solid-js";
+import { createEffect } from "solid-js";
 
 import App from "./app";
+import { windowTitle } from "./signals";
 
 (async (): Promise<void> => {
 	if (!(await window.ipc.isEncryptionAvailable()) || !Storage.has("token")) return;
@@ -38,8 +39,6 @@ window.addEventListener("keydown", (e): void => {
 });
 
 render(() => <App />, document.getElementById("root") as HTMLElement);
-
-export const [windowTitle, setWindowTitle] = createSignal("Stryfe");
 
 const titleEl = document.getElementById("app-title") as HTMLElement;
 createEffect(() => {

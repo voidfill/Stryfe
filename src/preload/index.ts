@@ -4,16 +4,16 @@ import os from "os";
 
 const canEncrypt = ipcRenderer.invoke("encryption:available");
 const isDev = ipcRenderer.invoke("is:dev");
+const osType = ipcRenderer.invoke("os:type");
 export const ipc = {
+	close: (): Promise<void> => ipcRenderer.invoke("window:close"),
 	decrypt: (data: string): Promise<string> => ipcRenderer.invoke("encryption:decrypt", data),
 	encrypt: (data: string): Promise<string> => ipcRenderer.invoke("encryption:encrypt", data),
 	isEncryptionAvailable: (): Promise<boolean> => canEncrypt,
+	maximize: (): Promise<void> => ipcRenderer.invoke("window:maximize"),
+	minimize: (): Promise<void> => ipcRenderer.invoke("window:minimize"),
 	setUserAgent: (ua: string): Promise<void> => ipcRenderer.invoke("useragent:set", ua),
 };
-
-let osType = os.type();
-//const allowed = new Set(["Darwin", "Linux", "Windows"]);
-osType = "Windows"; //allowed.has(osType) ? osType : "Windows";
 
 (async (): Promise<void> => {
 	try {
@@ -22,7 +22,7 @@ osType = "Windows"; //allowed.has(osType) ? osType : "Windows";
 		contextBridge.exposeInMainWorld("os", os);
 
 		contextBridge.exposeInMainWorld("isDev", await isDev);
-		contextBridge.exposeInMainWorld("os_type", osType);
+		contextBridge.exposeInMainWorld("os_type", await osType);
 	} catch (error) {
 		console.error(error);
 	}

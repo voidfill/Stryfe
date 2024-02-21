@@ -5,7 +5,6 @@ $quaternary: #0c0910;
 $accent-primary: #9882ac;
 $accent-secondary: #a393bf;
 
-
 :root {
 	--background-primary: #{$primary};
 	--background-secondary: #{$secondary};
@@ -19,7 +18,8 @@ $accent-secondary: #a393bf;
 	--scrollbar-thumb: #{lighten($primary, 10%)};
 }
 
-button, a:-webkit-any-link {
+button,
+a:-webkit-any-link {
 	all: unset;
 }
 
@@ -129,6 +129,43 @@ body {
 			display: flex;
 			overflow: hidden;
 			flex-grow: 1;
+		}
+
+		.titlebar {
+			height: 22px;
+			-webkit-app-region: drag;
+			padding-left: 10px;
+			display: flex;
+			flex-direction: row;
+
+			.titlebar-title {
+				padding-top: 4px;
+				line-height: 18px;
+				font-size: 16px;
+				flex-grow: 1;
+			}
+
+			.titlebar-buttons {
+				display: flex;
+				flex-direction: row;
+				-webkit-app-region: no-drag;
+
+				.titlebar-button {
+					width: 28px;
+					height: 22px;
+					display: flex;
+					justify-content: center;
+					align-items: center;
+
+					&:hover {
+						background-color: var(--background-secondary);
+					}
+
+					&.close:hover {
+						background-color: #ff372c;
+					}
+				}
+			}
 		}
 	}
 }

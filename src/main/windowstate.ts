@@ -1,12 +1,13 @@
 import { app, screen } from "electron";
 import { join } from "path";
 
+import { constants } from "fs";
 import { accessSync, readFileSync, writeFileSync } from "fs";
 
-const path = join(app.getPath("userData"), "/windowstate.json");
+const path = join(app.getPath("userData"), "windowstate.json");
 let data: { bounds?: Electron.Rectangle; fullscreen?: boolean; maximized?: boolean } = {};
 try {
-	accessSync(path);
+	accessSync(path, constants.R_OK | constants.W_OK);
 	data = JSON.parse(readFileSync(path.toString(), { encoding: "utf-8" }));
 } catch (e) {
 	console.log("Failed to read window state:", e);
@@ -39,7 +40,11 @@ export function getConstructorOptions(): Partial<Electron.BrowserWindowConstruct
 export function manageWindowState(window: Electron.BrowserWindow): void {
 	window.on("close", () => {
 		data = { ...data, bounds: window.getBounds(), fullscreen: window.isFullScreen(), maximized: window.isMaximized() };
-		writeFileSync(path, JSON.stringify(data));
+		try {
+			writeFileSync(path, JSON.stringify(data));
+		} catch (e) {
+			console.log(e);
+		}
 	});
 
 	if (data.fullscreen) window.setFullScreen(true);

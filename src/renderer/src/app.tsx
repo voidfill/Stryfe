@@ -6,9 +6,11 @@ import Storage from "@modules/storage";
 import MainView from "@components/mainview";
 const Login = lazy(() => import("@components/login"));
 
+import { FaSolidWindowMaximize, FaSolidWindowMinimize, FaSolidXmark } from "solid-icons/fa";
+
 import { FocusAnimationDirective } from "./components/common/animationcontext";
-import { setWindowTitle } from "./main";
 import Layers from "./modules/layers";
+import { setWindowTitle } from "./signals";
 
 import "./app.scss";
 
@@ -35,7 +37,23 @@ function NotFoundPage(): JSX.Element {
 
 export default function App(): JSX.Element {
 	return (
-		<div class={`app platform-${window.os_type}`} use:FocusAnimationDirective>
+		<div class={`app platform-${window.os_type.toLowerCase()}`} use:FocusAnimationDirective>
+			<Show when={window.os_type.toLowerCase() === "windows"}>
+				<div class="titlebar">
+					<span class="titlebar-title">Stryfe</span>
+					<div class="titlebar-buttons">
+						<div class="titlebar-button minimize" onClick={(): void => void window.ipc.minimize()}>
+							<FaSolidWindowMinimize size={14} />
+						</div>
+						<div class="titlebar-button maximize" onClick={(): void => void window.ipc.maximize()}>
+							<FaSolidWindowMaximize size={14} />
+						</div>
+						<div class="titlebar-button close" onClick={(): void => void window.ipc.close()}>
+							<FaSolidXmark size={18} />
+						</div>
+					</div>
+				</div>
+			</Show>
 			<Show
 				when={canEncrypt()}
 				fallback={

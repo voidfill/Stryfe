@@ -4,10 +4,11 @@ import GuildStore from "@stores/guilds";
 
 import { TiHome } from "solid-icons/ti";
 
-import { lastSelectedChannels } from "../mainview";
 import Guild from "./guild";
 
 import "./style.scss";
+
+import { lastSelectedChannels } from "@renderer/signals";
 
 export default function GuildsList(): JSX.Element {
 	return (

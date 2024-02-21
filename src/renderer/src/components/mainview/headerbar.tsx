@@ -1,31 +1,14 @@
 import { useParams } from "@solidjs/router";
-import { createMemo, createSignal, JSX, Match, Show, Switch } from "solid-js";
-
-import Storage from "@modules/storage";
+import { createMemo, JSX, Match, Show, Switch } from "solid-js";
 
 import ChannelStore from "@stores/channels";
 
 import { FiHelpCircle, FiUsers } from "solid-icons/fi";
 
-import ChannelIcon from "../common/channelicon";
-
 import { ChannelTypes } from "@renderer/constants/channel";
+import { friendsTab, FriendsTabs, setFriendsTab, showHelp } from "@renderer/signals";
 
-export enum FriendsTabs {
-	ONLINE,
-	ALL,
-	PENDING,
-	BLOCKED,
-	ADD,
-}
 const threadChannelTypes = new Set([ChannelTypes.PUBLIC_THREAD, ChannelTypes.PRIVATE_THREAD, ChannelTypes.ANNOUNCEMENT_THREAD]);
-
-const [showMembers, setShowMembers] = createSignal(Storage.get("showMembers", true));
-const [showUserProfile, setShowUserProfile] = createSignal(Storage.get("showUserProfile", true));
-const [showHelp, setShowHelp] = createSignal(Storage.get("showHelp", true));
-const [friendsTab, setFriendsTab] = createSignal<FriendsTabs>(FriendsTabs.ONLINE);
-
-export { showMembers, showUserProfile, friendsTab };
 
 export default function HeaderBar(): JSX.Element {
 	const params = useParams(),

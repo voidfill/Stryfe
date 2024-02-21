@@ -16,11 +16,11 @@ import Avatar, { ShowStatus } from "../common/avatar";
 import { Colors, ContextmenuDirective } from "../common/contextmenu";
 import CustomStatus from "../common/customstatus";
 import TooltipDirective from "../common/tooltip";
-import { friendsTab, FriendsTabs } from "./headerbar";
 
 import "./friendsview.scss";
 
 import { RelationshipTypes } from "@renderer/constants/user";
+import { friendsTab, FriendsTabs } from "@renderer/signals";
 
 HoverAnimationDirective;
 TooltipDirective;
