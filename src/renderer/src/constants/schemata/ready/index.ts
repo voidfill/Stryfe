@@ -133,5 +133,5 @@ export const PASSIVE_UPDATE_V1 = object({
 });
 
 export const RESUMED = object({
-	keythatdoesntexist: equal("TODO: fix"),
+	_trace: array(string()),
 });

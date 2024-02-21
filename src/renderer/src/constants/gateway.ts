@@ -46,10 +46,29 @@ export const enum SocketGatewayCloseCodes {
 	SESSION_TIMEOUT = 4009,
 	INVALID_SHARD = 4010,
 	SHARDING_REQUIRED = 4011,
-	INVALID_VERSION = 4012,
+	INVALID_API_VERSION = 4012,
 	INVALID_INTENTS = 4013,
 	DISALLOWED_INTENTS = 4014,
 }
+
+export const recoverableCloseCodes: {
+	[key in SocketGatewayCloseCodes]: boolean;
+} = {
+	[SocketGatewayCloseCodes.UNKNOWN_ERROR]: true,
+	[SocketGatewayCloseCodes.UNKNOWN_OPCODE]: true,
+	[SocketGatewayCloseCodes.DECODE_ERROR]: true,
+	[SocketGatewayCloseCodes.NOT_AUTHENTICATED]: true,
+	[SocketGatewayCloseCodes.AUTHENTICATION_FAILED]: false,
+	[SocketGatewayCloseCodes.ALREADY_AUTHENTICATED]: true,
+	[SocketGatewayCloseCodes.INVALID_SEQUENCE]: true,
+	[SocketGatewayCloseCodes.RATE_LIMITED]: true,
+	[SocketGatewayCloseCodes.SESSION_TIMEOUT]: true,
+	[SocketGatewayCloseCodes.INVALID_SHARD]: false,
+	[SocketGatewayCloseCodes.SHARDING_REQUIRED]: false,
+	[SocketGatewayCloseCodes.INVALID_API_VERSION]: false,
+	[SocketGatewayCloseCodes.INVALID_INTENTS]: false,
+	[SocketGatewayCloseCodes.DISALLOWED_INTENTS]: false,
+};
 
 export type GatewayPayload =
 	| {

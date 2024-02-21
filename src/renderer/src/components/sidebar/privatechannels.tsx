@@ -1,5 +1,5 @@
-import { A, useParams } from "@solidjs/router";
-import { createMemo, For, JSX, onMount, Show } from "solid-js";
+import { A, useParams, useSearchParams } from "@solidjs/router";
+import { createEffect, createMemo, For, JSX, onMount, Show } from "solid-js";
 
 import ChannelStore from "@stores/channels";
 
@@ -15,31 +15,42 @@ import { ChannelTypes } from "@renderer/constants/channel";
 HoverAnimationDirective;
 
 function PrivateChannel(props: { id: string }): JSX.Element {
+	let ref: HTMLAnchorElement;
 	const channel = createMemo(() => ChannelStore.getDirectMessage(props.id));
 	const channelName = createMemo(() => ChannelStore.getPrivateChannelName(props.id));
 	const selc = useSelectedChannelContext();
+	const [searchParams, setSearchParams] = useSearchParams();
+
+	createEffect(() => {
+		if (selc(props.id) && searchParams.jump) {
+			setSearchParams({ jump: undefined });
+			ref?.scrollIntoView({ behavior: "instant", block: "nearest" });
+		}
+	});
 
 	return (
-		<A
-			href={`/channels/@me/${props.id}`}
-			classList={{
-				channel: true,
-				[`channel-type-${channel().type}`]: true,
-				[`channel-${props.id}`]: true,
-				selected: selc(props.id),
-			}}
-			use:HoverAnimationDirective
-		>
-			<div class="channel-icon">
-				<Show when={channel().type === ChannelTypes.DM} fallback={<Avatar size={32} groupDMId={props.id} />}>
-					<Avatar size={32} userId={channel().recipient_ids[0]} showStatus={ShowStatus.ALWAYS} channelId={props.id} />
-				</Show>
-			</div>
-			<div class="channel-text">
-				<span class="channel-name">{channelName()}</span>
-				<Show when={channel().type === ChannelTypes.DM}>
-					<CustomStatus userId={channel().recipient_ids[0]} inline />
-				</Show>
+		// @ts-expect-error nuh uh
+		<A ref={ref} href={`/channels/@me/${props.id}`}>
+			<div
+				classList={{
+					channel: true,
+					[`channel-type-${channel().type}`]: true,
+					[`channel-${props.id}`]: true,
+					selected: selc(props.id),
+				}}
+				use:HoverAnimationDirective
+			>
+				<div class="channel-icon">
+					<Show when={channel().type === ChannelTypes.DM} fallback={<Avatar size={32} groupDMId={props.id} />}>
+						<Avatar size={32} userId={channel().recipient_ids[0]} showStatus={ShowStatus.ALWAYS} channelId={props.id} />
+					</Show>
+				</div>
+				<div class="channel-text">
+					<span class="channel-name">{channelName()}</span>
+					<Show when={channel().type === ChannelTypes.DM}>
+						<CustomStatus userId={channel().recipient_ids[0]} inline />
+					</Show>
+				</div>
 			</div>
 		</A>
 	);

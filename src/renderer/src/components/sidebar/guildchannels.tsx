@@ -113,49 +113,52 @@ function TextChannel(props: { id: string; isCollapsed: Accessor<boolean>; parent
 			{(channel): JSX.Element => (
 				<A
 					href={`/channels/${params.guildId}/${props.id}`}
-					classList={{
-						channel: true,
-						[`channel-type-${channel.type}`]: true,
-						[`channel-${props.id}`]: true,
-						selected: selc(props.id),
-					}}
 					ref={(el): void => {
 						refMap.set(props.id, el);
 					}}
-					use:ContextmenuDirective={{
-						menu: () => [
-							{
-								action: (): void => void 0,
-								disabled: true,
-								label: "Mark As Read",
-							},
-							Separator,
-							{
-								action: () => void 0,
-								label: "Invite People",
-							},
-							{
-								action: () => void navigator.clipboard.writeText(`https://discord.com/channels/${params.guildId}/${props.id}`),
-								label: "Copy Link",
-							},
-							Separator,
-							muteContextMenu(props.id, "Channel"),
-							notificationContextMenu(props.id, props.parentId!, params.guildId, notificationLevel),
-							...Optional(true, [
+				>
+					<div
+						classList={{
+							channel: true,
+							[`channel-type-${channel.type}`]: true,
+							[`channel-${props.id}`]: true,
+							selected: selc(props.id),
+						}}
+						use:ContextmenuDirective={{
+							menu: () => [
 								{
-									action: () => void 0,
-									label: "//TODO: Channel Settings Entries",
+									action: (): void => void 0,
+									disabled: true,
+									label: "Mark As Read",
 								},
 								Separator,
-							]),
-							Id(props.id, "Copy Channel ID"),
-						],
-					}}
-				>
-					<div class="channel-icon">
-						<ChannelIcon id={props.id} size={20} />
+								{
+									action: () => void 0,
+									label: "Invite People",
+								},
+								{
+									action: () => void navigator.clipboard.writeText(`https://discord.com/channels/${params.guildId}/${props.id}`),
+									label: "Copy Link",
+								},
+								Separator,
+								muteContextMenu(props.id, "Channel"),
+								notificationContextMenu(props.id, props.parentId!, params.guildId, notificationLevel),
+								...Optional(true, [
+									{
+										action: () => void 0,
+										label: "//TODO: Channel Settings Entries",
+									},
+									Separator,
+								]),
+								Id(props.id, "Copy Channel ID"),
+							],
+						}}
+					>
+						<div class="channel-icon">
+							<ChannelIcon id={props.id} size={20} />
+						</div>
+						<span class="channel-name">{channel.name}</span>
 					</div>
-					<span class="channel-name">{channel.name}</span>
 				</A>
 			)}
 		</Show>
@@ -176,56 +179,59 @@ function VoiceChannel(props: { id: string; isCollapsed: Accessor<boolean> }): JS
 			{(channel): JSX.Element => (
 				<A
 					href={`/channels/${params.guildId}/${props.id}`}
-					classList={{
-						channel: true,
-						[`channel-type-${channel.type}`]: true,
-						[`channel-${props.id}`]: true,
-						selected: selc(props.id),
-					}}
 					ref={(el): void => {
 						refMap.set(props.id, el);
 					}}
-					use:ContextmenuDirective={{
-						menu: () => [
-							{
-								action: () => void 0,
-								disabled: true,
-								label: "Mark As Read",
-							},
-							Separator,
-							{
-								action: () => void 0,
-								label: "Invite People",
-							},
-							{
-								action: () => void navigator.clipboard.writeText(`https://discord.com/channels/${params.guildId}/${props.id}`),
-								label: "Copy Link",
-							},
-							Separator,
-							{
-								action: () => void 0,
-								enabled: () => false,
-								label: "Hide Names",
-								type: "switch",
-							},
-							Separator,
-							muteContextMenu(props.id, "Channel"),
-							Separator,
-							...Optional(true, [
+				>
+					<div
+						classList={{
+							channel: true,
+							[`channel-type-${channel.type}`]: true,
+							[`channel-${props.id}`]: true,
+							selected: selc(props.id),
+						}}
+						use:ContextmenuDirective={{
+							menu: () => [
 								{
 									action: () => void 0,
-									label: "//TODO: Channel Settings Entries",
+									disabled: true,
+									label: "Mark As Read",
 								},
 								Separator,
-							]),
-							Id(props.id, "Copy Channel ID"),
-						],
-					}}
-				>
-					<div class="channel-icon">
-						<ChannelIcon id={props.id} size={20} />
+								{
+									action: () => void 0,
+									label: "Invite People",
+								},
+								{
+									action: () => void navigator.clipboard.writeText(`https://discord.com/channels/${params.guildId}/${props.id}`),
+									label: "Copy Link",
+								},
+								Separator,
+								{
+									action: () => void 0,
+									enabled: () => false,
+									label: "Hide Names",
+									type: "switch",
+								},
+								Separator,
+								muteContextMenu(props.id, "Channel"),
+								Separator,
+								...Optional(true, [
+									{
+										action: () => void 0,
+										label: "//TODO: Channel Settings Entries",
+									},
+									Separator,
+								]),
+								Id(props.id, "Copy Channel ID"),
+							],
+						}}
+					>
+						<div class="channel-icon">
+							<ChannelIcon id={props.id} size={20} />
+						</div>
+						<span class="channel-name">{channel.name}</span>
 					</div>
-					<span class="channel-name">{channel.name}</span>
 				</A>
 			)}
 		</Show>

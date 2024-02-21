@@ -71,7 +71,7 @@ function FriendItem(props: { id: string }): JSX.Element {
 									action: (): void => {
 										const id = untrack((): string | undefined => ChannelStore.getDMForUser(props.id));
 										if (!id) return; // TODO: create dm, transition to it
-										return void navigate(`/channels/@me/${id}`);
+										return void navigate(`/channels/@me/${id}?jump=true`);
 									},
 									label: "Message",
 									type: "text",
@@ -85,7 +85,7 @@ function FriendItem(props: { id: string }): JSX.Element {
 								case FriendsTabs.ONLINE:
 								case FriendsTabs.ALL:
 									if (!id) return; // TODO: create dm, transition to it
-									return void navigate(`/channels/@me/${id}`);
+									return void navigate(`/channels/@me/${id}?jump=true`);
 								case FriendsTabs.PENDING:
 								case FriendsTabs.BLOCKED:
 									return; // open pfp

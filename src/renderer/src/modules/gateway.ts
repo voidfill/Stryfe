@@ -1,4 +1,4 @@
-import { GatewayPayload, OPCodes, SocketGatewayCloseCodes } from "@constants/gateway";
+import { GatewayPayload, OPCodes, recoverableCloseCodes, SocketGatewayCloseCodes } from "@constants/gateway";
 
 import { clientProperties } from "./discordversion";
 import Dispatcher from "./dispatcher";
@@ -68,6 +68,7 @@ export default class GatewaySocket {
 		interval: null,
 		lastAck: null,
 	};
+	#resumable = false;
 
 	#trace: string[] = [];
 
@@ -80,7 +81,7 @@ export default class GatewaySocket {
 	}
 
 	get canResume(): boolean {
-		return !!this.#sessionId && Date.now() - (this.#heart.lastAck ?? 0) < HEARTBEAT_MAX_RESUME_THRESHOLD;
+		return !!this.#sessionId && this.#resumable && this.#seq > 0 && Date.now() - (this.#heart.lastAck ?? 0) < HEARTBEAT_MAX_RESUME_THRESHOLD;
 	}
 
 	constructor(token: string, clientProperties: clientProperties, gatewayVersion = 9) {
@@ -96,7 +97,6 @@ export default class GatewaySocket {
 	#createSocket(): void {
 		if (this.#state === ConnectionState.Connected || this.#state === ConnectionState.Connecting) return;
 		this.#state = ConnectionState.Connecting;
-		this.#seq = 0;
 		this.#attempts++;
 		upw.postMessage("reset");
 		if (this.#socket?.readyState === WebSocket.OPEN) this.#socket.close();
@@ -104,6 +104,7 @@ export default class GatewaySocket {
 		this.#helloTimeout = setTimeout(() => {
 			this.#socket?.close(SocketGatewayCloseCodes.UNKNOWN_ERROR, "Hello timeout");
 		}, HELLO_TIMEOUT);
+		this.#socket?.close(1000);
 		this.#socket = new WebSocket(`${this.#gatewayURL}/?v=${this.#gatewayVersion}&compress=zlib-stream&encoding=etf`);
 		this.#socket.binaryType = "arraybuffer";
 
@@ -125,6 +126,11 @@ export default class GatewaySocket {
 		logger.log("Disconnected from gateway:", wasClean, code, reason);
 
 		if (code === SocketGatewayCloseCodes.AUTHENTICATION_FAILED) return clearToken();
+		if (!(recoverableCloseCodes[code as SocketGatewayCloseCodes] ?? true)) throw new Error(`Gateway closed with unrecoverable code: ${code}`);
+
+		this.#resumable = true;
+		if (code === SocketGatewayCloseCodes.INVALID_SEQUENCE) this.#seq = 0;
+
 		if (this.#attempts >= MAX_RETRIES) {
 			logger.warn("Max retries reached, not reconnecting");
 			return Dispatcher.emit("GATEWAY_GIVE_UP");
@@ -140,6 +146,7 @@ export default class GatewaySocket {
 	#resume(): void {
 		logger.info("Attempting to resume session");
 		this.#state = ConnectionState.Resuming;
+		this.#resumable = false;
 
 		this.#send(OPCodes.RESUME, {
 			seq: this.#seq,
@@ -209,6 +216,7 @@ export default class GatewaySocket {
 						this.#attempts = 0;
 						this.#state = ConnectionState.Connected;
 						this.#helloTimeout &&= clearTimeout(this.#helloTimeout) as undefined;
+						this.#trace = data.d._trace;
 						Dispatcher.emit("GATEWAY_CONNECT");
 				}
 
@@ -231,10 +239,9 @@ export default class GatewaySocket {
 			// @fallthrough
 			case OPCodes.INVALID_SESSION:
 				if (data.d) {
-					this.#onOpen();
-				} else {
-					this.#identify();
+					this.#resumable = true;
 				}
+				this.#createSocket();
 				break;
 
 			default:

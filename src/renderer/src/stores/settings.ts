@@ -21,6 +21,12 @@ export const enum NotificationLevel {
 	PARENT_DEFAULT = 3,
 }
 
+export const enum HighlightLevel {
+	DEFAULT = 0,
+	DISABLED = 1,
+	ENABLED = 2,
+}
+
 export function notificationLevelToText(level: NotificationLevel, isTopLevel?: boolean): string {
 	switch (level) {
 		case NotificationLevel.ALL_MESSAGES:
@@ -40,7 +46,7 @@ const [frecencySettings, setFrecencySettings] = createStore<FrecencyUserSettings
 const [preloadedSettings, setPreloadedSettings] = createStore<PreloadedUserSettings>({});
 const [userGuildSettings, setUserGuildSettings] = createStore<{
 	[guild_id: string]: DistributiveOmit<Output<typeof guild_settings_entry>, "guild_id" | "channel_overrides"> & {
-		overriden_channel_ids?: string[];
+		overridden_channel_ids?: string[];
 	};
 }>({});
 // this also belongs to the userGuildSettings, just pulled it out for easier access
@@ -52,7 +58,7 @@ const [userGuildSettingsVersion, setUserGuildSettingsVersion] = createSignal<num
 const muteTimers = new Map<string, NodeJS.Timeout>();
 function registerTimedChannelMute(channelId: string, config: { end_time: string | null; selected_time_window: number }): void {
 	if (muteTimers.has(channelId)) clearTimeout(muteTimers.get(channelId)!);
-	if (!config.end_time) return; // TODO: uh?
+	if (!config.end_time) return; // timer expired
 
 	const end = new Date(config.end_time).getTime();
 	const now = Date.now();
@@ -65,7 +71,7 @@ function registerTimedChannelMute(channelId: string, config: { end_time: string 
 }
 function registerTimedGuildMute(guildId: string, config: { end_time: string | null; selected_time_window: number }): void {
 	if (muteTimers.has(guildId)) clearTimeout(muteTimers.get(guildId)!);
-	if (!config.end_time) return; // TODO: uh?
+	if (!config.end_time) return; // timer expired
 
 	const end = new Date(config.end_time).getTime();
 	const now = Date.now();
@@ -92,7 +98,7 @@ const guildSettingsDefaults: DistributiveOmit<Output<typeof guild_settings_entry
 	mute_config: null,
 	mute_scheduled_events: false,
 	muted: false,
-	notify_highlights: 1,
+	notify_highlights: HighlightLevel.DEFAULT,
 	suppress_everyone: false,
 	suppress_roles: false,
 	version: 0,
@@ -129,7 +135,7 @@ export default new (class SettingsStore extends Store {
 						if (channel_overrides)
 							setUserGuildSettings(
 								guild_id,
-								"overriden_channel_ids",
+								"overridden_channel_ids",
 								channel_overrides.map((o) => o.channel_id),
 							);
 						if (entry.mute_config && entry.muted) registerTimedGuildMute(guild_id, entry.mute_config);
@@ -145,12 +151,12 @@ export default new (class SettingsStore extends Store {
 			USER_GUILD_SETTINGS_UPDATE: ({ guild_id, channel_overrides, ...rest }) => {
 				const lastVersion = userGuildSettings[guild_id];
 				if (lastVersion) {
-					for (const o of lastVersion.overriden_channel_ids ?? []) {
+					for (const o of lastVersion.overridden_channel_ids ?? []) {
 						if (muteTimers.has(o)) clearTimeout(muteTimers.get(o)!);
 					}
 					setChannelOverrides(
 						produce((p) => {
-							for (const o of lastVersion.overriden_channel_ids ?? []) {
+							for (const o of lastVersion.overridden_channel_ids ?? []) {
 								delete p[o];
 							}
 						}),
@@ -318,7 +324,11 @@ export default new (class SettingsStore extends Store {
 	toggleSuppressHighlights(guildId: string): void {
 		const guild = untrack(() => userGuildSettings[guildId]);
 		if (!guild) setUserGuildSettings(guildId, { ...guildSettingsDefaults });
-		setUserGuildSettings(guildId, "notify_highlights", untrack(() => guild?.notify_highlights) === 2 ? 1 : 2);
+		setUserGuildSettings(
+			guildId,
+			"notify_highlights",
+			untrack(() => guild?.notify_highlights) === HighlightLevel.DISABLED ? HighlightLevel.ENABLED : HighlightLevel.DISABLED,
+		);
 	}
 
 	toggleMuteScheduledEvents(guildId: string): void {

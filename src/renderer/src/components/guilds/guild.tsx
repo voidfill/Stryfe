@@ -2,7 +2,7 @@ import { A } from "@solidjs/router";
 import { createMemo, JSX, Show } from "solid-js";
 
 import GuildStore from "@stores/guilds";
-import SettingsStore, { NotificationLevel, notificationLevelToText } from "@stores/settings";
+import SettingsStore, { HighlightLevel, NotificationLevel, notificationLevelToText } from "@stores/settings";
 import UserStore from "@stores/users";
 
 import { HoverAnimationDirective, useAnimationContext } from "../common/animationcontext";
@@ -157,7 +157,9 @@ export default function Guild(props: { id: string }): JSX.Element {
 										},
 										{
 											action: () => SettingsStore.toggleSuppressHighlights(props.id),
-											enabled: () => (SettingsStore.userGuildSettings[props.id]?.notify_highlights ?? 1) === 2,
+											enabled: () =>
+												(SettingsStore.userGuildSettings[props.id]?.notify_highlights ?? HighlightLevel.DEFAULT) ===
+												HighlightLevel.DISABLED,
 											label: "Suppress Highlights",
 											type: "switch",
 										},

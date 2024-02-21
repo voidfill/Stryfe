@@ -1,4 +1,4 @@
-import { createContext, createMemo, createRenderEffect, createSignal, getOwner, JSX as _JSX, useContext, ValidComponent } from "solid-js";
+import { createContext, createMemo, createRenderEffect, createSignal, getOwner, JSX as _JSX, onCleanup, useContext, ValidComponent } from "solid-js";
 import { Dynamic, DynamicProps } from "solid-js/web";
 
 import WindowStore from "@stores/window";
@@ -54,8 +54,16 @@ export function HoverAnimationDirective(el: Element): void {
 		owner!.context = { ...owner!.context, [AnimationContext.id]: memo };
 	});
 
-	el.addEventListener("mouseenter", (): void => void setIsHover(true));
-	el.addEventListener("mouseleave", (): void => void setIsHover(false));
+	const mouseenter = (): void => void setIsHover(true),
+		mouseleave = (): void => void setIsHover(false);
+
+	el.addEventListener("mouseenter", mouseenter);
+	el.addEventListener("mouseleave", mouseleave);
+
+	onCleanup(() => {
+		el.removeEventListener("mouseenter", mouseenter);
+		el.removeEventListener("mouseleave", mouseleave);
+	});
 }
 
 declare module "solid-js" {
