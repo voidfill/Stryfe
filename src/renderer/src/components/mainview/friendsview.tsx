@@ -51,7 +51,7 @@ function FriendItem(props: { id: string }): JSX.Element {
 	const navigate = useNavigate();
 	const user = createMemo(() => UserStore.getUser(props.id));
 	const relationship = createMemo(() => RelationshipStore.getRelationship(props.id));
-	const hasActivity = createMemo(() => ActivityStore.getActivities(props.id)?.length ?? 0 > 0);
+	const hasActivity = createMemo(() => (ActivityStore.getActivities(props.id)?.length ?? 0) > 0);
 	const statusText = createMemo(() => statusToEnglish(StatusStore.getStatus(props.id)));
 
 	return (

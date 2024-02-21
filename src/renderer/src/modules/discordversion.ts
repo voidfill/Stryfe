@@ -44,6 +44,40 @@ export async function getSuper(): Promise<Output<typeof superProps>> {
 	});
 }
 
+const scriptRegex = /<script\W+nonce.+?>(.+?)<\/script>/gm;
+const garbageRegex = /\|\|\W(.+?)\.contentWindow.document;if\W\(.+?\)\W{/gm;
+
+export function cfChallenge(): Promise<undefined> {
+	return new Promise((res, rej) => {
+		fetch("https://discord.com/channels/")
+			.then((r) => r.text())
+			.then((h) => {
+				const scripts = h.match(scriptRegex);
+				if (!scripts) return rej("Failed to get scripts");
+				let script = scripts.find((e) => e.includes("__CF$cv$params"));
+				if (!script) {
+					window.ipc.getCookies().then((c) => {
+						if (!c.some((e) => e.name === "cf_clearance")) return rej("Failed to get cf_clearance");
+						return res(undefined);
+					});
+				} else {
+					script = scriptRegex.exec(script)![1];
+					script = script.replace("/cdn-cgi/challenge-platform/", "https://discord.com/cdn-cgi/challenge-platform/");
+					script = script.replace(
+						garbageRegex,
+						(m, p1) =>
+							`${m}var ___xmlh = ${p1}.contentWindow.XMLHttpRequest.prototype; var ___oldOpen = ___xmlh.open;___xmlh.open = function(...args){args[1] = "http://discord.com" + args[1]; return ___oldOpen.apply(this, args)};`,
+					);
+
+					const el = document.createElement("script");
+					el.innerHTML = script;
+					document.head.append(el);
+					res(undefined);
+				}
+			});
+	});
+}
+
 // export async function getSuper(): Promise<Output<typeof superProps>> {
 // 	return new Promise((resolve, reject) => {
 // 		if (alreadyFetchedProps) return resolve(alreadyFetchedProps);

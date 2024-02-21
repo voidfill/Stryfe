@@ -1,5 +1,5 @@
 import { electronApp, is } from "@electron-toolkit/utils";
-import { app, BrowserWindow, ipcMain, safeStorage, shell } from "electron";
+import { app, BrowserWindow, ipcMain, safeStorage, session, shell } from "electron";
 import { join } from "path";
 import os from "os";
 
@@ -21,6 +21,7 @@ let newUserAgent = "";
 
 function createWindow(): BrowserWindow {
 	const mainWindow = new BrowserWindow({
+		backgroundColor: "#0c0910",
 		height: 670,
 		minHeight: 200,
 		minWidth: 300,
@@ -130,6 +131,7 @@ app.whenReady().then(() => {
 		newUserAgent = ua;
 	});
 	ipcMain.handle("os:type", () => osType);
+	ipcMain.handle("cookies:get", () => session.defaultSession.cookies.get({}));
 
 	const bw = createWindow();
 

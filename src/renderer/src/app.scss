@@ -39,6 +39,10 @@ body {
 	-webkit-user-select: none;
 	overflow: hidden;
 
+	#root {
+		background-color: var(--background-quaternary);
+	}
+
 	#hidden {
 		display: none;
 	}

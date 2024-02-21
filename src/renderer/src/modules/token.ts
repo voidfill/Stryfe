@@ -31,10 +31,10 @@ export async function setToken(newToken: string): Promise<void> {
 	token = newToken;
 	await ensureEncryption();
 	Storage.set("token", await window.ipc.encrypt(newToken));
-	window.location = "/" as string & Location;
+	window.location = "" as string & Location;
 }
 
 export function clearToken(): void {
 	Storage.delete("token");
-	window.location = "/" as string & Location;
+	window.location = "" as string & Location;
 }

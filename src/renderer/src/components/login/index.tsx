@@ -3,7 +3,7 @@ import { Dynamic } from "solid-js/web";
 
 import "./style.scss";
 
-import { setWindowTitle } from "@renderer/main";
+import { setWindowTitle } from "@renderer/signals";
 
 const items = [
 	{

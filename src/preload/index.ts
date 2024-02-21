@@ -9,6 +9,9 @@ export const ipc = {
 	close: (): Promise<void> => ipcRenderer.invoke("window:close"),
 	decrypt: (data: string): Promise<string> => ipcRenderer.invoke("encryption:decrypt", data),
 	encrypt: (data: string): Promise<string> => ipcRenderer.invoke("encryption:encrypt", data),
+	getCookies(): Promise<Electron.Cookie[]> {
+		return ipcRenderer.invoke("cookies:get");
+	},
 	isEncryptionAvailable: (): Promise<boolean> => canEncrypt,
 	maximize: (): Promise<void> => ipcRenderer.invoke("window:maximize"),
 	minimize: (): Promise<void> => ipcRenderer.invoke("window:minimize"),

@@ -1,4 +1,4 @@
-import { useParams } from "@solidjs/router";
+import { A, useParams } from "@solidjs/router";
 import { createMemo, For, JSX, onMount, Show } from "solid-js";
 
 import ChannelStore from "@stores/channels";
@@ -20,7 +20,7 @@ function PrivateChannel(props: { id: string }): JSX.Element {
 	const selc = useSelectedChannelContext();
 
 	return (
-		<a
+		<A
 			href={`/channels/@me/${props.id}`}
 			classList={{
 				channel: true,
@@ -41,7 +41,7 @@ function PrivateChannel(props: { id: string }): JSX.Element {
 					<CustomStatus userId={channel().recipient_ids[0]} inline />
 				</Show>
 			</div>
-		</a>
+		</A>
 	);
 }
 
@@ -66,7 +66,7 @@ export default function PrivateChannels(): JSX.Element {
 				lastKnownScrollPosition = ref.scrollTop;
 			}}
 		>
-			<a
+			<A
 				href="/channels/@me"
 				classList={{
 					channel: true,
@@ -76,7 +76,7 @@ export default function PrivateChannels(): JSX.Element {
 			>
 				<FiUsers size={24} />
 				<span>Friends</span>
-			</a>
+			</A>
 			<div class="private-channels-header">Direct Messages</div>
 			<For each={ChannelStore.getOrderedDirectMessages()}>{(channel): JSX.Element => <PrivateChannel id={channel[0]} />}</For>
 		</div>

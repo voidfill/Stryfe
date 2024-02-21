@@ -1,3 +1,4 @@
+import { A } from "@solidjs/router";
 import { createMemo, JSX, Show } from "solid-js";
 
 import GuildStore from "@stores/guilds";
@@ -50,7 +51,7 @@ export default function Guild(props: { id: string }): JSX.Element {
 				}}
 			>
 				<Indicator id={props.id} />
-				<a href={`/channels/${props.id}/${lastSelectedChannels[props.id] ?? ""}`}>
+				<A href={`/channels/${props.id}/${lastSelectedChannels[props.id] ?? ""}`}>
 					<div
 						class="guild-icon-container"
 						use:HoverAnimationDirective
@@ -210,7 +211,7 @@ export default function Guild(props: { id: string }): JSX.Element {
 					>
 						<ImageOrAcronym id={props.id} />
 					</div>
-				</a>
+				</A>
 			</div>
 		</Show>
 	);

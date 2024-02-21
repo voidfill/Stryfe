@@ -1,4 +1,4 @@
-import { useParams } from "@solidjs/router";
+import { A, useParams } from "@solidjs/router";
 import { Accessor, createEffect, createMemo, For, JSX, onCleanup, Show, untrack } from "solid-js";
 
 import { ChannelTypes } from "@constants/channel";
@@ -111,7 +111,7 @@ function TextChannel(props: { id: string; isCollapsed: Accessor<boolean>; parent
 	return (
 		<Show when={(!(props.isCollapsed() || mutedHide()) || selc(props.id)) && channel()} keyed>
 			{(channel): JSX.Element => (
-				<a
+				<A
 					href={`/channels/${params.guildId}/${props.id}`}
 					classList={{
 						channel: true,
@@ -156,7 +156,7 @@ function TextChannel(props: { id: string; isCollapsed: Accessor<boolean>; parent
 						<ChannelIcon id={props.id} size={20} />
 					</div>
 					<span class="channel-name">{channel.name}</span>
-				</a>
+				</A>
 			)}
 		</Show>
 	);
@@ -174,7 +174,7 @@ function VoiceChannel(props: { id: string; isCollapsed: Accessor<boolean> }): JS
 	return (
 		<Show when={(!props.isCollapsed() || selc(props.id)) && channel()} keyed>
 			{(channel): JSX.Element => (
-				<a
+				<A
 					href={`/channels/${params.guildId}/${props.id}`}
 					classList={{
 						channel: true,
@@ -226,7 +226,7 @@ function VoiceChannel(props: { id: string; isCollapsed: Accessor<boolean> }): JS
 						<ChannelIcon id={props.id} size={20} />
 					</div>
 					<span class="channel-name">{channel.name}</span>
-				</a>
+				</A>
 			)}
 		</Show>
 	);

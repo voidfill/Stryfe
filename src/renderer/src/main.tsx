@@ -5,7 +5,7 @@ import logger from "@modules/logger";
 import Storage from "@modules/storage";
 import { getToken } from "@modules/token";
 
-import { getSuper } from "./modules/discordversion";
+import { cfChallenge, getSuper } from "./modules/discordversion";
 
 import { attachDevtoolsOverlay } from "@solid-devtools/overlay";
 attachDevtoolsOverlay();
@@ -19,6 +19,7 @@ import { windowTitle } from "./signals";
 	if (!(await window.ipc.isEncryptionAvailable()) || !Storage.has("token")) return;
 	try {
 		const [token, superProps] = await Promise.all([getToken(), getSuper()]);
+		await cfChallenge();
 		window.gateway = new WebSocket(token!, superProps.properties);
 	} catch (e) {
 		logger.error("Failed to get token or clientprops:", e);
