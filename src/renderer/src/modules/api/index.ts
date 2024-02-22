@@ -3,7 +3,7 @@ import { genericMessage } from "@constants/schemata/message";
 import Dispatcher from "@modules/dispatcher";
 import { Logger } from "@modules/logger";
 
-import { array, Output, parse } from "valibot";
+import { array, merge, object, optional, Output, parse } from "valibot";
 
 const logger = new Logger("API", "red");
 const API_VERSION = 9;
@@ -18,7 +18,14 @@ type RequestOptions = {
 	searchParams?: Record<string, string | undefined>;
 };
 
-const messageArraySchema = array(genericMessage);
+const messageArraySchema = array(
+	merge([
+		genericMessage,
+		object({
+			referenced_message: optional(genericMessage),
+		}),
+	]),
+);
 
 class API {
 	#initialized = false;
