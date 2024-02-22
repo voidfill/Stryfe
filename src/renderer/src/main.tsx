@@ -12,14 +12,29 @@ attachDevtoolsOverlay();
 
 import { createEffect } from "solid-js";
 
+import API from "@modules/api";
+
 import App from "./app";
 import { windowTitle } from "./signals";
+
+declare global {
+	interface Window {
+		gateway: WebSocket;
+	}
+}
 
 (async (): Promise<void> => {
 	if (!(await window.ipc.isEncryptionAvailable()) || !Storage.has("token")) return;
 	try {
 		const [token, superProps] = await Promise.all([getToken(), getSuper()]);
 		await cfChallenge();
+		API.init(
+			token!,
+			() => {
+				throw "no captchahandler yet!";
+			},
+			superProps.encoded,
+		);
 		window.gateway = new WebSocket(token!, superProps.properties);
 	} catch (e) {
 		logger.error("Failed to get token or clientprops:", e);

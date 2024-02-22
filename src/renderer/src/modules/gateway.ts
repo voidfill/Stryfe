@@ -163,14 +163,14 @@ export default class GatewaySocket {
 		this.#send(OPCodes.IDENTIFY, {
 			capabilities: capabilities,
 			client_state: {
-				api_code_version: 0,
+				api_code_version: undefined,
 				guild_versions: {},
-				highest_last_message_id: "0",
+				highest_last_message_id: undefined,
 				initial_guild_id: undefined,
-				private_channels_version: "0",
-				read_state_version: 0,
-				user_guild_settings_version: -1,
-				user_settings_version: -1,
+				private_channels_version: undefined,
+				read_state_version: undefined,
+				user_guild_settings_version: undefined,
+				user_settings_version: undefined,
 			},
 			compress: false,
 			presence: {

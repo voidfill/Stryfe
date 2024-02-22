@@ -2,6 +2,7 @@ import { MessageType } from "@constants/message";
 
 import { user } from "../common";
 import guild_member from "../guild/member";
+import sticker from "../guild/sticker";
 import attachment from "./attachment";
 import component from "./component";
 import embed from "./embed";
@@ -31,11 +32,20 @@ export const genericMessage = object({
 		object({
 			channel_id: string(),
 			guild_id: optional(string()),
-			message_id: string(),
+			message_id: optional(string()),
 		}),
 	),
 	nonce: optional(nullable(string())),
 	pinned: boolean(),
+	sticker_items: optional(
+		array(
+			object({
+				format_type: number(),
+				id: string(),
+				name: string(),
+			}),
+		),
+	),
 	timestamp: string(),
 	tts: boolean(),
 	type: MessageTypeSchema,
