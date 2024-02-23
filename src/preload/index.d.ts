@@ -8,7 +8,6 @@ import Store from "@renderer/stores";
 declare global {
 	interface Window {
 		electron: ElectronAPI;
-		gateway: InstanceType<typeof import("@renderer/modules/dispatcher").default>;
 		ipc: typeof ipc;
 		isDev: boolean;
 		os: typeof os;
