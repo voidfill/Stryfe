@@ -76,7 +76,6 @@ const getTooltipCoordinates = (
 };
 
 type TooltipElementProps = {
-	color?: TooltipColors;
 	hidden: boolean;
 	onMount: () => void;
 	pointerEvents?: boolean;
@@ -114,17 +113,16 @@ const TooltipElement: ParentComponent<TooltipElementProps> = (props) => {
 					(props.ref as (val: HTMLDivElement) => void)(el);
 					tooltip = el;
 				}}
-				class={`tooltip tooltip-${props.position || TooltipPosition.TOP} tooltip-${props.color || TooltipColors.PRIMARY}`}
+				class={`tooltip tooltip-${props.color || TooltipColors.PRIMARY}`}
 			>
 				<div class="tooltip-content"> {props.children} </div>
-				<div class="tooltip-pointer" />
+				<div class={`tooltip-pointer tooltip-${props.position || TooltipPosition.TOP}`} />
 			</div>
 		</div>
 	);
 };
 
 type TooltipProps = {
-	color?: TooltipColors;
 	content: () => _JSX.Element;
 	delay?: number;
 	pointerEvents?: boolean;

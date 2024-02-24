@@ -29,7 +29,7 @@ function ImageOrAcronym(props: { id: string }): JSX.Element {
 
 function Indicator(props: { id: string }): JSX.Element {
 	return (
-		<div class="indicator">
+		<div class="guild-indicator">
 			<span class="pill" />
 		</div>
 	);
@@ -44,9 +44,9 @@ export default function Guild(props: { id: string }): JSX.Element {
 		<Show when={!GuildStore.isUnavailable(props.id) && guild()} fallback={<div class={`guild guild-${props.id} unavailable`} />}>
 			<div
 				classList={{
-					available: true,
 					guild: true,
 					[`guild-${props.id}`]: true,
+					available: true,
 					selected: selg(props.id),
 				}}
 			>

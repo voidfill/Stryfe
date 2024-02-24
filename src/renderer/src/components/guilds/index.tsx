@@ -13,10 +13,10 @@ import { lastSelectedChannels } from "@renderer/signals";
 
 export default function GuildsList(): JSX.Element {
 	return (
-		<div class="guilds-list scroller scroller-hidden">
-			<A class="home-button" href={`/channels/@me/${lastSelectedChannels["@me"] ?? ""}`}>
-				<TiHome size={48} fill="white" />
-			</A>
+		<div id="guilds-list" class="scroller scroller-hidden">
+				<A id="home-button" class="guild" href={`/channels/@me/${lastSelectedChannels["@me"] ?? ""}`}>
+					<TiHome class="home-icon" size={30} fill="white" />
+				</A>
 			<For each={GuildStore.guildIds}>{(id): JSX.Element => <Guild id={id} />}</For>
 		</div>
 	);
