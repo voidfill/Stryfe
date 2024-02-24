@@ -30,7 +30,7 @@ export default new (class UserStore extends Store {
 				batch(() => {
 					setSelf(user);
 
-					for (const user of users) {
+					for (const user of users ?? []) {
 						const { avatar, bot, discriminator, global_name, public_flags, username } = user;
 						setUsers(user.id, {
 							avatar,

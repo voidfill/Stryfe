@@ -2,17 +2,23 @@ import { A, useParams } from "@solidjs/router";
 import { Accessor, createEffect, createMemo, For, JSX, onCleanup, Show, untrack } from "solid-js";
 
 import { ChannelTypes } from "@constants/channel";
+import permissions from "@constants/permissions";
 
 import ChannelStore from "@stores/channels";
 import GuildStore from "@stores/guilds";
+import PermissionsStore from "@stores/permissions";
+import RolesStore from "@stores/roles";
 import SettingsStore, { NotificationLevel, notificationLevelToText } from "@stores/settings";
+import UserStore from "@stores/users";
 
 import { useSelectedChannelContext } from "@components/common/selectioncontext";
 import { FaSolidChevronDown } from "solid-icons/fa";
 
 import ChannelIcon from "../common/channelicon";
 import { ContextmenuDirective, Id, menuItem, Optional, Separator } from "../common/contextmenu";
+import { usePermissionsContext } from "../common/permissionscontext";
 
+RolesStore;
 ContextmenuDirective;
 
 const refMap = new Map<string, any>();
@@ -104,12 +110,23 @@ function TextChannel(props: { id: string; isCollapsed: Accessor<boolean>; parent
 	);
 	const notificationLevel = createMemo(() => SettingsStore.getChannelNotificationLevel(props.id));
 
+	const currentPermissions = usePermissionsContext();
+	const canSee = createMemo(() =>
+		PermissionsStore.can({
+			basePermissions: currentPermissions().guild,
+			channelId: props.id,
+			guildId: params.guildId,
+			memberId: UserStore.getSelfId()!,
+			toCheck: permissions.VIEW_CHANNEL,
+		}),
+	);
+
 	onCleanup(() => {
 		refMap.delete(props.id);
 	});
 
 	return (
-		<Show when={(!(props.isCollapsed() || mutedHide()) || selc(props.id)) && channel()} keyed>
+		<Show when={((!(props.isCollapsed() || mutedHide()) && canSee()) || selc(props.id)) && channel()} keyed>
 			{(channel): JSX.Element => (
 				<A
 					href={`/channels/${params.guildId}/${props.id}`}
@@ -169,13 +186,27 @@ function VoiceChannel(props: { id: string; isCollapsed: Accessor<boolean> }): JS
 	const channel = createMemo(() => ChannelStore.getGuildVoiceChannel(props.id));
 	const params = useParams();
 	const selc = useSelectedChannelContext();
+	const mutedHide = createMemo(
+		() => (SettingsStore.userGuildSettings[params.guildId]?.hide_muted_channels && SettingsStore.channelOverrides[props.id]?.muted) ?? false,
+	);
+
+	const currentPermissions = usePermissionsContext();
+	const canSee = createMemo(() =>
+		PermissionsStore.can({
+			basePermissions: currentPermissions().guild,
+			channelId: props.id,
+			guildId: params.guildId,
+			memberId: UserStore.getSelfId()!,
+			toCheck: permissions.VIEW_CHANNEL,
+		}),
+	);
 
 	onCleanup(() => {
 		refMap.delete(props.id);
 	});
 
 	return (
-		<Show when={(!props.isCollapsed() || selc(props.id)) && channel()} keyed>
+		<Show when={((!(props.isCollapsed() || mutedHide()) && canSee()) || selc(props.id)) && channel()} keyed>
 			{(channel): JSX.Element => (
 				<A
 					href={`/channels/${params.guildId}/${props.id}`}
@@ -243,13 +274,37 @@ function Category(props: { id: string; other: string[]; voice: string[] }): JSX.
 	const category = createMemo(() => ChannelStore.getGuildCategoryChannel(props.id));
 	const isCollapsed = createMemo(() => SettingsStore.channelOverrides[props.id]?.collapsed ?? false);
 	const notificationLevel = createMemo(() => SettingsStore.getChannelNotificationLevel(props.id));
+	const currentPermissions = usePermissionsContext();
+
+	const mapFn = (id: string): boolean =>
+		PermissionsStore.can({
+			basePermissions: currentPermissions().guild,
+			channelId: id,
+			guildId: params.guildId,
+			memberId: UserStore.getSelfId()!,
+			toCheck: permissions.VIEW_CHANNEL,
+		});
+	const canSeeChild = createMemo(() => props.other.some(mapFn) || props.voice.some(mapFn));
+	const canSee = createMemo(
+		() =>
+			(!props.other.length &&
+				!props.voice.length &&
+				PermissionsStore.can({
+					basePermissions: currentPermissions().guild,
+					channelId: props.id,
+					guildId: params.guildId,
+					memberId: UserStore.getSelfId()!,
+					toCheck: permissions.MANAGE_CHANNELS,
+				})) ||
+			canSeeChild(),
+	);
 
 	onCleanup(() => {
 		refMap.delete(props.id); // not sure yet if we need to have categories in the refmap but we'll see
 	});
 
 	return (
-		<Show when={category()} keyed>
+		<Show when={canSee() && category()} keyed>
 			{(category): JSX.Element => (
 				<>
 					<div

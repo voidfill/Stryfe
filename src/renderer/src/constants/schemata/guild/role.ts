@@ -1,6 +1,6 @@
 import { boolean, nullable, number, object, optional, string } from "valibot";
 
-export default object({
+const role = object({
 	color: number(),
 	flags: number(),
 	hoist: boolean(),
@@ -11,8 +11,25 @@ export default object({
 	name: string(),
 	permissions: string(),
 	position: number(),
-	tags: object({
-		bot_id: optional(string()),
-	}),
+	tags: optional(
+		object({
+			bot_id: optional(string()),
+		}),
+	),
 	unicode_emoji: nullable(string()),
+});
+
+export default role;
+
+export const GUILD_ROLE_CREATE = object({
+	guild_id: string(),
+	role: role,
+});
+
+export const GUILD_ROLE_UPDATE = GUILD_ROLE_CREATE;
+
+export const GUILD_ROLE_DELETE = object({
+	guild_id: string(),
+	role_id: string(),
+	version: string(),
 });

@@ -55,6 +55,7 @@ export default new (class RelationshipStore extends Store {
 	constructor() {
 		super({
 			READY: ({ relationships: r }) => {
+				if (!r) return;
 				batch(() => {
 					for (const relationship of r) {
 						setRelationships(relationship.id, {
