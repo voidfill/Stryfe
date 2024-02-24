@@ -1,8 +1,8 @@
 import { user } from "../common";
 
-import { array, boolean, nullable, number, object, string } from "valibot";
+import { array, boolean, merge, nullable, number, object, string } from "valibot";
 
-export default object({
+const member = object({
 	avatar: nullable(string()),
 	communication_disabled_until: nullable(string()),
 	deaf: boolean(),
@@ -13,5 +13,21 @@ export default object({
 	pending: boolean(),
 	premium_since: nullable(string()),
 	roles: nullable(array(string())),
+	user: user,
+});
+
+export default member;
+
+export const GUILD_MEMBER_ADD = merge([
+	member,
+	object({
+		guild_id: string(),
+	}),
+]);
+
+export const GUILD_MEMBER_UPDATE = GUILD_MEMBER_ADD;
+
+export const GUILD_MEMBER_REMOVE = object({
+	guild_id: string(),
 	user: user,
 });

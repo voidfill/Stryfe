@@ -5,11 +5,13 @@ import { ReactiveSet } from "@solid-primitives/set";
 
 import assets from "@constants/assets";
 import { ChannelTypes } from "@constants/channel";
+import { guild_channel } from "@constants/schemata/channels";
+
+import logger from "@modules/logger";
 
 import Store from ".";
 import UserStore from "./users";
 
-import { guild_channel } from "@renderer/constants/schemata/channels";
 import { Output } from "valibot";
 
 const lastMessageIds = new ReactiveMap<string, string | undefined>();
@@ -169,11 +171,11 @@ export default new (class ChannelStore extends Store {
 				batch(() => {
 					const id = channel.id;
 					if ("guild_id" in channel) {
+						removeSortedGuildChannel(id);
+						channelsPerGuild.get(channel.guild_id)?.delete(id);
+						setGuildChannels(produce((channels) => delete channels[id]));
 						lastMessageIds.delete(id);
 						lastPinTimestamps.delete(id);
-						setGuildChannels(produce((channels) => delete channels[id]));
-						channelsPerGuild.get(channel.guild_id)?.delete(id);
-						removeSortedGuildChannel(id);
 						return;
 					}
 					const type = directMessages[id]?.type;
@@ -278,17 +280,21 @@ export default new (class ChannelStore extends Store {
 						}
 					}
 
-					setOrderedDirectMessages(private_channels.map((c) => [c.id, BigInt(c.last_message_id || c.id)] as [string, bigint]).sort(soDMs));
-					for (const channel of private_channels) {
-						// eslint-disable-next-line @typescript-eslint/no-unused-vars
-						const { id, last_pin_timestamp, last_message_id, ...rest } = channel;
-						setDirectMessages(id, {
-							...rest,
-						});
-						lastMessageIds.set(id, last_message_id || id);
-						lastPinTimestamps.set(id, last_pin_timestamp || undefined);
-						if (channel.type === ChannelTypes.DM) {
-							setDMForUser(channel.recipient_ids[0], channel.id);
+					if (private_channels) {
+						setOrderedDirectMessages(
+							private_channels.map((c) => [c.id, BigInt(c.last_message_id || c.id)] as [string, bigint]).sort(soDMs),
+						);
+						for (const channel of private_channels) {
+							// eslint-disable-next-line @typescript-eslint/no-unused-vars
+							const { id, last_pin_timestamp, last_message_id, ...rest } = channel;
+							setDirectMessages(id, {
+								...rest,
+							});
+							lastMessageIds.set(id, last_message_id || id);
+							lastPinTimestamps.set(id, last_pin_timestamp || undefined);
+							if (channel.type === ChannelTypes.DM) {
+								setDMForUser(channel.recipient_ids[0], channel.id);
+							}
 						}
 					}
 				});
@@ -361,12 +367,14 @@ export default new (class ChannelStore extends Store {
 	// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 	getGuildCategoryChannel(channelId: string) {
 		const channel = this.getGuildChannel(channelId);
+		if (!channel) return undefined;
 		if (channel?.type !== ChannelTypes.GUILD_CATEGORY) throw "Requested channel is not a category (typeguard)";
 		return channel;
 	}
 	// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 	getGuildVoiceChannel(channelId: string) {
 		const channel = this.getGuildChannel(channelId);
+		if (!channel) return undefined;
 		if (channel?.type !== ChannelTypes.GUILD_VOICE && channel?.type !== ChannelTypes.GUILD_STAGE_VOICE)
 			throw "Requested channel is not a voice channel (typeguard)";
 		return channel;
@@ -374,6 +382,7 @@ export default new (class ChannelStore extends Store {
 	// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 	getGuildTextChannel(channelId: string) {
 		const channel = this.getGuildChannel(channelId);
+		if (!channel) return undefined;
 		if (
 			channel?.type !== ChannelTypes.GUILD_TEXT &&
 			channel?.type !== ChannelTypes.GUILD_ANNOUNCEMENT &&

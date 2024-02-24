@@ -196,6 +196,7 @@ export default class GatewaySocket {
 							logger.error("Failed to typecheck Dispatch:", data.t, res.issues, data.d);
 							throw "Failed to typecheck Dispatch";
 						}
+						data.d = res.output;
 					} else {
 						logger.warn("Dispatch unaccounted for:", data.t, data.d);
 					}

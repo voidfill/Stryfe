@@ -6,7 +6,7 @@ import role from "./role";
 import sticker from "./sticker";
 import voice_state from "./voicestate";
 
-import { any, array, boolean, merge, nullable, number, object, optional, record, string, unknown } from "valibot";
+import { any, array, boolean, merge, nullable, number, object, optional, record, string, union, unknown } from "valibot";
 
 const application_command_counts = record(number());
 
@@ -74,14 +74,17 @@ export const unavailable_guild = object({
 	unavailable: equal(true),
 });
 
-export const GUILD_CREATE = merge([
-	ready_guild,
-	object({
-		embedded_activities: nullable(unknown()),
-		members: nullable(array(guild_member)),
-		presences: nullable(array(unknown())),
-		voice_states: nullable(array(voice_state)),
-	}),
+export const GUILD_CREATE = union([
+	merge([
+		ready_guild,
+		object({
+			embedded_activities: nullable(unknown()),
+			members: nullable(array(guild_member)),
+			presences: nullable(array(unknown())),
+			voice_states: nullable(array(voice_state)),
+		}),
+	]),
+	unavailable_guild,
 ]);
 
 export const GUILD_UPDATE = merge([

@@ -33,29 +33,31 @@ export const READY = object({
 	guild_join_requests: nullable(array(unknown())),
 	guilds: nullable(array(union([unavailable_guild, ready_guild]))),
 	merged_members: nullable(array(nullable(tuple([merged_member])))),
-	private_channels: array(private_channel),
+	private_channels: nullable(array(private_channel)),
 	read_state: object({
-		entries: array(
-			union([
-				object({
-					flags: number(),
-					id: string(),
-					last_message_id: union([equal(0), string()]),
-					last_pin_timestamp: string(),
-					mention_count: number(),
-				}),
-				object({
-					badge_count: number(),
-					id: string(),
-					last_acked_id: string(),
-					read_state_type: number(),
-				}),
-			]),
+		entries: nullable(
+			array(
+				union([
+					object({
+						flags: number(),
+						id: string(),
+						last_message_id: union([equal(0), string()]),
+						last_pin_timestamp: string(),
+						mention_count: number(),
+					}),
+					object({
+						badge_count: number(),
+						id: string(),
+						last_acked_id: string(),
+						read_state_type: number(),
+					}),
+				]),
+			),
 		),
 		partial: boolean(),
 		version: number(),
 	}),
-	relationships: array(relationship),
+	relationships: nullable(array(relationship)),
 	resume_gateway_url: string(),
 	session_id: string(),
 	session_type: string(),
@@ -64,13 +66,13 @@ export const READY = object({
 	user: user_self,
 	user_guild_settings: nullable(
 		object({
-			entries: array(guild_settings_entry),
+			entries: nullable(array(guild_settings_entry)),
 			partial: boolean(),
 			version: number(),
 		}),
 	),
 	user_settings_proto: string(),
-	users: array(user),
+	users: nullable(array(user)),
 	v: number(),
 });
 
@@ -90,24 +92,28 @@ export const READY_SUPPLEMENTAL = object({
 	merged_members: nullable(array(nullable(array(merged_member)))),
 	merged_presences: nullable(
 		object({
-			friends: array(
-				object({
-					activities: nullable(array(activity)),
-					client_status: client_status,
-					status: status,
-					user_id: string(),
-				}),
+			friends: nullable(
+				array(
+					object({
+						activities: nullable(array(activity)),
+						client_status: client_status,
+						status: status,
+						user_id: string(),
+					}),
+				),
 			),
-			guilds: array(
-				nullable(
-					array(
-						object({
-							activities: nullable(array(activity)),
-							broadcast: nullable(unknown()),
-							client_status: client_status,
-							status: status,
-							user_id: string(),
-						}),
+			guilds: nullable(
+				array(
+					nullable(
+						array(
+							object({
+								activities: nullable(array(activity)),
+								broadcast: nullable(unknown()),
+								client_status: client_status,
+								status: status,
+								user_id: string(),
+							}),
+						),
 					),
 				),
 			),

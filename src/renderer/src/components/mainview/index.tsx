@@ -10,6 +10,7 @@ import GuildStore from "@stores/guilds";
 import GuildsList from "@components/guilds";
 
 import Chat from "../chat";
+import { CurrentPermissionProvider } from "../common/permissionscontext";
 import { SelectedChannelContext, SelectedGuildContext } from "../common/selectioncontext";
 import MemberList from "../memberlist";
 import SideBar from "../sidebar";
@@ -86,34 +87,36 @@ export default function MainView(): JSX.Element {
 		>
 			<SelectedChannelContext.Provider value={selectedChannel}>
 				<SelectedGuildContext.Provider value={selectedGuild}>
-					<div class="main-view">
-						<GuildsList />
-						<SideBar />
-						<div class="channel-wrapper">
-							<HeaderBar />
-							<div class="channel">
-								<Show
-									when={currChannel()}
-									fallback={
-										<Show
-											when={params.guildId === "@me" && !params.channelId}
-											fallback={<div class="nochannel">no channel selected</div>}
-										>
-											<FriendsView />
+					<CurrentPermissionProvider>
+						<div class="main-view">
+							<GuildsList />
+							<SideBar />
+							<div class="channel-wrapper">
+								<HeaderBar />
+								<div class="channel">
+									<Show
+										when={currChannel()}
+										fallback={
+											<Show
+												when={params.guildId === "@me" && !params.channelId}
+												fallback={<div class="nochannel">no channel selected</div>}
+											>
+												<FriendsView />
+											</Show>
+										}
+									>
+										<Chat />
+										<Show when={showMembers() && params.channelId && currChannel()?.type !== ChannelTypes.DM}>
+											<MemberList />
 										</Show>
-									}
-								>
-									<Chat />
-									<Show when={showMembers() && params.channelId && currChannel()?.type !== ChannelTypes.DM}>
-										<MemberList />
+										<Show when={showUserProfile() && currChannel()?.type === ChannelTypes.DM}>
+											<span>DM User Profile</span>
+										</Show>
 									</Show>
-									<Show when={showUserProfile() && currChannel()?.type === ChannelTypes.DM}>
-										<span>DM User Profile</span>
-									</Show>
-								</Show>
+								</div>
 							</div>
 						</div>
-					</div>
+					</CurrentPermissionProvider>
 				</SelectedGuildContext.Provider>
 			</SelectedChannelContext.Provider>
 		</Show>

@@ -70,7 +70,7 @@ export default new (class GuildStore extends Store {
 			},
 			READY: ({ guilds }) => {
 				batch(() => {
-					for (const guild of guilds) {
+					for (const guild of guilds ?? []) {
 						if (guild.unavailable) {
 							unavailableGuilds.add(guild.id);
 							continue;
