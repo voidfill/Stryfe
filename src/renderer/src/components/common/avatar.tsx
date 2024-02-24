@@ -2,6 +2,7 @@ import { createMemo, JSX, Show } from "solid-js";
 
 import ActivityStore from "@stores/activities";
 import ChannelStore from "@stores/channels";
+import MemberStore from "@stores/members";
 import StatusStore, { Status as StatusEnum, statusToText } from "@stores/status";
 import TypingStore from "@stores/typing";
 import UserStore from "@stores/users";
@@ -68,7 +69,7 @@ export default function Avatar(props: avatarProps): JSX.Element {
 	const avatarUrl = createMemo(() => {
 		if ("groupDMId" in props) return ChannelStore.getPrivateChannelIcon(props.groupDMId, props.size, shouldAnimate());
 
-		if ("guildId" in props) return ChannelStore.getRandomGroupIconUrl(); // TODO: server pfps
+		if (props.guildId) return MemberStore.getGuildAvatarURL(props.guildId, props.userId, props.size, shouldAnimate());
 
 		return UserStore.getAvatarUrl(props.userId, props.size, shouldAnimate());
 	});

@@ -70,6 +70,15 @@ const [statuses, setStatuses] = createStore<{
 export default new (class StatusStore extends Store {
 	constructor() {
 		super({
+			GUILD_MEMBERS_CHUNK: ({ presences }) => {
+				if (!presences || !presences.length) return;
+
+				batch(() => {
+					for (const presence of presences) {
+						setStatuses(presence.user.id, convertStatus(presence.client_status));
+					}
+				});
+			},
 			PRESENCE_UPDATE: ({ user, client_status }) => {
 				setStatuses(user.id, convertStatus(client_status));
 			},

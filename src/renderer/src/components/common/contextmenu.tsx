@@ -22,7 +22,6 @@ import { FaSolidChevronRight } from "solid-icons/fa";
 import "./contextmenu.scss";
 
 declare module "solid-js" {
-	// eslint-disable-next-line @typescript-eslint/no-namespace
 	namespace JSX {
 		interface Directives {
 			ContextmenuDirective: contextmenuProps;

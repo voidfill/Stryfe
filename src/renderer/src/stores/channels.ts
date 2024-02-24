@@ -7,8 +7,6 @@ import assets from "@constants/assets";
 import { ChannelTypes } from "@constants/channel";
 import { guild_channel } from "@constants/schemata/channels";
 
-import logger from "@modules/logger";
-
 import Store from ".";
 import UserStore from "./users";
 
@@ -19,6 +17,7 @@ const lastPinTimestamps = new ReactiveMap<string, string | undefined>();
 
 const [guildChannels, setGuildChannels] = createStore<{
 	[channelId: string]: DistributiveOmit<Output<typeof guild_channel>, "id" | "last_message_id" | "last_pin_timestamp" | "permission_overwrites"> & {
+		guild_id: string;
 		parent_id?: string | null;
 	};
 }>({});
@@ -223,7 +222,7 @@ export default new (class ChannelStore extends Store {
 						// @ts-expect-error dont worry about it
 						// eslint-disable-next-line @typescript-eslint/no-unused-vars
 						const { id, last_pin_timestamp, last_message_id, permission_overwrites, ...rest } = channel;
-						setGuildChannels(id, rest);
+						setGuildChannels(id, { ...rest, guild_id: guild.id });
 						channelsPerGuild.get(guild.id)!.add(id);
 						lastMessageIds.set(channel.id, last_message_id || undefined);
 						lastPinTimestamps.set(channel.id, last_pin_timestamp || undefined);
@@ -273,7 +272,7 @@ export default new (class ChannelStore extends Store {
 							// @ts-expect-error this is okay since we || undefined
 							// eslint-disable-next-line @typescript-eslint/no-unused-vars
 							const { id, last_pin_timestamp, last_message_id, permission_overwrites, ...rest } = channel;
-							setGuildChannels(id, rest);
+							setGuildChannels(id, { ...rest, guild_id: guild.id });
 							channelsPerGuild.get(guild.id)!.add(id);
 							lastMessageIds.set(channel.id, last_message_id || undefined);
 							lastPinTimestamps.set(channel.id, last_pin_timestamp || undefined);
@@ -326,14 +325,14 @@ export default new (class ChannelStore extends Store {
 		if (!channel) return undefined;
 		if (channel.type === ChannelTypes.DM) {
 			const user = UserStore.getUser(channel.recipient_ids[0]);
-			return user && (user.global_name || user.username);
+			return user && (user.display_name || user.username);
 		}
 		return (
 			channel.name ||
 			channel.recipient_ids
 				.map((id) => {
 					const user = UserStore.getUser(id);
-					return user && (user.global_name || user.username);
+					return user && (user.display_name || user.username);
 				})
 				.join(", ")
 		);

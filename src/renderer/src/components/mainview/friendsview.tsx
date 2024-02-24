@@ -55,7 +55,7 @@ function FriendItem(props: { id: string }): JSX.Element {
 	const statusText = createMemo(() => statusToEnglish(StatusStore.getStatus(props.id)));
 
 	return (
-		<Show when={(user()?.global_name?.toLowerCase().includes(lower()) || user().username?.toLowerCase().includes(lower())) && user()} keyed>
+		<Show when={(user()?.display_name?.toLowerCase().includes(lower()) || user().username?.toLowerCase().includes(lower())) && user()} keyed>
 			{(user): JSX.Element => {
 				return (
 					<div
@@ -95,9 +95,9 @@ function FriendItem(props: { id: string }): JSX.Element {
 						<Avatar userId={props.id} size={32} showStatus={ShowStatus.ALWAYS} />
 						<div class="friend-info">
 							<div class="username">
-								<span class="friend-global-name">{user.global_name || user.username}</span>
+								<span class="friend-global-name">{user.display_name || user.username}</span>
 								<span class="friend-username">
-									{user.global_name || user.discriminator === "0" ? user.username : "#" + user.discriminator}
+									{user.display_name || user.discriminator === "0" ? user.username : "#" + user.discriminator}
 								</span>
 							</div>
 							<span class="friend-status">
@@ -195,7 +195,7 @@ function Friends(): JSX.Element {
 		filter()()
 			.map((id) => {
 				const user = UserStore.getUser(id);
-				return [id, user?.global_name || user?.username];
+				return [id, user?.display_name || user?.username];
 			})
 			.sort((a, b) => a[1].localeCompare(b[1]))
 			.map((a) => a[0]),
@@ -205,7 +205,7 @@ function Friends(): JSX.Element {
 		() =>
 			filteredIds().filter((id) => {
 				const user = UserStore.getUser(id);
-				return user.global_name?.toLowerCase().includes(lower()) || user.username?.toLowerCase().includes(lower());
+				return user.display_name?.toLowerCase().includes(lower()) || user.username?.toLowerCase().includes(lower());
 			}).length,
 	);
 

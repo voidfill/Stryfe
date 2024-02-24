@@ -67,7 +67,6 @@ export function HoverAnimationDirective(el: Element): void {
 }
 
 declare module "solid-js" {
-	// eslint-disable-next-line
 	namespace JSX {
 		interface Directives {
 			FocusAnimationDirective: any;

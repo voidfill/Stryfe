@@ -11,7 +11,7 @@ import { session } from "./session";
 
 import { any, array, boolean, merge, nullable, number, object, omit, optional, string, tuple, union, unknown } from "valibot";
 
-const merged_member = merge([
+export const merged_member = merge([
 	omit(guild_member, ["user"]),
 	object({
 		user_id: string(),
