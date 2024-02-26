@@ -3,7 +3,9 @@ import { genericMessage } from "@constants/schemata/message";
 import Dispatcher from "@modules/dispatcher";
 import { Logger } from "@modules/logger";
 
-import { array, merge, object, optional, Output, parse } from "valibot";
+import { UserSettingsType } from "@stores/settings";
+
+import { array, merge, object, optional, Output, parse, string } from "valibot";
 
 const logger = new Logger("API", "red");
 const API_VERSION = 9;
@@ -148,6 +150,14 @@ class API {
 		});
 
 		return res;
+	}
+
+	async getSettingsProto(type: UserSettingsType): Promise<{ settings: string }> {
+		const res = await this.get({
+			auth: true,
+			path: "/users/@me/settings-proto/" + type,
+		});
+		return parse(object({ settings: string() }), res);
 	}
 }
 

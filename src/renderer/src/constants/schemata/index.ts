@@ -20,6 +20,7 @@ import connectedAccount from "./ready/connectedaccount";
 import { SESSIONS_REPLACE } from "./ready/session";
 import { RELATIONSHIP_ADD, RELATIONSHIP_REMOVE } from "./relationship";
 import { USER_GUILD_SETTINGS_UPDATE, USER_SETTINGS_PROTO_UPDATE } from "./settings";
+import { THREAD_CREATE, THREAD_DELETE, THREAD_MEMBER_UPDATE, THREAD_UPDATE } from "./thread";
 import { TYPING_START } from "./typing";
 
 import { Output } from "valibot";
@@ -62,6 +63,10 @@ export const dispatches = {
 	SESSIONS_REPLACE,
 	STAGE_INSTANCE_CREATE,
 	STAGE_INSTANCE_DELETE,
+	THREAD_CREATE,
+	THREAD_DELETE,
+	THREAD_MEMBER_UPDATE,
+	THREAD_UPDATE,
 	TYPING_START,
 	USER_CONNECTIONS_UPDATE: connectedAccount,
 	USER_GUILD_SETTINGS_UPDATE,

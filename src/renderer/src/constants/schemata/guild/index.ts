@@ -1,5 +1,7 @@
 import { guild_channel } from "../channels";
 import { equal, equalArray } from "../common";
+import { mute_config } from "../settings";
+import { thread } from "../thread";
 import emoji from "./emoji";
 import guild_member from "./member";
 import role from "./role";
@@ -64,7 +66,25 @@ export const ready_guild = object({
 	roles: array(role),
 	stage_instances: nullable(array(unknown())),
 	stickers: nullable(array(sticker)),
-	threads: nullable(array(unknown())),
+	threads: nullable(
+		array(
+			merge([
+				thread,
+				object({
+					last_message_id: nullable(string()),
+					last_pin_timestamp: optional(nullable(string())),
+					member: optional(
+						object({
+							flags: number(),
+							join_timestamp: string(),
+							mute_config: nullable(mute_config),
+							muted: boolean(),
+						}),
+					),
+				}),
+			]),
+		),
+	),
 	unavailable: optional(equal(false)), // This property does not exist, but its very useful for type-narrowing
 	version: string(),
 });
@@ -108,7 +128,7 @@ export const GUILD_APPLICATION_COMMAND_INDEX_UPDATE = object({
 
 export const GUILD_AUDIT_LOG_ENTRY_CREATE = object({
 	action_type: number(),
-	changes: nullable(array(object({ key: string(), new_value: any(), old_value: any() }))),
+	changes: optional(nullable(array(object({ key: string(), new_value: any(), old_value: any() })))),
 	guild_id: string(),
 	id: string(),
 	target_id: string(),

@@ -2,7 +2,6 @@ import { MessageType } from "@constants/message";
 
 import { user } from "../common";
 import guild_member from "../guild/member";
-import sticker from "../guild/sticker";
 import attachment from "./attachment";
 import component from "./component";
 import embed from "./embed";

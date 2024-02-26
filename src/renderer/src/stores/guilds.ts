@@ -9,6 +9,7 @@ import logger from "@modules/logger";
 
 import Store from ".";
 
+import { guildIconURL } from "@renderer/constants/images";
 import { Output } from "valibot";
 
 type ready_guild_properties = Output<typeof _ready_guild_properties>;
@@ -115,7 +116,7 @@ export default new (class GuildStore extends Store {
 
 		animated = animated && guild.icon.startsWith("a_") && features.get(guildId)!.has("ANIMATED_ICON");
 
-		return `https://cdn.discordapp.com/icons/${guildId}/${guild.icon}.${animated ? "gif" : "webp"}?size=${size}`;
+		return guildIconURL(guildId, guild.icon, size, animated);
 	}
 
 	getAcronym(guildId: string): string | undefined {

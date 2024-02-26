@@ -38,20 +38,6 @@ function convertStatus(status: client_status): Statuses {
 export function statusToText(status: Status): string {
 	switch (status) {
 		case Status.OFFLINE:
-			return "offline";
-		case Status.ONLINE:
-			return "online";
-		case Status.IDLE:
-			return "idle";
-		case Status.DND:
-			return "do not disturb";
-	}
-}
-
-// TODO: rename this garbage
-export function statusToEnglish(status: Status): string {
-	switch (status) {
-		case Status.OFFLINE:
 			return "Offline";
 		case Status.ONLINE:
 			return "Online";

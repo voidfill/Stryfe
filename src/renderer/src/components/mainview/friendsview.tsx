@@ -4,7 +4,7 @@ import { createMemo, createSignal, For, JSX, Match, Show, Switch, untrack } from
 import ActivityStore from "@stores/activities";
 import ChannelStore from "@stores/channels";
 import RelationshipStore from "@stores/relationships";
-import StatusStore, { Status, statusToEnglish } from "@stores/status";
+import StatusStore, { Status, statusToText } from "@stores/status";
 import UserStore from "@stores/users";
 
 import { BsThreeDots } from "solid-icons/bs";
@@ -52,7 +52,7 @@ function FriendItem(props: { id: string }): JSX.Element {
 	const user = createMemo(() => UserStore.getUser(props.id));
 	const relationship = createMemo(() => RelationshipStore.getRelationship(props.id));
 	const hasActivity = createMemo(() => (ActivityStore.getActivities(props.id)?.length ?? 0) > 0);
-	const statusText = createMemo(() => statusToEnglish(StatusStore.getStatus(props.id)));
+	const statusText = createMemo(() => statusToText(StatusStore.getStatus(props.id)));
 
 	return (
 		<Show when={(user()?.display_name?.toLowerCase().includes(lower()) || user().username?.toLowerCase().includes(lower())) && user()} keyed>

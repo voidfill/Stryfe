@@ -8,6 +8,7 @@ import Store from ".";
 import ChannelStore from "./channels";
 import UserStore from "./users";
 
+import { guildMemberAvatarURL } from "@renderer/constants/images";
 import { Output } from "valibot";
 
 type storedMember = DistributiveOmit<Output<typeof member>, "user" | "roles">;
@@ -140,7 +141,7 @@ export default new (class MemberStore extends Store {
 		if (!member || !member.avatar) return UserStore.getAvatarUrl(userId, size, animated);
 		animated = animated && member.avatar.startsWith("a_");
 
-		return `https://cdn.discordapp.com/guilds/${guildId}/users/${userId}/avatars/${member.avatar}.${animated ? "gif" : "webp"}?size=${size}`;
+		return guildMemberAvatarURL(guildId, userId, member.avatar, size, animated);
 	}
 
 	requestMembers(guildId: string, ids: Set<string>): void {

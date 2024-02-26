@@ -5,8 +5,9 @@ import assets from "@constants/assets";
 
 import Store from ".";
 
+import { userAvatarURL } from "@renderer/constants/images";
 import { user_self as _user_self } from "@renderer/constants/schemata/common";
-import { Output, set } from "valibot";
+import { Output } from "valibot";
 
 type user_self = Output<typeof _user_self>;
 
@@ -90,7 +91,7 @@ export default new (class UserStore extends Store {
 		if (!user || !user.avatar) return this.getRandomAvatarUrl(id);
 		animated = animated && user.avatar.startsWith("a_");
 
-		return `https://cdn.discordapp.com/avatars/${id}/${user.avatar}.${animated ? "gif" : "webp"}?size=${size}`;
+		return userAvatarURL(id, user.avatar, size, animated);
 	}
 
 	getRandomAvatarUrl(userId?: string): string {

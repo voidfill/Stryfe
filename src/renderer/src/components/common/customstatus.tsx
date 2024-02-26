@@ -1,5 +1,7 @@
 import { createMemo, createSignal, JSX, onCleanup, onMount, Show } from "solid-js";
 
+import { emojiURL } from "@constants/images";
+
 import { BsCardText } from "solid-icons/bs";
 
 import { useAnimationContext } from "./animationcontext";
@@ -12,21 +14,16 @@ import ActivityStore from "@renderer/stores/activities";
 
 TooltipDirective;
 
-function emojiUrl(id: string, size = 44, animated = false): string {
-	return `https://cdn.discordapp.com/emojis/${id}.${animated ? "gif" : "webp"}?size=${size}&quality=lossless`;
-}
-
 function Emoji(props: { emoji: { animated?: boolean; id?: string; name: string }; size: number; tooltip: boolean }): JSX.Element {
 	const doAnimate = useAnimationContext();
 
-	// TODO: Size table
 	return (
 		<Show when={props.emoji.id} fallback={<span>{props.emoji.name}</span>}>
 			<img
 				use:TooltipDirective={{ content: () => props.emoji.name, suppress: !props.tooltip }}
 				width={props.size}
 				height={props.size}
-				src={emojiUrl(props.emoji.id!, 44, props.emoji.animated && doAnimate())}
+				src={emojiURL(props.emoji.id!, 44, props.emoji.animated && doAnimate())}
 				alt=""
 			/>
 		</Show>
