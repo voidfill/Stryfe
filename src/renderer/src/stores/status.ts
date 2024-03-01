@@ -38,20 +38,6 @@ function convertStatus(status: client_status): Statuses {
 export function statusToText(status: Status): string {
 	switch (status) {
 		case Status.OFFLINE:
-			return "offline";
-		case Status.ONLINE:
-			return "online";
-		case Status.IDLE:
-			return "idle";
-		case Status.DND:
-			return "do not disturb";
-	}
-}
-
-// TODO: rename this garbage
-export function statusToEnglish(status: Status): string {
-	switch (status) {
-		case Status.OFFLINE:
 			return "Offline";
 		case Status.ONLINE:
 			return "Online";
@@ -70,6 +56,15 @@ const [statuses, setStatuses] = createStore<{
 export default new (class StatusStore extends Store {
 	constructor() {
 		super({
+			GUILD_MEMBERS_CHUNK: ({ presences }) => {
+				if (!presences || !presences.length) return;
+
+				batch(() => {
+					for (const presence of presences) {
+						setStatuses(presence.user.id, convertStatus(presence.client_status));
+					}
+				});
+			},
 			PRESENCE_UPDATE: ({ user, client_status }) => {
 				setStatuses(user.id, convertStatus(client_status));
 			},

@@ -2,7 +2,6 @@ import { MessageType } from "@constants/message";
 
 import { user } from "../common";
 import guild_member from "../guild/member";
-import sticker from "../guild/sticker";
 import attachment from "./attachment";
 import component from "./component";
 import embed from "./embed";
@@ -24,7 +23,6 @@ export const genericMessage = object({
 	embeds: nullable(array(embed)),
 	flags: nullable(number()),
 	id: string(),
-	member: optional(omit(guild_member, ["user"])),
 	mention_everyone: boolean(),
 	mention_roles: nullable(array(string())),
 	mentions: nullable(array(user)),
@@ -56,6 +54,7 @@ export const MESSAGE_CREATE = merge([
 	genericMessage,
 	object({
 		guild_id: optional(string()),
+		member: optional(omit(guild_member, ["user"])),
 		referenced_message: optional(nullable(genericMessage)),
 	}),
 ]);

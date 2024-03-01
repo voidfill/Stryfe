@@ -1,4 +1,5 @@
 import { user } from "../common";
+import { PRESENCE_UPDATE } from "../presence";
 
 import { array, boolean, merge, nullable, number, object, string } from "valibot";
 
@@ -30,4 +31,13 @@ export const GUILD_MEMBER_UPDATE = GUILD_MEMBER_ADD;
 export const GUILD_MEMBER_REMOVE = object({
 	guild_id: string(),
 	user: user,
+});
+
+export const GUILD_MEMBERS_CHUNK = object({
+	chunk_count: number(),
+	chunk_index: number(),
+	guild_id: string(),
+	members: array(member),
+	not_found: nullable(array(string())),
+	presences: nullable(array(PRESENCE_UPDATE)),
 });

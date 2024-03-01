@@ -5,9 +5,9 @@ import { ReactiveSet } from "@solid-primitives/set";
 
 import assets from "@constants/assets";
 import { ChannelTypes } from "@constants/channel";
+import { channelIconURL } from "@constants/images";
 import { guild_channel } from "@constants/schemata/channels";
-
-import logger from "@modules/logger";
+import { thread } from "@constants/schemata/thread";
 
 import Store from ".";
 import UserStore from "./users";
@@ -19,6 +19,7 @@ const lastPinTimestamps = new ReactiveMap<string, string | undefined>();
 
 const [guildChannels, setGuildChannels] = createStore<{
 	[channelId: string]: DistributiveOmit<Output<typeof guild_channel>, "id" | "last_message_id" | "last_pin_timestamp" | "permission_overwrites"> & {
+		guild_id: string;
 		parent_id?: string | null;
 	};
 }>({});
@@ -124,7 +125,7 @@ const [dmForUser, setDMForUser] = createStore<{
 }>({});
 
 const [threads, setThreads] = createStore<{
-	[channelId: string]: any;
+	[channelId: string]: DistributiveOmit<Output<typeof thread>, "id">;
 }>({});
 const threadsPerChannel = new ReactiveMap<string, ReactiveSet<string>>();
 
@@ -171,6 +172,15 @@ export default new (class ChannelStore extends Store {
 				batch(() => {
 					const id = channel.id;
 					if ("guild_id" in channel) {
+						if (threadsPerChannel.has(id)) {
+							setThreads(
+								produce((threads) => {
+									for (const threadId of threadsPerChannel.get(id)!) {
+										delete threads[threadId];
+									}
+								}),
+							);
+						}
 						removeSortedGuildChannel(id);
 						channelsPerGuild.get(channel.guild_id)?.delete(id);
 						setGuildChannels(produce((channels) => delete channels[id]));
@@ -216,27 +226,45 @@ export default new (class ChannelStore extends Store {
 				});
 			},
 			GUILD_CREATE: (guild) => {
-				if ("unavailable" in guild && guild.unavailable) return;
+				if (guild.unavailable) return;
 				batch(() => {
 					channelsPerGuild.set(guild.id, new ReactiveSet(guild.channels.map((c) => c.id)));
 					for (const channel of guild.channels) {
 						// @ts-expect-error dont worry about it
 						// eslint-disable-next-line @typescript-eslint/no-unused-vars
 						const { id, last_pin_timestamp, last_message_id, permission_overwrites, ...rest } = channel;
-						setGuildChannels(id, rest);
+						setGuildChannels(id, { ...rest, guild_id: guild.id });
 						channelsPerGuild.get(guild.id)!.add(id);
 						lastMessageIds.set(channel.id, last_message_id || undefined);
 						lastPinTimestamps.set(channel.id, last_pin_timestamp || undefined);
 					}
+
+					for (const thread of guild.threads ?? []) {
+						// eslint-disable-next-line @typescript-eslint/no-unused-vars
+						const { id, member, ...rest } = thread;
+						setThreads(id, rest);
+						lastMessageIds.set(id, rest.last_message_id || undefined);
+						lastPinTimestamps.set(id, rest.last_pin_timestamp || undefined);
+					}
 				});
 			},
-			GUILD_DELETE: ({ id }) => {
+			GUILD_DELETE: ({ id, unavailable }) => {
+				if (unavailable) return;
 				batch(() => {
 					if (!channelsPerGuild.has(id)) return;
 					for (const channelId of channelsPerGuild.get(id)!) {
 						lastMessageIds.delete(channelId);
 						lastPinTimestamps.delete(channelId);
 						setGuildChannels(produce((channels) => delete channels[channelId]));
+
+						if (threadsPerChannel.get(channelId))
+							setThreads(
+								produce((s) => {
+									for (const threadId of threadsPerChannel.get(channelId)!) {
+										delete s[threadId];
+									}
+								}),
+							);
 					}
 					channelsPerGuild.delete(id);
 					sortedGuildChannels.delete(id);
@@ -273,10 +301,18 @@ export default new (class ChannelStore extends Store {
 							// @ts-expect-error this is okay since we || undefined
 							// eslint-disable-next-line @typescript-eslint/no-unused-vars
 							const { id, last_pin_timestamp, last_message_id, permission_overwrites, ...rest } = channel;
-							setGuildChannels(id, rest);
+							setGuildChannels(id, { ...rest, guild_id: guild.id });
 							channelsPerGuild.get(guild.id)!.add(id);
 							lastMessageIds.set(channel.id, last_message_id || undefined);
 							lastPinTimestamps.set(channel.id, last_pin_timestamp || undefined);
+						}
+
+						for (const thread of guild.threads ?? []) {
+							// eslint-disable-next-line @typescript-eslint/no-unused-vars
+							const { id, member, last_message_id, ...rest } = thread;
+							setThreads(id, rest);
+							lastMessageIds.set(id, last_message_id || undefined);
+							lastPinTimestamps.set(id, rest.last_pin_timestamp || undefined);
 						}
 					}
 
@@ -297,6 +333,34 @@ export default new (class ChannelStore extends Store {
 							}
 						}
 					}
+				});
+			},
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
+			THREAD_CREATE: ({ id, guild_id, last_message_id, last_pin_timestamp, member, newly_created, member_ids_preview, ...rest }) => {
+				batch(() => {
+					if (!threadsPerChannel.has(rest.parent_id)) threadsPerChannel.set(rest.parent_id, new ReactiveSet());
+					threadsPerChannel.get(rest.parent_id)!.add(id);
+					setThreads(id, rest);
+					lastMessageIds.set(id, last_message_id || undefined);
+					lastPinTimestamps.set(id, last_pin_timestamp || undefined);
+				});
+			},
+			THREAD_DELETE: ({ id, parent_id }) => {
+				batch(() => {
+					threadsPerChannel.get(parent_id)?.delete(id);
+					setThreads(produce((threads) => delete threads[id]));
+					lastMessageIds.delete(id);
+					lastPinTimestamps.delete(id);
+				});
+			},
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
+			THREAD_UPDATE: ({ id, parent_id, last_message_id, last_pin_timestamp, member, ...rest }) => {
+				batch(() => {
+					setThreads(id, rest);
+					lastMessageIds.set(id, last_message_id || undefined);
+					lastPinTimestamps.set(id, last_pin_timestamp || undefined);
+					if (!threadsPerChannel.has(parent_id)) threadsPerChannel.set(parent_id, new ReactiveSet());
+					threadsPerChannel.get(parent_id)!.add(id);
 				});
 			},
 		});
@@ -320,20 +384,19 @@ export default new (class ChannelStore extends Store {
 		return directMessages[channelId];
 	}
 
-	// TODO: usernames // ? did i implement this and forget to remove?
 	getPrivateChannelName(channelId: string): string | undefined {
 		const channel = this.getDirectMessage(channelId);
 		if (!channel) return undefined;
 		if (channel.type === ChannelTypes.DM) {
 			const user = UserStore.getUser(channel.recipient_ids[0]);
-			return user && (user.global_name || user.username);
+			return user && (user.display_name || user.username);
 		}
 		return (
 			channel.name ||
 			channel.recipient_ids
 				.map((id) => {
 					const user = UserStore.getUser(id);
-					return user && (user.global_name || user.username);
+					return user && (user.display_name || user.username);
 				})
 				.join(", ")
 		);
@@ -341,13 +404,13 @@ export default new (class ChannelStore extends Store {
 
 	getPrivateChannelIcon(channelId: string, size = 128, animate = false): string {
 		const channel = this.getDirectMessage(channelId);
-		if (!channel) return this.getRandomGroupIconUrl(channelId); // TODO: random for user
+		if (!channel) throw "channel not found";
 
 		if (channel.type === ChannelTypes.DM) {
 			return UserStore.getAvatarUrl(channel.recipient_ids[0], size, animate);
 		}
 		if (channel.icon) {
-			return `https://cdn.discordapp.com/channel-icons/${channelId}/${channel.icon}.webp?size=${size}`;
+			return channelIconURL(channelId, channel.icon, size);
 		}
 
 		return this.getRandomGroupIconUrl(channelId);

@@ -1,10 +1,11 @@
 import { batch } from "solid-js";
-import { createStore } from "solid-js/store";
+import { createStore, produce } from "solid-js/store";
 
 import assets from "@constants/assets";
 
 import Store from ".";
 
+import { userAvatarURL } from "@renderer/constants/images";
 import { user_self as _user_self } from "@renderer/constants/schemata/common";
 import { Output } from "valibot";
 
@@ -15,7 +16,7 @@ type storedUser = {
 	avatar: string | null;
 	bot: boolean;
 	discriminator: string;
-	global_name: string | null;
+	display_name: string | null;
 	public_flags: number;
 	username: string;
 };
@@ -23,24 +24,49 @@ type storedUser = {
 const [users, setUsers] = createStore<{ [key: string]: storedUser }>({});
 const [self, setSelf] = createStore<user_self | object>({});
 
+// TODO: this cannot be optimal....
+function intoStored<T extends { [key: string]: unknown } & { discriminator: string; username: string }>(user: T): storedUser {
+	return {
+		avatar: typeof user.avatar === "string" ? user.avatar : null,
+		bot: typeof user.bot === "boolean" ? user.bot : false,
+		discriminator: user.discriminator,
+		display_name: typeof user.display_name === "string" ? user.display_name : typeof user.global_name === "string" ? user.global_name : null,
+		public_flags: typeof user.public_flags === "number" ? user.public_flags : 0,
+		username: user.username,
+	};
+}
+
+// TODO: more events
 export default new (class UserStore extends Store {
 	constructor() {
 		super({
+			GUILD_MEMBER_ADD: ({ user }) => {
+				if (users[user.id]) return;
+				setUsers(user.id, intoStored(user));
+			},
+			GUILD_MEMBERS_CHUNK: ({ members }) => {
+				if (!members.length) return;
+				batch(() => {
+					setUsers(
+						produce((s) => {
+							for (const { user } of members) {
+								s[user.id] ??= intoStored(user);
+							}
+						}),
+					);
+				});
+			},
 			READY: ({ user, users }) => {
 				batch(() => {
 					setSelf(user);
 
-					for (const user of users ?? []) {
-						const { avatar, bot, discriminator, global_name, public_flags, username } = user;
-						setUsers(user.id, {
-							avatar,
-							bot,
-							discriminator,
-							global_name,
-							public_flags,
-							username,
-						});
-					}
+					setUsers(
+						produce((s) => {
+							for (const user of users ?? []) {
+								s[user.id] = intoStored(user);
+							}
+						}),
+					);
 				});
 			},
 		});
@@ -65,7 +91,7 @@ export default new (class UserStore extends Store {
 		if (!user || !user.avatar) return this.getRandomAvatarUrl(id);
 		animated = animated && user.avatar.startsWith("a_");
 
-		return `https://cdn.discordapp.com/avatars/${id}/${user.avatar}.${animated ? "gif" : "png"}?size=${size}`;
+		return userAvatarURL(id, user.avatar, size, animated);
 	}
 
 	getRandomAvatarUrl(userId?: string): string {

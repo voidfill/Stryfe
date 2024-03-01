@@ -2,6 +2,7 @@ import { createMemo, JSX, Show } from "solid-js";
 
 import ActivityStore from "@stores/activities";
 import ChannelStore from "@stores/channels";
+import MemberStore from "@stores/members";
 import StatusStore, { Status as StatusEnum, statusToText } from "@stores/status";
 import TypingStore from "@stores/typing";
 import UserStore from "@stores/users";
@@ -68,7 +69,7 @@ export default function Avatar(props: avatarProps): JSX.Element {
 	const avatarUrl = createMemo(() => {
 		if ("groupDMId" in props) return ChannelStore.getPrivateChannelIcon(props.groupDMId, props.size, shouldAnimate());
 
-		if ("guildId" in props) return ChannelStore.getRandomGroupIconUrl(); // TODO: server pfps
+		if (props.guildId) return MemberStore.getGuildAvatarURL(props.guildId, props.userId, props.size, shouldAnimate());
 
 		return UserStore.getAvatarUrl(props.userId, props.size, shouldAnimate());
 	});
@@ -123,20 +124,6 @@ export default function Avatar(props: avatarProps): JSX.Element {
 	);
 }
 
-// use:TooltipDirective={{
-// 	content: (): JSX.Element => (
-// 		<Show when={props.status !== StatusEnum.OFFLINE && fullStatus()} keyed fallback={<p>Offline</p>}>
-// 			{(fullStatus): JSX.Element => (
-// 				<div>
-// 					<p>Mobile: {statusToText(fullStatus[0])}</p>
-// 					<p>Desktop: {statusToText(fullStatus[1])}</p>
-// 					<p>Web: {statusToText(fullStatus[2])}</p>
-// 				</div>
-// 			)}
-// 		</Show>
-// 	),
-// }}
-
 export function Status(props: {
 	isStreaming: boolean;
 	isTyping: boolean;
@@ -161,8 +148,6 @@ export function Status(props: {
 				return "offline";
 		}
 	});
-	const fullStatus = createMemo(() => StatusStore.getFullStatus(props.userId));
-	// TODO: tooltip with statuses per platform
 
 	const antiRectProps = createMemo<{
 		height: number;
@@ -221,6 +206,14 @@ export function Status(props: {
 			height={props.size}
 			x={props.x ?? 0}
 			y={props.y ?? 0}
+			use:TooltipDirective={{
+				// TODO: maybe statuses for all platforms
+				content: (): JSX.Element => (
+					<div>
+						<span>{statusToText(props.status)}</span>
+					</div>
+				),
+			}}
 		>
 			<mask id={maskId}>
 				<rect

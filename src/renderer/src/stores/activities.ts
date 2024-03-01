@@ -18,6 +18,15 @@ let selfId = "selfId";
 export default new (class ActivityStore extends Store {
 	constructor() {
 		super({
+			GUILD_MEMBERS_CHUNK: ({ presences }) => {
+				if (!presences || !presences.length) return;
+
+				batch(() => {
+					for (const presence of presences) {
+						setActivities(presence.user.id, reconcile(presence.activities || undefined));
+					}
+				});
+			},
 			PRESENCE_UPDATE: ({ user, activities }) => {
 				setActivities(user.id, reconcile(activities || undefined));
 			},

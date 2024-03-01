@@ -18,7 +18,7 @@ import ActivityStore from "@renderer/stores/activities";
 
 function UserArea(): JSX.Element {
 	const self = createMemo(() => UserStore.getSelf());
-	const displayName = createMemo(() => self()?.global_name || self()?.username);
+	const displayName = createMemo(() => self()?.display_name || self()?.username);
 	const hasCustomStatus = createMemo(() => {
 		const sid = self()?.id;
 		return !!sid && !!ActivityStore.getCustomStatus(sid);

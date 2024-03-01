@@ -4,6 +4,7 @@ import { createStore, produce } from "solid-js/store";
 import permissions from "@constants/permissions";
 
 import Store from ".";
+import ChannelStore from "./channels";
 import GuildStore from "./guilds";
 import RolesStore from "./roles";
 
@@ -32,6 +33,9 @@ function computeBasePermissions(guildId: string, memberId: string): bigint {
 	return permissions;
 }
 function computeChannelOverwrites(basePermissions: bigint, guildId: string, channelId: string, memberId: string): bigint {
+	const parentId = ChannelStore.getThread(channelId)?.parent_id;
+	if (parentId) channelId = parentId;
+
 	const o = overwrites[channelId];
 	if (!o) return basePermissions;
 
@@ -64,7 +68,7 @@ function computeChannelOverwrites(basePermissions: bigint, guildId: string, chan
 	return basePermissions;
 }
 function computeChannelPermissions(guildId: string, channelId: string, memberId: string): bigint {
-	return computeChannelOverwrites(computeBasePermissions(guildId, memberId), guildId, memberId, channelId);
+	return computeChannelOverwrites(computeBasePermissions(guildId, memberId), guildId, channelId, memberId);
 }
 
 export default new (class PermissionsStore extends Store {
@@ -119,6 +123,16 @@ export default new (class PermissionsStore extends Store {
 					}
 				});
 			},
+			GUILD_DELETE: ({ id, unavailable }) => {
+				if (unavailable) return;
+				setOverwrites(
+					produce((o) => {
+						for (const channelId of ChannelStore.getGuildChannels(id) ?? []) {
+							delete o[channelId];
+						}
+					}),
+				);
+			},
 			READY: ({ guilds }) => {
 				batch(() => {
 					for (const guild of guilds ?? []) {
@@ -140,8 +154,6 @@ export default new (class PermissionsStore extends Store {
 					}
 				});
 			},
-			// TODO: guild delete, dont really need it but might be nice to have
-			// TODO: Thread permissions
 		});
 	}
 

@@ -1,6 +1,8 @@
 import { batch, createSignal, untrack } from "solid-js";
 import { createStore, produce } from "solid-js/store";
 
+import Api from "@modules/api";
+
 import Store from ".";
 import ChannelStore from "./channels";
 
@@ -114,12 +116,16 @@ function base64ToUint8Array(base64: string): Uint8Array {
 	return bytes;
 }
 
+let hasFetchedFrecencies = false;
 export default new (class SettingsStore extends Store {
 	constructor() {
 		super({
 			// await connect to make sure token is valid trolley
-			GATEWAY_CONNECT: () => {
-				// TODO: fetch frecency settings from https://discord.com/api/v9/users/@me/settings-proto/2
+			GATEWAY_CONNECT: async () => {
+				if (hasFetchedFrecencies) return;
+				hasFetchedFrecencies = true;
+				const res = await Api.getSettingsProto(UserSettingsType.FRECENCY_AND_FAVORITES_SETTINGS);
+				setFrecencySettings(FrecencyUserSettings.fromBinary(base64ToUint8Array(res.settings)));
 			},
 			READY: ({ user_settings_proto, user_guild_settings }) => {
 				batch(() => {
@@ -320,7 +326,6 @@ export default new (class SettingsStore extends Store {
 		);
 	}
 
-	// TODO: look into what the hell this even does
 	toggleSuppressHighlights(guildId: string): void {
 		const guild = untrack(() => userGuildSettings[guildId]);
 		if (!guild) setUserGuildSettings(guildId, { ...guildSettingsDefaults });

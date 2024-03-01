@@ -3,9 +3,14 @@ import { equalArray } from "./common";
 import { HighlightLevel, NotificationLevel, UserSettingsType } from "@renderer/stores/settings";
 import { array, boolean, nullable, number, object, string } from "valibot";
 
-const nl = equalArray([NotificationLevel.ALL_MESSAGES, NotificationLevel.ONLY_MENTIONS, NotificationLevel.NOTHING, NotificationLevel.PARENT_DEFAULT]);
+const nl = equalArray([
+	NotificationLevel.ALL_MESSAGES,
+	NotificationLevel.ONLY_MENTIONS,
+	NotificationLevel.NOTHING,
+	NotificationLevel.PARENT_DEFAULT,
+] as const);
 
-const mute_config = object({
+export const mute_config = object({
 	end_time: nullable(string()),
 	selected_time_window: number(),
 });
@@ -28,7 +33,7 @@ export const guild_settings_entry = object({
 	mute_config: nullable(mute_config),
 	mute_scheduled_events: boolean(),
 	muted: boolean(),
-	notify_highlights: equalArray([HighlightLevel.DEFAULT, HighlightLevel.DISABLED, HighlightLevel.ENABLED]),
+	notify_highlights: equalArray([HighlightLevel.DEFAULT, HighlightLevel.DISABLED, HighlightLevel.ENABLED] as const),
 	suppress_everyone: boolean(),
 	suppress_roles: boolean(),
 	version: number(),

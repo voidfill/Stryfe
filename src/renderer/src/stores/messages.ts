@@ -207,9 +207,9 @@ export default new (class MessageStore extends Store {
 							}
 						}),
 					);
+					__perChannel.delete(id);
 				});
 			},
-			// TODO: Thread delete
 			MESSAGE_CREATE: (message) => {
 				batch(() => {
 					// eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -225,7 +225,7 @@ export default new (class MessageStore extends Store {
 
 					if (referenced_message) {
 						// eslint-disable-next-line @typescript-eslint/no-unused-vars
-						const { id, channel_id, author, member, mentions, message_reference, ...rest } = referenced_message;
+						const { id, channel_id, author, mentions, message_reference, ...rest } = referenced_message;
 						setMessages(referenced_message.id, {
 							...rest,
 							author_id: author.id,
@@ -250,7 +250,7 @@ export default new (class MessageStore extends Store {
 						}),
 					);
 					__perChannel.get(message.channel_id)?.delete(message.id);
-					// TODO: Remove entry in list
+					removeEntry(message.channel_id, message.id);
 				}
 			},
 			MESSAGE_DELETE_BULK: ({ channel_id, ids }) => {
@@ -271,7 +271,7 @@ export default new (class MessageStore extends Store {
 							__perChannel.get(channel_id)?.delete(id);
 						}
 
-						// TODO: remove entries in list
+						removeEntries(channel_id, new Set(ids));
 					}
 				});
 			},
@@ -299,7 +299,7 @@ export default new (class MessageStore extends Store {
 
 					for (const message of messages) {
 						// eslint-disable-next-line @typescript-eslint/no-unused-vars
-						const { id, channel_id, author, member, mentions, message_reference, referenced_message, ...rest } = message;
+						const { id, channel_id, author, mentions, message_reference, referenced_message, ...rest } = message;
 						setMessages(id, {
 							...rest,
 							author_id: author.id,
@@ -309,7 +309,7 @@ export default new (class MessageStore extends Store {
 
 						if (referenced_message) {
 							// eslint-disable-next-line @typescript-eslint/no-unused-vars
-							const { id, channel_id, author, member, mentions, message_reference, ...rest } = referenced_message;
+							const { id, channel_id, author, mentions, message_reference, ...rest } = referenced_message;
 							setMessages(referenced_message.id, {
 								...rest,
 								author_id: author.id,
@@ -329,6 +329,18 @@ export default new (class MessageStore extends Store {
 						? MessageFetchType.AROUND
 						: MessageFetchType.INITIAL;
 					addMessages(channelId, messageIds, messageFetchType, after ?? before ?? around);
+				});
+			},
+			THREAD_DELETE: ({ id }) => {
+				batch(() => {
+					setMessages(
+						produce((messages) => {
+							for (const message_id of __perChannel.get(id) ?? []) {
+								delete messages[message_id];
+							}
+						}),
+					);
+					__perChannel.delete(id);
 				});
 			},
 		});
@@ -366,7 +378,6 @@ export default new (class MessageStore extends Store {
 		const chunks = perChannel[channelId];
 		if (!chunks) return undefined;
 		if (!around) return chunks[0];
-		const chunk = chunks.find((chunk) => BigInt(chunk[0]) <= BigInt(around) && BigInt(chunk[chunk.length - 1]) >= BigInt(around));
-		return chunk;
+		return chunks.find((chunk) => BigInt(chunk[0]) <= BigInt(around) && BigInt(chunk[chunk.length - 1]) >= BigInt(around));
 	}
 })();

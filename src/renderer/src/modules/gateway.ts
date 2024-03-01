@@ -282,4 +282,8 @@ export default class GatewaySocket {
 			logger.error("Failed to send message:", error);
 		}
 	}
+
+	requestMembers(options: { guild_id: string; limit: number; nonce?: string; presences?: boolean; query?: string; user_ids?: string[] }): void {
+		this.#send(OPCodes.REQUEST_GUILD_MEMBERS, options);
+	}
 }
