@@ -310,7 +310,6 @@ function Category(props: { id: string; other: string[]; voice: string[] }): JSX.
 					<div
 						classList={{
 							category: true,
-							channel: true,
 							[`channel-type-${ChannelTypes.GUILD_CATEGORY}`]: true,
 							[`channel-${props.id}`]: true,
 							collapsed: isCollapsed(),

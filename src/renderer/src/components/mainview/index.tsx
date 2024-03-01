@@ -93,7 +93,7 @@ export default function MainView(): JSX.Element {
 							<SideBar />
 							<div class="channel-wrapper">
 								<HeaderBar />
-								<div class="channel">
+								<div class="channel-content">
 									<Show
 										when={currChannel()}
 										fallback={

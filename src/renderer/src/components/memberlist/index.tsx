@@ -11,14 +11,13 @@ export default function MemberList(): JSX.Element {
 
 	return (
 		<div class="member-list">
-			This is just for testing for now.
 			<Show when={members()} keyed>
 				{(m): JSX.Element => (
 					<For each={m}>
 						{(id): JSX.Element => {
 							const name = createMemo(() => MemberStore.getMember(params.guildId, id)?.nick);
 							return (
-								<div>
+								<div class={`member member-${id}`}> 
 									<Avatar size={32} guildId={params.guildId} userId={id} />
 									{id} {name()}
 								</div>
