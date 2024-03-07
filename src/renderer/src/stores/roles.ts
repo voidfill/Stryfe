@@ -147,7 +147,8 @@ export default new (class RolesStore extends Store {
 
 					for (let i = 0; i < (guilds?.length ?? 0); i++) {
 						const guildId = guilds![i].id;
-						const mergedMember = merged_members![i]![0];
+						const mergedMember = merged_members![i]?.[0];
+						if (!mergedMember) continue;
 						if (!perMember.has(guildId)) perMember.set(guildId, new ReactiveMap());
 						perMember.get(guildId)!.set(mergedMember.user_id, new ReactiveSet(mergedMember.roles));
 					}

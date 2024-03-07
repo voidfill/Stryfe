@@ -94,24 +94,32 @@ export default class GatewaySocket {
 		this.#createSocket();
 	}
 
+	#closeWithoutEmit(code?: number, reason?: string): void {
+		if (!this.#socket) return;
+		this.#socket.onclose = null;
+		this.#socket.onmessage = null;
+		this.#socket.onerror = null;
+		this.#socket.onopen = null;
+		this.#socket.close(code ?? 1000, reason);
+	}
+
 	#createSocket(): void {
 		if (this.#state === ConnectionState.Connected || this.#state === ConnectionState.Connecting) return;
 		this.#state = ConnectionState.Connecting;
 		this.#attempts++;
 		upw.postMessage("reset");
-		if (this.#socket?.readyState === WebSocket.OPEN) this.#socket.close();
 
 		this.#helloTimeout = setTimeout(() => {
 			this.#socket?.close(SocketGatewayCloseCodes.UNKNOWN_ERROR, "Hello timeout");
 		}, HELLO_TIMEOUT);
-		this.#socket?.close(1000);
+		this.#closeWithoutEmit();
 		this.#socket = new WebSocket(`${this.#gatewayURL}/?v=${this.#gatewayVersion}&compress=zlib-stream&encoding=etf`);
 		this.#socket.binaryType = "arraybuffer";
 
-		this.#socket.addEventListener("message", ({ data }) => upw.postMessage(data, [data]));
-		this.#socket.addEventListener("open", this.#onOpen.bind(this));
-		this.#socket.addEventListener("close", this.handleClose.bind(this));
-		this.#socket.addEventListener("error", this.#handleError.bind(this));
+		this.#socket.onmessage = ({ data }): void => upw.postMessage(data, [data]);
+		this.#socket.onopen = (): void => this.#onOpen();
+		this.#socket.onclose = (event): void => this.handleClose(event);
+		this.#socket.onerror = (event): void => this.#handleError(event);
 	}
 
 	#onOpen(): void {
@@ -255,7 +263,7 @@ export default class GatewaySocket {
 		Object.assign(this.#heart, {
 			ack: true,
 			beat: setInterval(() => {
-				if (!this.#heart.ack) this.#socket?.close(SocketGatewayCloseCodes.UNKNOWN_ERROR, "Heartbeat timeout");
+				if (!this.#heart.ack) return void this.#socket?.close(SocketGatewayCloseCodes.UNKNOWN_ERROR, "Heartbeat timeout");
 				this.#send(OPCodes.HEARTBEAT, this.#seq);
 			}, interval),
 			interval,

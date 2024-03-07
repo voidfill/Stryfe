@@ -1,14 +1,21 @@
 import { createMemo, JSX, Match, Show, Switch } from "solid-js";
 
 import { ChannelTypes } from "@constants/channel";
+import permissions from "@constants/permissions";
 
 import ChannelStore from "@stores/channels";
+import PermissionsStore from "@stores/permissions";
+import RolesStore from "@stores/roles";
 
 import { FaSolidHashtag, FaSolidImage, FaSolidLock, FaSolidTriangleExclamation } from "solid-icons/fa";
 import { HiOutlineChatBubbleLeftRight, HiOutlineSpeakerWave, HiSolidChatBubbleLeft } from "solid-icons/hi";
 import { RiBusinessMegaphoneLine, RiMapSignalTowerLine } from "solid-icons/ri";
 
+import TooltipDirective from "./tooltip";
+
 import "./channelicon.scss";
+
+TooltipDirective;
 
 export function RawChannelIcon(props: { size: number; type: ChannelTypes }): JSX.Element {
 	return (
@@ -47,6 +54,27 @@ export function RawChannelIcon(props: { size: number; type: ChannelTypes }): JSX
 	);
 }
 
+export function channelTypeToText(type: ChannelTypes): string {
+	switch (type) {
+		case ChannelTypes.GUILD_TEXT:
+			return "Text";
+		case ChannelTypes.GUILD_VOICE:
+			return "Voice";
+		case ChannelTypes.GUILD_CATEGORY:
+			return "Category";
+		case ChannelTypes.GUILD_ANNOUNCEMENT:
+			return "Announcement";
+		case ChannelTypes.GUILD_STAGE_VOICE:
+			return "Stage";
+		case ChannelTypes.GUILD_FORUM:
+			return "Forum";
+		case ChannelTypes.GUILD_MEDIA:
+			return "Media";
+		default:
+			return "Unknown";
+	}
+}
+
 export function ModifiedIcon(props: { hasThreads: boolean; isLimited: boolean; isNSFW: boolean; size: number; type: ChannelTypes }): JSX.Element {
 	const clipPath = createMemo(() => {
 		if (props.hasThreads && (props.isLimited || props.isNSFW)) return "polygon(55% 0, 55% 50%, 45% 50%, 45% 100%, 0 100%, 0 0)";
@@ -56,7 +84,15 @@ export function ModifiedIcon(props: { hasThreads: boolean; isLimited: boolean; i
 	});
 
 	return (
-		<svg class="channel-icon" width={`${props.size}px`} height={`${props.size}px`}>
+		<svg
+			class="channel-icon"
+			width={`${props.size}px`}
+			height={`${props.size}px`}
+			use:TooltipDirective={{
+				content: () =>
+					channelTypeToText(props.type) + (props.isLimited || props.isNSFW ? ` (${props.isNSFW ? "Age-Restricted" : "Limited"})` : ""),
+			}}
+		>
 			<foreignObject
 				width={`${props.size * (4 / 5)}px`}
 				height={`${props.size * (4 / 5)}px`}
@@ -83,10 +119,13 @@ export function ModifiedIcon(props: { hasThreads: boolean; isLimited: boolean; i
 	);
 }
 
-export default function ChannelIcon(props: { id: string; size: number }): JSX.Element {
+export default function ChannelIcon(props: { guildId: string; id: string; size: number }): JSX.Element {
 	const channel = createMemo(() => ChannelStore.getGuildChannel(props.id) /* || ChannelStore.getThread(props.id) */),
 		hasThreads = createMemo(() => ChannelStore.hasThreads(props.id)),
-		isLimited = createMemo(() => false);
+		everyonePermissions = createMemo(() => RolesStore.getRole(props.guildId)?.permissions ?? permissions.NONE),
+		everyoneOverwrites = createMemo(() => PermissionsStore.computeChannelOverwrites(everyonePermissions(), props.guildId, props.id, "no one")),
+		isLimited = createMemo(() => !PermissionsStore.hasBit(everyoneOverwrites(), permissions.VIEW_CHANNEL));
+
 	return (
 		<Show when={channel()} keyed>
 			{(channel): JSX.Element => (

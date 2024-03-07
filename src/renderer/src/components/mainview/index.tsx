@@ -72,7 +72,7 @@ export default function MainView(): JSX.Element {
 
 	return (
 		<Show
-			when={ConnectionStore.connected()}
+			when={ConnectionStore.uiVisible()}
 			fallback={
 				<div class="not-connected">
 					<img class="shiggy" src={shiggy} alt="shiggy" />

@@ -33,13 +33,13 @@ export type clientProperties = Output<typeof superProps>["properties"];
 const hardcodedProps =
 	"eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC45MDMzIiwib3NfdmVyc2lvbiI6IjEwLjAuMjI2MjEiLCJvc19hcmNoIjoieDY0IiwiYXBwX2FyY2giOiJpYTMyIiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiYnJvd3Nlcl91c2VyX2FnZW50IjoiTW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV09XNjQpIEFwcGxlV2ViS2l0LzUzNy4zNiAoS0hUTUwsIGxpa2UgR2Vja28pIGRpc2NvcmQvMS4wLjkwMzMgQ2hyb21lLzEwOC4wLjUzNTkuMjE1IEVsZWN0cm9uLzIyLjMuMjYgU2FmYXJpLzUzNy4zNiIsImJyb3dzZXJfdmVyc2lvbiI6IjIyLjMuMjYiLCJjbGllbnRfYnVpbGRfbnVtYmVyIjoyNjcyMjAsIm5hdGl2ZV9idWlsZF9udW1iZXIiOjQzODEzLCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ==";
 
-window.ipc.setUserAgent(JSON.parse(atob(hardcodedProps)).browser_user_agent);
-
 export async function getSuper(): Promise<Output<typeof superProps>> {
 	return new Promise((resolve, reject) => {
-		resolve({
-			encoded: hardcodedProps,
-			properties: JSON.parse(atob(hardcodedProps)),
+		window.ipc.setUserAgent(JSON.parse(atob(hardcodedProps)).browser_user_agent).then(() => {
+			resolve({
+				encoded: hardcodedProps,
+				properties: JSON.parse(atob(hardcodedProps)),
+			});
 		});
 	});
 }

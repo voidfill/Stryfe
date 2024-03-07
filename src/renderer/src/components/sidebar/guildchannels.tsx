@@ -172,7 +172,7 @@ function TextChannel(props: { id: string; isCollapsed: Accessor<boolean>; parent
 						}}
 					>
 						<div class="channel-icon">
-							<ChannelIcon id={props.id} size={20} />
+							<ChannelIcon guildId={params.guildId} id={props.id} size={20} />
 						</div>
 						<span class="channel-name">{channel.name}</span>
 					</div>
@@ -259,7 +259,7 @@ function VoiceChannel(props: { id: string; isCollapsed: Accessor<boolean> }): JS
 						}}
 					>
 						<div class="channel-icon">
-							<ChannelIcon id={props.id} size={20} />
+							<ChannelIcon guildId={params.guildId} id={props.id} size={20} />
 						</div>
 						<span class="channel-name">{channel.name}</span>
 					</div>

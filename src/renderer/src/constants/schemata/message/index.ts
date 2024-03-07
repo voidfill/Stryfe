@@ -101,7 +101,6 @@ export const MESSAGE_REACTION_ADD = object({
 	}),
 	guild_id: optional(string()),
 	member: optional(guild_member),
-	message_author_id: string(),
 	message_id: string(),
 	type: number(),
 	user_id: string(),

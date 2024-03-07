@@ -92,6 +92,19 @@ function createWindow(): BrowserWindow {
 		},
 	);
 
+	mainWindow.webContents.session.webRequest.onBeforeSendHeaders(
+		{
+			urls: ["wss://*/*"],
+		},
+		(details, callback) => {
+			details.requestHeaders["Origin"] = details.requestHeaders["Referer"] = "https://discord.com";
+			if (newUserAgent) {
+				details.requestHeaders["User-Agent"] = newUserAgent;
+			}
+			callback({ cancel: false, requestHeaders: details.requestHeaders });
+		},
+	);
+
 	mainWindow.on("ready-to-show", () => {
 		if (is.dev) mainWindow.webContents.openDevTools();
 		mainWindow.show();

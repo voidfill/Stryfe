@@ -382,11 +382,13 @@ export function ContextmenuDirective(element: Element, value: Accessor<contextme
 		document.removeEventListener("mousedown", clickOutsideHandler as (e: Event) => void);
 		document.removeEventListener("contextmenu", clickOutsideHandler as (e: Event) => void);
 		document.removeEventListener("keydown", kbNavHandler as (e: Event) => void);
+		window.removeEventListener("resize", hide);
 	}
 
 	function contextmenuHandler(e: MouseEvent): void {
 		e.preventDefault();
 		e.stopImmediatePropagation();
+		window.addEventListener("resize", hide);
 
 		document.addEventListener("mousedown", clickOutsideHandler as (e: Event) => void);
 		document.addEventListener("contextmenu", clickOutsideHandler as (e: Event) => void);
@@ -469,7 +471,6 @@ export function ContextmenuDirective(element: Element, value: Accessor<contextme
 
 	createRenderEffect(() => {
 		element.addEventListener(untrack(() => value().showOn) ?? "contextmenu", contextmenuHandler as (e: Event) => void);
-		window.addEventListener("resize", hide);
 
 		onCleanup(() => {
 			hide();

@@ -129,6 +129,7 @@ function addMessage(channelId: string, messageId: string): void {
 		setPerChannel(
 			channelId,
 			produce((chunks) => {
+				if (!Array.isArray(chunks[0])) return void (chunks[0] = [messageId]);
 				chunks[0].push(messageId);
 			}),
 		);

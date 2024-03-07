@@ -104,7 +104,8 @@ export default new (class MemberStore extends Store {
 						const guildId = guilds![i].id;
 						if (!members[guildId]) setMembers(guildId, {});
 
-						const m = merged_members![i]![0];
+						const m = merged_members![i]?.[0];
+						if (!m) continue;
 						setMembers(guildId, m.user_id, intoStored(m));
 					}
 				});
