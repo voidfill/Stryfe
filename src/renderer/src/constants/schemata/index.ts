@@ -1,3 +1,5 @@
+import { Output } from "valibot";
+
 import { CHANNEL_CREATE, CHANNEL_DELETE, CHANNEL_PINS_UPDATE, CHANNEL_RECIPIENT_ADD, CHANNEL_RECIPIENT_REMOVE, CHANNEL_UPDATE } from "./channels";
 import { GUILD_APPLICATION_COMMAND_INDEX_UPDATE, GUILD_AUDIT_LOG_ENTRY_CREATE, GUILD_CREATE, GUILD_DELETE, GUILD_UPDATE } from "./guild";
 import { GUILD_MEMBER_ADD, GUILD_MEMBER_REMOVE, GUILD_MEMBER_UPDATE, GUILD_MEMBERS_CHUNK } from "./guild/member";
@@ -22,8 +24,6 @@ import { RELATIONSHIP_ADD, RELATIONSHIP_REMOVE } from "./relationship";
 import { USER_GUILD_SETTINGS_UPDATE, USER_SETTINGS_PROTO_UPDATE } from "./settings";
 import { THREAD_CREATE, THREAD_DELETE, THREAD_MEMBER_UPDATE, THREAD_UPDATE } from "./thread";
 import { TYPING_START } from "./typing";
-
-import { Output } from "valibot";
 
 export const dispatches = {
 	CHANNEL_CREATE,

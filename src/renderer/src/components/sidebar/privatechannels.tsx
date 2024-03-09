@@ -1,6 +1,8 @@
 import { A, useParams, useSearchParams } from "@solidjs/router";
 import { createEffect, createMemo, For, JSX, onMount, Show } from "solid-js";
 
+import { ChannelTypes } from "@constants/channel";
+
 import ChannelStore from "@stores/channels";
 
 import { FiUsers } from "solid-icons/fi";
@@ -9,8 +11,6 @@ import { HoverAnimationDirective } from "../common/animationcontext";
 import Avatar, { ShowStatus } from "../common/avatar";
 import CustomStatus from "../common/customstatus";
 import { useSelectedChannelContext } from "../common/selectioncontext";
-
-import { ChannelTypes } from "@renderer/constants/channel";
 
 HoverAnimationDirective;
 

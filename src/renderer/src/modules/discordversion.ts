@@ -1,6 +1,6 @@
-import Storage from "./storage";
-
 import { object, Output, safeParse, string } from "valibot";
+
+import Storage from "./storage";
 
 const invalidTimeout = 1000 * 60 * 60 * 24;
 function isValidTime(time: number): boolean {

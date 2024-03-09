@@ -1,7 +1,7 @@
+import { array, nullable, number, object, string } from "valibot";
+
 import { status } from "../common";
 import { activity } from "../presence";
-
-import { array, nullable, number, object, string } from "valibot";
 
 export const session = object({
 	activities: nullable(array(activity)),

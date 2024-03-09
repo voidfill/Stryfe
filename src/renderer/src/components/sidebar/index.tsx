@@ -1,6 +1,7 @@
 import { useParams } from "@solidjs/router";
 import { createMemo, JSX, Show } from "solid-js";
 
+import ActivityStore from "@stores/activities";
 import UserStore from "@stores/users";
 
 import { BiRegularMicrophone } from "solid-icons/bi";
@@ -13,8 +14,6 @@ import GuildChannels from "./guildchannels";
 import PrivateChannels from "./privatechannels";
 
 import "./style.scss";
-
-import ActivityStore from "@renderer/stores/activities";
 
 function UserArea(): JSX.Element {
 	const self = createMemo(() => UserStore.getSelf());

@@ -1,8 +1,9 @@
+import { array, boolean, nullable, number, object, optional, string } from "valibot";
+
+import { ChannelTypes } from "@constants/channel";
+
 import { equal, equalArray, permission_overwrite } from "../common";
 import { default_reaction_emoji, icon_emoji, tag } from "./forum";
-
-import { ChannelTypes } from "@renderer/constants/channel";
-import { array, boolean, nullable, number, object, optional, string } from "valibot";
 
 export default object({
 	available_tags: nullable(array(tag)),

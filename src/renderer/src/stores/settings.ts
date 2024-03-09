@@ -1,14 +1,15 @@
 import { batch, createSignal, untrack } from "solid-js";
 import { createStore, produce } from "solid-js/store";
+import { Output } from "valibot";
+
+import { channel_override, guild_settings_entry } from "@constants/schemata/settings";
 
 import Api from "@modules/api";
 
 import Store from ".";
 import ChannelStore from "./channels";
 
-import { channel_override, guild_settings_entry } from "@renderer/constants/schemata/settings";
 import { FrecencyUserSettings, PreloadedUserSettings } from "discord-protos";
-import { Output } from "valibot";
 
 export const enum UserSettingsType {
 	PRELOADED_USER_SETTINGS = 1,

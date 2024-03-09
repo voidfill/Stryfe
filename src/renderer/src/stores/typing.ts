@@ -1,10 +1,10 @@
 import { batch } from "solid-js";
 import { createStore, produce } from "solid-js/store";
 
+import { RelationshipTypes } from "@constants/user";
+
 import Store from ".";
 import RelationshipStore from "./relationships";
-
-import { RelationshipTypes } from "@renderer/constants/user";
 
 const [typing, setTyping] = createStore<{
 	[channelId: string]: {

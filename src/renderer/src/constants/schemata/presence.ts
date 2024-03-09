@@ -1,7 +1,7 @@
+import { array, boolean, nullable, number, object, optional, special, string, union, unknown } from "valibot";
+
 import { ActivityTypes } from "../user";
 import { status, user } from "./common";
-
-import { array, boolean, nullable, number, object, optional, special, string, union, unknown } from "valibot";
 
 export const client_status = object({
 	desktop: optional(status),

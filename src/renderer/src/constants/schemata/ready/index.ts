@@ -1,3 +1,5 @@
+import { any, array, boolean, merge, nullable, number, object, omit, optional, string, tuple, union, unknown } from "valibot";
+
 import { private_channel } from "../channels";
 import { equal, status, user, user_self } from "../common";
 import { ready_guild, unavailable_guild } from "../guild";
@@ -8,8 +10,6 @@ import { relationship } from "../relationship";
 import { guild_settings_entry } from "../settings";
 import connected_account from "./connectedaccount";
 import { session } from "./session";
-
-import { any, array, boolean, merge, nullable, number, object, omit, optional, string, tuple, union, unknown } from "valibot";
 
 export const merged_member = merge([
 	omit(guild_member, ["user"]),

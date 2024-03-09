@@ -65,7 +65,7 @@ module.exports = {
 				groups: [
 					["^\\u0000"],
 					["^node:", "electron", "^path$", "^os$"],
-					["^@solidjs", "^solid-js", "^@solid-primitives"],
+					["^@solidjs", "^solid-js", "^@solid-primitives", "^valibot"],
 					["^@constants"],
 					["^@modules"],
 					["^@stores"],

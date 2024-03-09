@@ -1,111 +1,15 @@
-// Thanks to [Neodymium](https://github.com/Neodymium7) and solidcord for this code.
-// https://gyazo.com/1ea7e2289f0c56baef25757814183297
+.tippy-box[data-theme~="standard"] {
+	background-color: var(--background-quaternary);
+	color: #fff;
+	border-radius: 4px;
 
-.tooltip-layer {
-    pointer-events: none;
-    position: absolute;
-    top: calc(var(--y) + var(--offsetY));
-    left: calc(var(--x) + var(--offsetX));
+	> .tippy-content {
+		padding: 8px 12px;
+		font-size: 14px;
+		line-height: 16px;
+	}
 
-    &.tooltip-pointer-enabled {
-        pointer-events: all;
-    }
-}
-
-.tooltip {
-    border-radius: 5px;
-    background-color: var(--tooltip-color);
-    color: var(--text-normal);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.24);
-    font-size: 14px;
-    font-weight: 500;
-    line-height: 16px;
-    max-width: 196px;
-
-    opacity: 1;
-    transform: scale(1);
-    transition: opacity 0.1s, transform 0.1s;
-
-    .tooltip-hidden & {
-        opacity: 0;
-        transform: scale(0.95);
-    }
-
-    &.tooltip-top {
-        transform-origin: 50% 100%;
-    }
-
-    &.tooltip-bottom {
-        transform-origin: 50% 0;
-    }
-
-    &.tooltip-right {
-        transform-origin: 0 50%;
-    }
-
-    &.tooltip-left {
-        transform-origin: 100% 50%;
-    }
-
-    &.tooltip-primary {
-        --tooltip-color: var(--background-quaternary);
-    }
-
-    &.tooltip-black {
-        --tooltip-color: rgb(0, 0, 0);
-    }
-
-    &.tooltip-gray {
-        --tooltip-color: hsl(225, 6.3%, 12.5%);
-    }
-
-    &.tooltip-green {
-        --tooltip-color: hsl(145.4 65% 39.2%);
-    }
-
-    &.tooltip-yellow {
-        color: rgb(0, 0, 0);
-        --tooltip-color: hsl(40.4 86.4% 56.9%);
-    }
-
-    &.tooltip-red {
-        --tooltip-color: hsl(358.7 87.3% 59.8%);
-    }
-}
-
-.tooltip-content {
-    padding: 8px 12px;
-}
-
-.tooltip-pointer {
-    position: absolute;
-    border: 5px solid transparent;
-
-    .tooltip-top & {
-        margin-left: -5px;
-        left: calc(50% - var(--offsetX));
-        top: 100%;
-        border-top-color: var(--tooltip-color);
-    }
-
-    .tooltip-bottom & {
-        margin-left: -5px;
-        left: calc(50% - var(--offsetX));
-        top: -10px;
-        border-bottom-color: var(--tooltip-color);
-    }
-
-    .tooltip-right & {
-        margin-top: -5px;
-        top: calc(50% - var(--offsetY));
-        left: -10px;
-        border-right-color: var(--tooltip-color);
-    }
-
-    .tooltip-left & {
-        margin-top: -5px;
-        top: calc(50% - var(--offsetY));
-        left: 100%;
-        border-left-color: var(--tooltip-color);
-    }
+	> .tippy-svg-arrow {
+		fill: var(--background-quaternary);
+	}
 }

@@ -1,3 +1,5 @@
+import { array, merge, nullable, object, omit, optional, string, variant } from "valibot";
+
 import { user } from "../common";
 import announcement from "./announcement";
 import category from "./category";
@@ -9,8 +11,6 @@ import media from "./media";
 import stage_voice from "./stagevoice";
 import text from "./text";
 import voice from "./voice";
-
-import { array, merge, nullable, object, omit, optional, string, variant } from "valibot";
 
 export const private_channel = variant("type", [directMessage, groupDirectMessage]);
 

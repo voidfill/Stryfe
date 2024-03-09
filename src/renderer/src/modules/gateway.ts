@@ -1,4 +1,7 @@
+import { safeParse } from "valibot";
+
 import { GatewayPayload, OPCodes, recoverableCloseCodes, SocketGatewayCloseCodes } from "@constants/gateway";
+import { dispatches as __allDispatches } from "@constants/schemata";
 
 import { clientProperties } from "./discordversion";
 import Dispatcher from "./dispatcher";
@@ -6,9 +9,6 @@ import { Logger } from "./logger";
 import packworker from "./packworker?worker&inline";
 import { clearToken } from "./token";
 import unpackworker from "./unpackworker?worker&inline";
-
-import { dispatches as __allDispatches } from "@renderer/constants/schemata";
-import { safeParse } from "valibot";
 
 declare global {
 	interface customDispatches {

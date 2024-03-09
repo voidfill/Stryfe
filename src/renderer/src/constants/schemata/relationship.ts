@@ -1,6 +1,6 @@
-import { user } from "./common";
-
 import { boolean, nullable, number, object, optional, string } from "valibot";
+
+import { user } from "./common";
 
 export const relationship = object({
 	id: string(),

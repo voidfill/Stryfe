@@ -1,6 +1,6 @@
-import { PremiumTypes } from "../user";
-
 import { boolean, nullable, number, object, optional, special, SpecialSchema, string, unknown } from "valibot";
+
+import { PremiumTypes } from "../user";
 
 export function equal<T extends number | string | boolean>(v: T): SpecialSchema<T> {
 	return special((a) => a === v);

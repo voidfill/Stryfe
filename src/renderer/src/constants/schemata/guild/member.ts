@@ -1,7 +1,7 @@
+import { array, boolean, merge, nullable, number, object, string } from "valibot";
+
 import { user } from "../common";
 import { PRESENCE_UPDATE } from "../presence";
-
-import { array, boolean, merge, nullable, number, object, string } from "valibot";
 
 const member = object({
 	avatar: nullable(string()),

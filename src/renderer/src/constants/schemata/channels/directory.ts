@@ -1,7 +1,8 @@
-import { equal } from "../common";
-
-import { ChannelTypes } from "@renderer/constants/channel";
 import { number, object, string, unknown } from "valibot";
+
+import { ChannelTypes } from "@constants/channel";
+
+import { equal } from "../common";
 
 export default object({
 	TODO: unknown(),

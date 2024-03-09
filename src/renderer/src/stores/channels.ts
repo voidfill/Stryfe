@@ -2,6 +2,7 @@ import { batch, createSignal, untrack } from "solid-js";
 import { createStore, produce, reconcile } from "solid-js/store";
 import { ReactiveMap } from "@solid-primitives/map";
 import { ReactiveSet } from "@solid-primitives/set";
+import { Output } from "valibot";
 
 import assets from "@constants/assets";
 import { ChannelTypes } from "@constants/channel";
@@ -11,8 +12,6 @@ import { thread } from "@constants/schemata/thread";
 
 import Store from ".";
 import UserStore from "./users";
-
-import { Output } from "valibot";
 
 const lastMessageIds = new ReactiveMap<string, string | undefined>();
 const lastPinTimestamps = new ReactiveMap<string, string | undefined>();

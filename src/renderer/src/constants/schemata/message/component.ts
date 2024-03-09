@@ -1,6 +1,6 @@
-import { equal, equalArray } from "../common";
-
 import { array, boolean, number, object, optional, string, variant } from "valibot";
+
+import { equal, equalArray } from "../common";
 
 export const button = object({
 	custom_id: optional(string()), // either url or custom_id must be present. sadly there is no good way to do this with valibot

@@ -1,5 +1,6 @@
-import { PlatformTypes } from "@renderer/constants/user";
 import { boolean, number, object, optional, special, string } from "valibot";
+
+import { PlatformTypes } from "@constants/user";
 
 const platformType = special<PlatformTypes>((v) => {
 	if (typeof v !== "string") return false;

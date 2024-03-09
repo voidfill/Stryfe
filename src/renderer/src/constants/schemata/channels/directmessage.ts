@@ -1,7 +1,8 @@
-import { equal } from "../common";
-
-import { ChannelTypes } from "@renderer/constants/channel";
 import { boolean, nullable, number, object, optional, string, tuple } from "valibot";
+
+import { ChannelTypes } from "@constants/channel";
+
+import { equal } from "../common";
 
 export default object({
 	flags: number(),

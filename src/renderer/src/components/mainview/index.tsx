@@ -1,6 +1,8 @@
 import { Navigate, useNavigate, useParams } from "@solidjs/router";
 import { createEffect, createMemo, createSelector, JSX, Show, untrack } from "solid-js";
 
+import { ChannelTypes } from "@constants/channel";
+
 import Storage from "@modules/storage";
 
 import ChannelStore from "@stores/channels";
@@ -21,9 +23,7 @@ import "./style.scss";
 
 import shiggy from "@resources/shiggy.gif";
 
-import { ChannelTypes } from "@renderer/constants/channel";
-import { setWindowTitle, showMembers, showUserProfile } from "@renderer/signals";
-import { lastSelectedChannels, setLastSelectedChannels } from "@renderer/signals";
+import { lastSelectedChannels, setLastSelectedChannels, setWindowTitle, showMembers, showUserProfile } from "@renderer/signals";
 
 export default function MainView(): JSX.Element {
 	// we do not want to run all the setup if its just gonna navigate away.

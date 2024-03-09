@@ -1,11 +1,11 @@
+import { array, merge, object, optional, Output, parse, string } from "valibot";
+
 import { genericMessage } from "@constants/schemata/message";
 
 import Dispatcher from "@modules/dispatcher";
 import { Logger } from "@modules/logger";
 
 import { UserSettingsType } from "@stores/settings";
-
-import { array, merge, object, optional, Output, parse, string } from "valibot";
 
 const logger = new Logger("API", "red");
 const API_VERSION = 9;

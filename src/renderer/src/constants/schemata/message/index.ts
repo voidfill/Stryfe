@@ -1,3 +1,5 @@
+import { array, boolean, merge, nullable, number, object, omit, optional, partial, special, string } from "valibot";
+
 import { MessageType } from "@constants/message";
 
 import { user } from "../common";
@@ -5,8 +7,6 @@ import guild_member from "../guild/member";
 import attachment from "./attachment";
 import component from "./component";
 import embed from "./embed";
-
-import { array, boolean, merge, nullable, number, object, omit, optional, partial, special, string } from "valibot";
 
 export const MessageTypeSchema = special<MessageType>((value) => {
 	if (typeof value !== "number") return false;

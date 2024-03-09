@@ -8,11 +8,11 @@ import TypingStore from "@stores/typing";
 import UserStore from "@stores/users";
 
 import { useAnimationContext } from "./animationcontext";
-import TooltipDirective from "./tooltip";
+import tippy from "./tooltip";
 
 import "./avatar.scss";
 
-TooltipDirective;
+tippy;
 
 const theta = (Math.PI * 25) / 100;
 
@@ -206,13 +206,15 @@ export function Status(props: {
 			height={props.size}
 			x={props.x ?? 0}
 			y={props.y ?? 0}
-			use:TooltipDirective={{
+			use:tippy={{
 				// TODO: maybe statuses for all platforms
-				content: (): JSX.Element => (
-					<div>
-						<span>{statusToText(props.status)}</span>
-					</div>
-				),
+				content: (): JSX.Element => {
+					return (
+						<div>
+							<span>{statusToText(props.status)}</span>
+						</div>
+					);
+				},
 			}}
 		>
 			<mask id={maskId}>

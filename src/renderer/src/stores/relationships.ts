@@ -1,9 +1,9 @@
 import { batch } from "solid-js";
 import { createStore, produce } from "solid-js/store";
 
-import Store from ".";
+import { RelationshipTypes } from "@constants/user";
 
-import { RelationshipTypes } from "@renderer/constants/user";
+import Store from ".";
 
 type Relationship = {
 	id: string;

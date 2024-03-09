@@ -1,8 +1,8 @@
+import { array, boolean, merge, nullable, number, object, optional, string } from "valibot";
+
 import { ChannelTypes } from "../channel";
 import { equalArray } from "./common";
 import { mute_config } from "./settings";
-
-import { array, boolean, merge, nullable, number, object, optional, string } from "valibot";
 
 export const thread = object({
 	flags: number(),

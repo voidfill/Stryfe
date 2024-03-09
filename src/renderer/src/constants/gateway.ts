@@ -1,5 +1,6 @@
-import { dispatches as __allDispatches } from "@renderer/constants/schemata";
 import { Output } from "valibot";
+
+import { dispatches as __allDispatches } from "@constants/schemata";
 
 export const enum OPCodes {
 	DISPATCH,

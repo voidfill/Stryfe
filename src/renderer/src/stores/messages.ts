@@ -1,13 +1,12 @@
 import { batch, createEffect, createSignal, untrack } from "solid-js";
 import { createStore, produce } from "solid-js/store";
+import { Output } from "valibot";
 
 import { genericMessage as _genericMessage } from "@constants/schemata/message";
 
 import Storage from "@modules/storage";
 
 import Store from ".";
-
-import { Output } from "valibot";
 
 // sorted low to high
 type chunk = string[];

@@ -1,18 +1,19 @@
 import { useParams } from "@solidjs/router";
 import { createMemo, JSX, Match, Show, Switch } from "solid-js";
 
+import { ChannelTypes } from "@constants/channel";
+
 import ChannelStore from "@stores/channels";
 
 import { FiHelpCircle, FiUsers } from "solid-icons/fi";
 
-import { ChannelTypes } from "@renderer/constants/channel";
 import { friendsTab, FriendsTabs, setFriendsTab, showHelp } from "@renderer/signals";
 
 const threadChannelTypes = new Set([ChannelTypes.PUBLIC_THREAD, ChannelTypes.PRIVATE_THREAD, ChannelTypes.ANNOUNCEMENT_THREAD]);
 
 export default function HeaderBar(): JSX.Element {
 	const params = useParams(),
-		channelType = createMemo((): ChannelTypes => ChannelStore.getChannel(params.channelId)?.type);
+		channelType = createMemo((): ChannelTypes | undefined => ChannelStore.getChannel(params.channelId)?.type);
 
 	return (
 		<div class="header-bar">
@@ -75,7 +76,7 @@ export default function HeaderBar(): JSX.Element {
 				<Match when={params.guildId !== "@me" && channelType() === undefined}>
 					<span>No Channels?</span>
 				</Match>
-				<Match when={params.guildId !== "@me" && threadChannelTypes.has(channelType())}>
+				<Match when={params.guildId !== "@me" && threadChannelTypes.has(channelType() as ChannelTypes)}>
 					<span>Thread</span>
 				</Match>
 				<Match when={params.guildId !== "@me" && channelType() !== undefined}>

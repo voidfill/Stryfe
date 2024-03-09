@@ -11,11 +11,11 @@ import { FaSolidHashtag, FaSolidImage, FaSolidLock, FaSolidTriangleExclamation }
 import { HiOutlineChatBubbleLeftRight, HiOutlineSpeakerWave, HiSolidChatBubbleLeft } from "solid-icons/hi";
 import { RiBusinessMegaphoneLine, RiMapSignalTowerLine } from "solid-icons/ri";
 
-import TooltipDirective from "./tooltip";
+import tippy from "./tooltip";
 
 import "./channelicon.scss";
 
-TooltipDirective;
+tippy;
 
 export function RawChannelIcon(props: { size: number; type: ChannelTypes }): JSX.Element {
 	return (
@@ -88,7 +88,7 @@ export function ModifiedIcon(props: { hasThreads: boolean; isLimited: boolean; i
 			class="channel-icon"
 			width={`${props.size}px`}
 			height={`${props.size}px`}
-			use:TooltipDirective={{
+			use:tippy={{
 				content: () =>
 					channelTypeToText(props.type) + (props.isLimited || props.isNSFW ? ` (${props.isNSFW ? "Age-Restricted" : "Limited"})` : ""),
 			}}

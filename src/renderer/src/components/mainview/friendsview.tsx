@@ -1,6 +1,8 @@
 import { useNavigate } from "@solidjs/router";
 import { createMemo, createSignal, For, JSX, Match, Show, Switch, untrack } from "solid-js";
 
+import { RelationshipTypes } from "@constants/user";
+
 import ActivityStore from "@stores/activities";
 import ChannelStore from "@stores/channels";
 import RelationshipStore from "@stores/relationships";
@@ -15,15 +17,14 @@ import { HoverAnimationDirective } from "../common/animationcontext";
 import Avatar, { ShowStatus } from "../common/avatar";
 import { Colors, ContextmenuDirective } from "../common/contextmenu";
 import CustomStatus from "../common/customstatus";
-import TooltipDirective from "../common/tooltip";
+import tippy from "../common/tooltip";
 
 import "./friendsview.scss";
 
-import { RelationshipTypes } from "@renderer/constants/user";
 import { friendsTab, FriendsTabs } from "@renderer/signals";
 
 HoverAnimationDirective;
-TooltipDirective;
+tippy;
 ContextmenuDirective;
 
 function AddFriend(): JSX.Element {
@@ -123,7 +124,7 @@ function FriendItem(props: { id: string }): JSX.Element {
 						<div class="friend-buttons">
 							<Switch>
 								<Match when={friendsTab() === FriendsTabs.ONLINE || friendsTab() === FriendsTabs.ALL}>
-									<button use:TooltipDirective={{ content: () => "Message" }} class="friend-button">
+									<button use:tippy={{ content: () => "Message" }} class="friend-button">
 										<IoChatbubbleEllipsesSharp size={20} />
 									</button>
 									<button
@@ -138,7 +139,7 @@ function FriendItem(props: { id: string }): JSX.Element {
 											],
 											showOn: "click",
 										}}
-										use:TooltipDirective={{ content: () => "More" }}
+										use:tippy={{ content: () => "More" }}
 										class="friend-button"
 									>
 										<BsThreeDots size={20} />
@@ -148,21 +149,21 @@ function FriendItem(props: { id: string }): JSX.Element {
 									<Show
 										when={relationship()?.type === RelationshipTypes.PENDING_INCOMING}
 										fallback={
-											<button use:TooltipDirective={{ content: () => "Cancel" }} class="friend-button cancel">
+											<button use:tippy={{ content: () => "Cancel" }} class="friend-button cancel">
 												<FaSolidXmark size={16} />
 											</button>
 										}
 									>
-										<button use:TooltipDirective={{ content: () => "Accept" }} class="friend-button accept">
+										<button use:tippy={{ content: () => "Accept" }} class="friend-button accept">
 											<FaSolidCheck size={16} />
 										</button>
-										<button use:TooltipDirective={{ content: () => "Ignore" }} class="friend-button ignore">
+										<button use:tippy={{ content: () => "Ignore" }} class="friend-button ignore">
 											<FaSolidXmark size={16} />
 										</button>
 									</Show>
 								</Match>
 								<Match when={friendsTab() === FriendsTabs.BLOCKED}>
-									<button use:TooltipDirective={{ content: () => "Unblock" }} class="friend-button unblock">
+									<button use:tippy={{ content: () => "Unblock" }} class="friend-button unblock">
 										<FaSolidXmark size={16} />
 									</button>
 								</Match>

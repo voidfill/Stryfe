@@ -5,15 +5,16 @@ import GuildStore from "@stores/guilds";
 import SettingsStore, { HighlightLevel, NotificationLevel, notificationLevelToText } from "@stores/settings";
 import UserStore from "@stores/users";
 
+import { tippy } from "@components/common/tooltip";
+
 import { HoverAnimationDirective, useAnimationContext } from "../common/animationcontext";
 import { Colors, ContextmenuDirective, Id, Optional, Separator } from "../common/contextmenu";
 import { useSelectedGuildContext } from "../common/selectioncontext";
-import TooltipDirective, { TooltipColors, TooltipPosition } from "../common/tooltip";
 
 import { lastSelectedChannels } from "@renderer/signals";
 HoverAnimationDirective;
-TooltipDirective;
 ContextmenuDirective;
+tippy;
 
 function ImageOrAcronym(props: { id: string }): JSX.Element {
 	const doAnimate = useAnimationContext();
@@ -54,12 +55,11 @@ export default function Guild(props: { id: string }): JSX.Element {
 				<A href={`/channels/${props.id}/${lastSelectedChannels[props.id] ?? ""}`}>
 					<div
 						class="guild-icon-container"
-						use:HoverAnimationDirective
-						use:TooltipDirective={{
-							color: TooltipColors.BLACK,
-							content: () => <div>{guild()?.name}</div>,
-							position: TooltipPosition.RIGHT,
+						use:tippy={{
+							content: () => guild()?.name,
+							props: { placement: "right" },
 						}}
+						use:HoverAnimationDirective
 						use:ContextmenuDirective={{
 							menu: () => [
 								{

@@ -1,7 +1,8 @@
-import { equalArray } from "./common";
-
-import { HighlightLevel, NotificationLevel, UserSettingsType } from "@renderer/stores/settings";
 import { array, boolean, nullable, number, object, string } from "valibot";
+
+import { HighlightLevel, NotificationLevel, UserSettingsType } from "@stores/settings";
+
+import { equalArray } from "./common";
 
 const nl = equalArray([
 	NotificationLevel.ALL_MESSAGES,

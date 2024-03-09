@@ -1,15 +1,14 @@
 import { batch, untrack } from "solid-js";
 import { createStore, produce } from "solid-js/store";
+import { Output } from "valibot";
 
+import { guildMemberAvatarURL } from "@constants/images";
 import member from "@constants/schemata/guild/member";
 import { merged_member } from "@constants/schemata/ready";
 
 import Store from ".";
 import ChannelStore from "./channels";
 import UserStore from "./users";
-
-import { guildMemberAvatarURL } from "@renderer/constants/images";
-import { Output } from "valibot";
 
 type storedMember = DistributiveOmit<Output<typeof member>, "user" | "roles">;
 

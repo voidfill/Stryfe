@@ -1,11 +1,10 @@
 import { batch } from "solid-js";
 import { createStore } from "solid-js/store";
+import { Output } from "valibot";
 
 import { client_status as _client_status } from "@constants/schemata/presence";
 
 import Store from ".";
-
-import { Output } from "valibot";
 
 type client_status = Output<typeof _client_status>;
 

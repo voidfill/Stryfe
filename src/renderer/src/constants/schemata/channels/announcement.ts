@@ -1,7 +1,8 @@
-import { equal, permission_overwrite } from "../common";
-
-import { ChannelTypes } from "@renderer/constants/channel";
 import { array, boolean, nullable, number, object, optional, string } from "valibot";
+
+import { ChannelTypes } from "@constants/channel";
+
+import { equal, permission_overwrite } from "../common";
 
 export default object({
 	flags: number(),

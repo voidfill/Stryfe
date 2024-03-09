@@ -1,6 +1,6 @@
-import { user } from "../common";
-
 import { array, boolean, nullable, object, optional, string } from "valibot";
+
+import { user } from "../common";
 
 export default object({
 	animated: optional(boolean()),

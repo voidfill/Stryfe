@@ -1,7 +1,8 @@
-import { equal, equalArray, permission_overwrite } from "../common";
-
-import { ChannelTypes } from "@renderer/constants/channel";
 import { array, boolean, nullable, number, object, optional, string } from "valibot";
+
+import { ChannelTypes } from "@constants/channel";
+
+import { equal, equalArray, permission_overwrite } from "../common";
 
 export const tag = object({
 	emoji_id: nullable(string()),

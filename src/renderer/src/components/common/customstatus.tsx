@@ -1,18 +1,18 @@
 import { createMemo, createSignal, JSX, onCleanup, onMount, Show } from "solid-js";
 
 import { emojiURL } from "@constants/images";
+import { ActivityTypes } from "@constants/user";
+
+import ActivityStore from "@stores/activities";
 
 import { BsCardText } from "solid-icons/bs";
 
 import { useAnimationContext } from "./animationcontext";
-import TooltipDirective from "./tooltip";
+import tippy from "./tooltip";
 
 import "./customstatus.scss";
 
-import { ActivityTypes } from "@renderer/constants/user";
-import ActivityStore from "@renderer/stores/activities";
-
-TooltipDirective;
+tippy;
 
 function Emoji(props: { emoji: { animated?: boolean; id?: string; name: string }; size: number; tooltip: boolean }): JSX.Element {
 	const doAnimate = useAnimationContext();
@@ -20,7 +20,7 @@ function Emoji(props: { emoji: { animated?: boolean; id?: string; name: string }
 	return (
 		<Show when={props.emoji.id} fallback={<span>{props.emoji.name}</span>}>
 			<img
-				use:TooltipDirective={{ content: () => props.emoji.name, suppress: !props.tooltip }}
+				use:tippy={{ content: () => props.emoji.name, disabled: !props.tooltip }}
 				width={props.size}
 				height={props.size}
 				src={emojiURL(props.emoji.id!, 44, props.emoji.animated && doAnimate())}
@@ -52,11 +52,7 @@ export default function CustomStatus(props: { inline?: boolean; userId: string }
 						<Show when={status.emoji} keyed>
 							{(emoji): JSX.Element => <Emoji emoji={emoji} size={14} tooltip={!props.inline} />}
 						</Show>
-						<span
-							ref={textRef}
-							use:TooltipDirective={{ content: () => status.text, suppress: !isOverflowing() }}
-							class="custom-status-text"
-						>
+						<span ref={textRef} use:tippy={{ content: () => status.text, disabled: !isOverflowing() }} class="custom-status-text">
 							{status.text}
 						</span>
 						<Show when={isPlaying()}>

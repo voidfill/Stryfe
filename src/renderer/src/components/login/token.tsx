@@ -1,7 +1,7 @@
 import { useNavigate } from "@solidjs/router";
 import { createMemo, createSignal, JSX } from "solid-js";
 
-import { isValidToken, setToken } from "@renderer/modules/token";
+import { isValidToken, setToken } from "@modules/token";
 
 export default function Token(): JSX.Element {
 	const navigate = useNavigate();

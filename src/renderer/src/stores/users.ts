@@ -1,13 +1,12 @@
 import { batch } from "solid-js";
 import { createStore, produce } from "solid-js/store";
+import { Output } from "valibot";
 
 import assets from "@constants/assets";
+import { userAvatarURL } from "@constants/images";
+import { user_self as _user_self } from "@constants/schemata/common";
 
 import Store from ".";
-
-import { userAvatarURL } from "@renderer/constants/images";
-import { user_self as _user_self } from "@renderer/constants/schemata/common";
-import { Output } from "valibot";
 
 type user_self = Output<typeof _user_self>;
 
