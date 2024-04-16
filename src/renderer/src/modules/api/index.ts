@@ -1,4 +1,4 @@
-import { array, merge, object, optional, Output, parse, string } from "valibot";
+import { array, merge, nullable, object, optional, Output, parse, string } from "valibot";
 
 import { genericMessage } from "@constants/schemata/message";
 
@@ -24,7 +24,7 @@ const messageArraySchema = array(
 	merge([
 		genericMessage,
 		object({
-			referenced_message: optional(genericMessage),
+			referenced_message: optional(nullable(genericMessage)),
 		}),
 	]),
 );

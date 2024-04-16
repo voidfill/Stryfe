@@ -27,7 +27,7 @@ export const channel_override = object({
 export const guild_settings_entry = object({
 	channel_overrides: nullable(array(channel_override)),
 	flags: number(),
-	guild_id: string(),
+	guild_id: nullable(string()),
 	hide_muted_channels: boolean(),
 	message_notifications: nl,
 	mobile_push: boolean(),

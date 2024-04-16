@@ -1,7 +1,9 @@
 import { For, JSX } from "solid-js";
 import { ParentComponent } from "solid-js";
-import { createStore } from "solid-js/store";
+import { createStore, produce } from "solid-js/store";
 import { Portal } from "solid-js/web";
+
+import logger from "./logger";
 
 export type Layer = ParentComponent<{ close: () => void }>;
 
@@ -18,11 +20,17 @@ export default function Layers(): JSX.Element {
 }
 
 export function removeLayer(id: number): void {
-	setLayers((layers) => layers.filter((layer) => layer[0] !== id));
+	setLayers(
+		produce((layers) => {
+			const index = layers.findIndex(([lid]) => lid === id);
+			if (!~index) return void logger.warn("Didnt find layer to remove, id: ", id);
+			layers.splice(index, 1);
+		}),
+	);
 }
 
 export function addLayer(layer: Layer): number {
 	const lid = layerId++;
-	setLayers((layers) => [...layers, [lid, layer]]);
+	setLayers(produce((layers) => layers.push([lid, layer])));
 	return lid;
 }

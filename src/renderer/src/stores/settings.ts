@@ -138,14 +138,14 @@ export default new (class SettingsStore extends Store {
 					setUserGuildSettingsVersion(user_guild_settings.version);
 					for (const entry of user_guild_settings.entries ?? []) {
 						const { guild_id, channel_overrides, ...rest } = entry;
-						setUserGuildSettings(guild_id, rest);
+						setUserGuildSettings(guild_id as string, rest);
 						if (channel_overrides)
 							setUserGuildSettings(
-								guild_id,
+								guild_id as string,
 								"overridden_channel_ids",
 								channel_overrides.map((o) => o.channel_id),
 							);
-						if (entry.mute_config && entry.muted) registerTimedGuildMute(guild_id, entry.mute_config);
+						if (entry.mute_config && entry.muted) registerTimedGuildMute(guild_id as string, entry.mute_config);
 
 						for (const override of channel_overrides ?? []) {
 							const { channel_id, ...rest } = override;
@@ -156,7 +156,7 @@ export default new (class SettingsStore extends Store {
 				});
 			},
 			USER_GUILD_SETTINGS_UPDATE: ({ guild_id, channel_overrides, ...rest }) => {
-				const lastVersion = userGuildSettings[guild_id];
+				const lastVersion = userGuildSettings[guild_id as string];
 				if (lastVersion) {
 					for (const o of lastVersion.overridden_channel_ids ?? []) {
 						if (muteTimers.has(o)) clearTimeout(muteTimers.get(o)!);
@@ -170,8 +170,8 @@ export default new (class SettingsStore extends Store {
 					);
 				}
 
-				setUserGuildSettings(guild_id, rest);
-				if (rest.mute_config && rest.muted) registerTimedGuildMute(guild_id, rest.mute_config);
+				setUserGuildSettings(guild_id as string, rest);
+				if (rest.mute_config && rest.muted) registerTimedGuildMute(guild_id as string, rest.mute_config);
 
 				for (const override of channel_overrides ?? []) {
 					const { channel_id, ...rest } = override;

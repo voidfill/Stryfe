@@ -19,7 +19,6 @@ export default defineConfig({
 		publicDir: resolve("src/renderer/public"),
 		resolve: {
 			alias: {
-				"@common": resolve("src/renderer/src/common"),
 				"@components": resolve("src/renderer/src/components"),
 				"@constants": resolve("src/renderer/src/constants"),
 				"@modules": resolve("src/renderer/src/modules"),

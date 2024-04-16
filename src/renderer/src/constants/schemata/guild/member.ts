@@ -37,7 +37,7 @@ export const GUILD_MEMBERS_CHUNK = object({
 	chunk_count: number(),
 	chunk_index: number(),
 	guild_id: string(),
-	members: array(member),
+	members: nullable(array(member)),
 	not_found: nullable(array(string())),
 	presences: nullable(array(PRESENCE_UPDATE)),
 });

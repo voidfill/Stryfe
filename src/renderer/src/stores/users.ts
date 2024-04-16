@@ -44,7 +44,7 @@ export default new (class UserStore extends Store {
 				setUsers(user.id, intoStored(user));
 			},
 			GUILD_MEMBERS_CHUNK: ({ members }) => {
-				if (!members.length) return;
+				if (!members?.length) return;
 				batch(() => {
 					setUsers(
 						produce((s) => {

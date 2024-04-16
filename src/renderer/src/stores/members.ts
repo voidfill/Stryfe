@@ -65,7 +65,7 @@ export default new (class MemberStore extends Store {
 				setMembers(
 					guild_id,
 					produce((m) => {
-						for (const member of chunk) {
+						for (const member of chunk ?? []) {
 							m[member.user.id] = intoStored(member);
 							this.#requesting.get(guild_id)?.delete(member.user.id);
 						}

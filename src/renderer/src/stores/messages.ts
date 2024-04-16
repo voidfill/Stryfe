@@ -193,6 +193,8 @@ export const enum MessageState {
 // TODO: add sending state logic and optimistic send functionality
 const [messageState, setMessageState] = createStore<{ [key: string]: MessageState }>({});
 
+const [earliestMessageId, setEarliestMessageId] = createStore<{ [key: string]: string }>({});
+
 const __perChannel = new Map<string, Set<string>>();
 
 export default new (class MessageStore extends Store {
@@ -290,12 +292,13 @@ export default new (class MessageStore extends Store {
 					}
 				});
 			},
-			MESSAGES_FETCH_SUCCESS: ({ messages, channelId, after, around, before }) => {
+			MESSAGES_FETCH_SUCCESS: ({ messages, channelId, after, around, before, limit }) => {
 				const messageIds = messages.map((m) => m.id).reverse();
 
 				batch(() => {
 					if (!__perChannel.has(channelId)) __perChannel.set(channelId, new Set());
 					for (const id of messageIds) __perChannel.get(channelId)!.add(id);
+					if (!after && limit && messageIds.length < limit) setEarliestMessageId(channelId, messageIds[0]);
 
 					for (const message of messages) {
 						// eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -356,6 +359,12 @@ export default new (class MessageStore extends Store {
 	// eslint-disable-next-line solid/reactivity
 	getMessageState(id: string): MessageState {
 		return messageState[id] ?? MessageState.SENT;
+	}
+
+	// if it has a value, then theres no more messages in the channel before that id
+	// eslint-disable-next-line solid/reactivity
+	getEarliestMessageId(channelId: string): string | undefined {
+		return earliestMessageId[channelId];
 	}
 
 	// TODO: actual message type, validator?

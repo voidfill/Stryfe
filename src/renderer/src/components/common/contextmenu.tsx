@@ -106,7 +106,6 @@ function Menu(props: {
 	selectedItem: [Accessor<string>, (next: string) => void];
 }): sJSX.Element {
 	let mref: HTMLDivElement | undefined;
-
 	const [x, setX] = createSignal(0);
 	const [y, setY] = createSignal(0);
 
@@ -143,6 +142,15 @@ function Menu(props: {
 
 	onCleanup(() => {
 		searchRef?.blur();
+	});
+
+	const each = createMemo(() => {
+		if (lower() && props.searchable)
+			return props.menu.filter((e) => {
+				if (e.type === "separator") return false;
+				return e.label.toLowerCase().includes(lower());
+			});
+		return props.menu;
 	});
 
 	return (
@@ -189,18 +197,10 @@ function Menu(props: {
 					<div class="ctxmenu-separator" />
 				</Show>
 
-				<For
-					each={
-						lower() && props.searchable
-							? props.menu.filter((e) => {
-									if (e.type === "separator") return false;
-									return e.label.toLowerCase().includes(lower());
-							  })
-							: props.menu
-					}
-				>
+				<For each={each()}>
 					{(item, i): sJSX.Element => {
 						const id = createMemo(() => `${props.id}-${i()}`);
+						const isSelected = createMemo(() => props.selectedItem[0]() === id());
 
 						return (
 							<Switch>
@@ -215,7 +215,7 @@ function Menu(props: {
 												"ctxmenu-item": true,
 												[`color-${item.color ?? Colors.PRIMARY}`]: true,
 												disabled: item.disabled,
-												selected: props.selectedItem[0]() === id(),
+												selected: isSelected(),
 											}}
 											onClick={(e): void => {
 												e.stopPropagation();
@@ -246,7 +246,7 @@ function Menu(props: {
 												"ctxmenu-item": true,
 												[`color-${("color" in item && item.color) || Colors.PRIMARY}`]: true,
 												disabled: item.disabled,
-												selected: props.selectedItem[0]() === id(),
+												selected: isSelected(),
 											}}
 											onClick={(e): void => {
 												e.stopPropagation();
@@ -281,7 +281,7 @@ function Menu(props: {
 											classList={{
 												"ctxmenu-item": true,
 												[`color-${item.color ?? Colors.PRIMARY}`]: true,
-												selected: props.selectedItem[0]() === id(),
+												selected: isSelected(),
 											}}
 											onClick={(e): void => {
 												e.stopPropagation();
@@ -304,62 +304,50 @@ function Menu(props: {
 									{(item): sJSX.Element => {
 										const isSelected = createMemo(() => props.selectedItem[0]().startsWith(id()));
 										let smRef: HTMLDivElement | undefined;
-										let layerId: number | undefined;
-
-										onMount(() => {
-											createEffect(() => {
-												if (isSelected()) {
-													layerId = addLayer(() => (
-														<Menu
-															hide={props.hide}
-															ref={(): void => {}}
-															selectedItem={props.selectedItem}
-															id={id()}
-															menu={item.submenu}
-															searchable={item.searchable}
-															parentRect={smRef!.getBoundingClientRect() as DOMRect}
-															onmouseenter={(): void => props.selectedItem[1](id())}
-															onmouseleave={(): void => props.selectedItem[1]("")}
-															isSubmenu
-														/>
-													));
-												} else {
-													layerId = void removeLayer(layerId!);
-												}
-											});
-										});
-
-										onCleanup(() => {
-											layerId = void removeLayer(layerId!);
-										});
 
 										return (
-											<div
-												id={id()}
-												classList={{
-													"ctxmenu-item": true,
-													[`color-${item.color ?? Colors.PRIMARY}`]: true,
-													selected: props.selectedItem[0]().startsWith(id()),
-												}}
-												ref={smRef}
-												onMouseEnter={(): void => props.selectedItem[1](id())}
-												onClick={(e): void => {
-													e.stopPropagation();
-													e.preventDefault();
-													item.action();
-													props.hide();
-												}}
-											>
-												<div class="ctx-text">
-													<span class="ctx-label">{item.label}</span>
-													<Show when={item.subText}>
-														<span class="ctx-subtext">{item.subText}</span>
-													</Show>
+											<>
+												<div
+													id={id()}
+													classList={{
+														"ctxmenu-item": true,
+														[`color-${item.color ?? Colors.PRIMARY}`]: true,
+														selected: isSelected(),
+													}}
+													ref={smRef}
+													onMouseEnter={(): void => props.selectedItem[1](id())}
+													onClick={(e): void => {
+														e.stopPropagation();
+														e.preventDefault();
+														item.action();
+														props.hide();
+													}}
+												>
+													<div class="ctx-text">
+														<span class="ctx-label">{item.label}</span>
+														<Show when={item.subText}>
+															<span class="ctx-subtext">{item.subText}</span>
+														</Show>
+													</div>
+													<div class="ctx-icon">
+														<FaSolidChevronRight size={12} />
+													</div>
 												</div>
-												<div class="ctx-icon">
-													<FaSolidChevronRight size={12} />
-												</div>
-											</div>
+												<Show when={isSelected()}>
+													<Menu
+														hide={props.hide}
+														ref={(): void => {}}
+														selectedItem={props.selectedItem}
+														id={id()}
+														menu={item.submenu}
+														searchable={item.searchable}
+														parentRect={smRef!.getBoundingClientRect() as DOMRect}
+														onmouseenter={(): void => props.selectedItem[1](id())}
+														onmouseleave={(): void => props.selectedItem[1](props.id)}
+														isSubmenu
+													/>
+												</Show>
+											</>
 										);
 									}}
 								</Match>

@@ -93,7 +93,7 @@ export default function MainView(): JSX.Element {
 							<SideBar />
 							<div class="channel-wrapper">
 								<HeaderBar />
-								<div class="channel">
+								<div class="channel" style={{ "flex-grow": 1 }}>
 									<Show
 										when={currChannel()}
 										fallback={
@@ -107,7 +107,7 @@ export default function MainView(): JSX.Element {
 									>
 										<Chat />
 										<Show when={showMembers() && params.channelId && currChannel()?.type !== ChannelTypes.DM}>
-											<MemberList />
+											{0 /*<MemberList />*/}
 										</Show>
 										<Show when={showUserProfile() && currChannel()?.type === ChannelTypes.DM}>
 											<span>DM User Profile</span>
