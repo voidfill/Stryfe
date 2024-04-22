@@ -99,7 +99,7 @@ export default new (class GuildStore extends Store {
 	}
 
 	// eslint-disable-next-line solid/reactivity
-	get guildIds(): string[] {
+	getGuildIds(): string[] {
 		return guildIds();
 	}
 
