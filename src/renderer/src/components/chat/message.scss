@@ -1,0 +1,28 @@
+:root {
+	--message-aside-width: 60px;
+}
+
+.message {
+	display: flex;
+	flex-direction: column;
+
+	.message-attachments {
+		display: flex;
+		flex-direction: column;
+		max-width: 550px;
+	}
+
+	.message-container {
+		display: flex;
+		flex-direction: row;
+
+		.message-aside {
+			width: var(--message-aside-width);
+			display: flex;
+			flex-direction: row;
+			justify-content: flex-end;
+			flex-grow: 0;
+			flex-shrink: 0;
+		}
+	}
+}

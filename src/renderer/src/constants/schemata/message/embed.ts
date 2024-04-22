@@ -48,7 +48,7 @@ export default object({
 	thumbnail: optional(thumbnail),
 	timestamp: optional(string()),
 	title: optional(string()),
-	type: optional(equalArray(["rich", "image", "video", "gifv", "article", "link"] as const)),
+	type: optional(equalArray(["rich", "image", "video", "gifv", "article", "link", "tweet"] as const)),
 	url: optional(string()),
 	video: optional(video),
 });

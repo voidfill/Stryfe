@@ -42,7 +42,15 @@ const enum ConnectionState {
 const HELLO_TIMEOUT = 20_000,
 	HEARTBEAT_MAX_RESUME_THRESHOLD = 60 * 3 * 1000,
 	MAX_RETRIES = 20,
-	capabilities = 16381;
+	capabilities = 16381,
+	guildSubscriptionUpdateMaxSize = 15360;
+
+type guildSubscription = {
+	activities: boolean;
+	channels?: Record<string, [number, number][]>;
+	threads: boolean;
+	typing: boolean;
+};
 
 export default class GatewaySocket {
 	#gatewayURL = "wss://gateway.discord.gg";
@@ -71,6 +79,12 @@ export default class GatewaySocket {
 	#resumable = false;
 
 	#trace: string[] = [];
+
+	#guildSubscriptions: Record<string, guildSubscription> = {};
+
+	getGuildSubscription(id: string): guildSubscription | undefined {
+		return this.#guildSubscriptions[id];
+	}
 
 	get sessionId(): string | null {
 		return this.#sessionId;
@@ -293,5 +307,47 @@ export default class GatewaySocket {
 
 	requestMembers(options: { guild_id: string; limit: number; nonce?: string; presences?: boolean; query?: string; user_ids?: string[] }): void {
 		this.#send(OPCodes.REQUEST_GUILD_MEMBERS, options);
+	}
+
+	// TODO: dispatch update on reconnect / resume whatever.
+	// or maybe nuke and reestablish? good chance to clean up unused subscriptions.
+	#scheduledGuildSubUpdates: Record<string, Partial<guildSubscription>> = {};
+	#scheduledGuildSubUpdateTimeout: NodeJS.Timeout | undefined = undefined;
+	updateGuildSubscription(guildId: string, value: Partial<guildSubscription>): void {
+		this.#guildSubscriptions[guildId] = value = Object.assign(
+			this.#guildSubscriptions[guildId] ?? { activities: false, threads: false, typing: false },
+			value,
+		);
+
+		this.#scheduledGuildSubUpdates[guildId] = Object.assign(this.#scheduledGuildSubUpdates[guildId] ?? {}, value);
+		if (this.#scheduledGuildSubUpdateTimeout) clearTimeout(this.#scheduledGuildSubUpdateTimeout);
+
+		this.#scheduledGuildSubUpdateTimeout = setTimeout(() => {
+			let temp: Record<string, Partial<guildSubscription>> = {},
+				jsonLen = 0;
+
+			for (const [id, value] of Object.entries(this.#scheduledGuildSubUpdates)) {
+				const newLen = JSON.stringify([id, value]).length;
+				if (newLen > guildSubscriptionUpdateMaxSize) {
+					logger.warn("Guild subscription update too large:", id, value);
+					return;
+				}
+				if (jsonLen + newLen > guildSubscriptionUpdateMaxSize) {
+					this.#send(OPCodes.GUILD_SUBSCRIPTIONS_BULK, {
+						subscriptions: temp,
+					});
+					temp = {};
+					jsonLen = 0;
+				}
+				temp[id] = value;
+				jsonLen += newLen;
+			}
+
+			if (jsonLen) {
+				this.#send(OPCodes.GUILD_SUBSCRIPTIONS_BULK, {
+					subscriptions: temp,
+				});
+			}
+		}, 10);
 	}
 }

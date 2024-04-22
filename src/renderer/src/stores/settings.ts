@@ -117,17 +117,9 @@ function base64ToUint8Array(base64: string): Uint8Array {
 	return bytes;
 }
 
-let hasFetchedFrecencies = false;
 export default new (class SettingsStore extends Store {
 	constructor() {
 		super({
-			// await connect to make sure token is valid trolley
-			GATEWAY_CONNECT: async () => {
-				if (hasFetchedFrecencies) return;
-				hasFetchedFrecencies = true;
-				const res = await Api.getSettingsProto(UserSettingsType.FRECENCY_AND_FAVORITES_SETTINGS);
-				setFrecencySettings(FrecencyUserSettings.fromBinary(base64ToUint8Array(res.settings)));
-			},
 			READY: ({ user_settings_proto, user_guild_settings }) => {
 				batch(() => {
 					setPreloadedSettings(PreloadedUserSettings.fromBinary(base64ToUint8Array(user_settings_proto)));
@@ -193,6 +185,11 @@ export default new (class SettingsStore extends Store {
 					default:
 						throw new Error("Unknown settings type");
 				}
+			},
+			// await connect to make sure token is valid trolley
+			once_GATEWAY_CONNECT: async () => {
+				const res = await Api.getSettingsProto(UserSettingsType.FRECENCY_AND_FAVORITES_SETTINGS);
+				setFrecencySettings(FrecencyUserSettings.fromBinary(base64ToUint8Array(res.settings)));
 			},
 		});
 	}

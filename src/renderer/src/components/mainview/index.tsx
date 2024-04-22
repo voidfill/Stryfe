@@ -39,14 +39,18 @@ export default function MainView(): JSX.Element {
 		);
 
 	createEffect(() => {
-		setLastSelectedChannels(params.guildId, params.channelId);
+		if (!params.channelId && lastSelectedChannels[params.guildId])
+			navigate(`/channels/${params.guildId}/${lastSelectedChannels[params.guildId]}`);
 
 		if (!currChannel()) {
-			if (lastSelectedChannels[params.guildId]) navigate(`/channels/${params.guildId}/${lastSelectedChannels[params.guildId]}`);
-			else {
-				const sortedChannels = ChannelStore.getSortedGuildChannels(params.guildId);
-				const channelId = sortedChannels?.uncategorized.other[0] || sortedChannels?.categorized[0]?.other[0];
-				if (channelId) navigate(`/channels/${params.guildId}/${channelId}`);
+			const sortedChannels = ChannelStore.getSortedGuildChannels(params.guildId);
+			const channelId = sortedChannels?.uncategorized.other[0] || sortedChannels?.categorized[0]?.other[0];
+			if (channelId) navigate(`/channels/${params.guildId}/${channelId}`);
+		} else {
+			setLastSelectedChannels(params.guildId, params.channelId);
+			if (params.guildId !== "@me") {
+				const subscription = window.gateway.getGuildSubscription(params.guildId);
+				if (!subscription) window.gateway.updateGuildSubscription(params.guildId, { activities: true, threads: true, typing: true });
 			}
 		}
 

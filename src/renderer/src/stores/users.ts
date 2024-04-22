@@ -55,9 +55,22 @@ export default new (class UserStore extends Store {
 					);
 				});
 			},
+			MESSAGES_FETCH_SUCCESS: ({ messages }) => {
+				if (!messages?.length) return;
+				setUsers(
+					produce((s) => {
+						for (const message of messages) {
+							if (message.author) s[message.author.id] ??= intoStored(message.author);
+							if (message.referenced_message?.author)
+								s[message.referenced_message.author.id] ??= intoStored(message.referenced_message.author);
+						}
+					}),
+				);
+			},
 			READY: ({ user, users }) => {
 				batch(() => {
-					setSelf(user);
+					const display_name = user.display_name || user.global_name || null;
+					setSelf({ ...user, display_name });
 
 					setUsers(
 						produce((s) => {

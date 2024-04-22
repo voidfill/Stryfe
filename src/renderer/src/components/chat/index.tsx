@@ -1,5 +1,5 @@
 import { useParams } from "@solidjs/router";
-import { createEffect, createMemo, For, JSX, onMount, Show, untrack } from "solid-js";
+import { createEffect, createMemo, For, JSX, onMount, untrack } from "solid-js";
 import { createStore } from "solid-js/store";
 
 import permissions from "@constants/permissions";
@@ -12,19 +12,21 @@ import { hasBit } from "@stores/permissions";
 
 import { usePermissionsContext } from "@components/common/permissionscontext";
 
+import Message from "./message";
+
 export default function Chat(): JSX.Element {
 	const params = useParams();
 
 	return (
 		<div class="chat" style={{ height: "100%" }}>
-			<LazyScroller around={params.messageId} channelId={params.channelId} />
+			<LazyScroller around={params.messageId} channelId={params.channelId} guildId={params.guildId} />
 		</div>
 	);
 }
 
 const [scrollPositions, setScrollPositions] = createStore<{ [key: string]: number }>({});
 
-function LazyScroller(props: { around?: string; channelId: string }): JSX.Element {
+function LazyScroller(props: { around?: string; channelId: string; guildId?: string }): JSX.Element {
 	let scrollRef: HTMLDivElement;
 
 	let isFetching = false;
@@ -118,23 +120,8 @@ function LazyScroller(props: { around?: string; channelId: string }): JSX.Elemen
 			}}
 		>
 			<div class="messages-wrapper">
-				<For each={chunk()} fallback={<div>Loading...</div>}>
-					{(id: string): JSX.Element => Message({ id })}
-				</For>
+				<For each={chunk()}>{(id, i): JSX.Element => <Message id={id} prevId={chunk()?.[i() - 1]} guildId={props.guildId} />}</For>
 			</div>
 		</div>
-	);
-}
-
-function Message(props: { id: string }): JSX.Element {
-	const msg = createMemo(() => MessageStore.getMessage(props.id));
-	return (
-		<Show when={msg()} keyed>
-			{(msg): JSX.Element => (
-				<div>
-					{props.id}: {msg.content}
-				</div>
-			)}
-		</Show>
 	);
 }

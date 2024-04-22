@@ -83,6 +83,16 @@ export default new (class RolesStore extends Store {
 				}
 				perMember.delete(id);
 			},
+			GUILD_MEMBERS_CHUNK: ({ guild_id, members }) => {
+				if (!members?.length) return;
+
+				batch(() => {
+					if (!perMember.has(guild_id)) perMember.set(guild_id, new ReactiveMap());
+					for (const member of members) {
+						perMember.get(guild_id)!.set(member.user.id, new ReactiveSet(member.roles));
+					}
+				});
+			},
 			GUILD_ROLE_CREATE: ({ guild_id, role }) => {
 				batch(() => {
 					setRoles(role.id, { ...role, permissions: BigInt(role.permissions) });
@@ -185,5 +195,23 @@ export default new (class RolesStore extends Store {
 
 	getMemberRoles(guildId: string, memberId: string): IterableIterator<string> | undefined {
 		return perMember.get(guildId)?.get(memberId)?.values();
+	}
+
+	getHighestColoredForMember(guildId: string, memberId: string): string | undefined {
+		const roles = this.getMemberRoles(guildId, memberId);
+		let highest: string | undefined,
+			rank = 0;
+
+		for (const role of roles ?? []) {
+			const r = this.getRole(role);
+			if (!r?.color) continue;
+			const roleRank = r?.position ?? 0;
+			if (roleRank > rank) {
+				rank = roleRank;
+				highest = role;
+			}
+		}
+
+		return highest;
 	}
 })();
