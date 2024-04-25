@@ -1,4 +1,4 @@
-import { array, boolean, merge, nullable, number, object, string } from "valibot";
+import { array, boolean, merge, nullable, number, object, optional, string } from "valibot";
 
 import { user } from "../common";
 import { PRESENCE_UPDATE } from "../presence";
@@ -6,10 +6,10 @@ import { PRESENCE_UPDATE } from "../presence";
 const member = object({
 	avatar: nullable(string()),
 	communication_disabled_until: nullable(string()),
-	deaf: boolean(),
+	deaf: optional(boolean()),
 	flags: number(),
 	joined_at: string(),
-	mute: boolean(),
+	mute: optional(boolean()),
 	nick: nullable(string()),
 	pending: boolean(),
 	premium_since: nullable(string()),

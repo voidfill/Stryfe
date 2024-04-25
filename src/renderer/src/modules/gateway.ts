@@ -293,7 +293,7 @@ export default class GatewaySocket {
 		if (this.#socket?.readyState !== WebSocket.OPEN) return logger.warn("Attempted to send message while socket is not open");
 		if (this.#state !== ConnectionState.Connected && this.#state !== ConnectionState.Connecting && this.#state !== ConnectionState.Resuming)
 			return logger.warn("Attempted to send message while not connected");
-		logger.info("Trying to send message:", opcode, data);
+		logger.debug("Trying to send message:", opcode, data);
 		pw.postMessage({ d: data, op: opcode });
 	}
 

@@ -81,6 +81,11 @@ export default new (class UserStore extends Store {
 					);
 				});
 			},
+			VOICE_STATE_UPDATE: (vs) => {
+				if ("member" in vs && vs.member) {
+					setUsers(vs.user_id, intoStored(vs.member.user));
+				}
+			},
 		});
 	}
 

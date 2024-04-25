@@ -3,6 +3,7 @@ export const enum LogLevels {
 	info = "info",
 	warn = "warn",
 	error = "error",
+	debug = "debug",
 }
 
 export class Logger {
@@ -26,6 +27,10 @@ export class Logger {
 
 	error(...args: any[]): void {
 		this._log(LogLevels.error, ...args);
+	}
+
+	debug(...args: any[]): void {
+		this._log(LogLevels.debug, ...args);
 	}
 }
 

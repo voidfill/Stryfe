@@ -11,7 +11,7 @@ export const client_status = object({
 
 export const activity_type = special<ActivityTypes>((v) => typeof v === "number" && v >= 0 && v <= 5);
 export const activity = object({
-	application_id: optional(string()),
+	application_id: optional(union([string(), number()])),
 	assets: optional(
 		object({
 			large_image: optional(string()),

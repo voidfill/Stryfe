@@ -6,19 +6,22 @@ import permissions from "@constants/permissions";
 
 import ChannelStore from "@stores/channels";
 import GuildStore from "@stores/guilds";
+import MemberStore from "@stores/members";
 import PermissionsStore from "@stores/permissions";
-import RolesStore from "@stores/roles";
 import SettingsStore, { NotificationLevel, notificationLevelToText } from "@stores/settings";
 import UserStore from "@stores/users";
+import VoiceStateStore from "@stores/voicestates";
 
 import { useSelectedChannelContext } from "@components/common/selectioncontext";
 import { FaSolidChevronDown } from "solid-icons/fa";
+import { TbMicrophoneOff } from "solid-icons/tb";
+import { TbHeadphonesOff } from "solid-icons/tb";
 
+import Avatar, { ShowStatus } from "../common/avatar";
 import ChannelIcon from "../common/channelicon";
 import { ContextmenuDirective, Id, menuItem, Optional, Separator } from "../common/contextmenu";
 import { usePermissionsContext } from "../common/permissionscontext";
 
-RolesStore;
 ContextmenuDirective;
 
 const refMap = new Map<string, any>();
@@ -182,6 +185,33 @@ function TextChannel(props: { id: string; isCollapsed: Accessor<boolean>; parent
 	);
 }
 
+function VoiceCard(props: { sessionId: string }): JSX.Element {
+	const voiceState = createMemo(() => VoiceStateStore.getVoiceState(props.sessionId));
+	const member = createMemo(() => MemberStore.getMember(voiceState()?.guild_id ?? "", voiceState()?.user_id ?? ""));
+	const user = createMemo(() => UserStore.getUser(voiceState()?.user_id ?? ""));
+
+	return (
+		<Show when={voiceState()} keyed>
+			{(vs): JSX.Element => (
+				<div classList={{ "voice-card": true, [`voice-user-id-${vs.user_id}`]: true }}>
+					<Avatar userId={vs.user_id} guildId={vs.guild_id ?? undefined} size={24} showStatus={ShowStatus.NEVER} />
+					<span class="username">
+						<Show when={member() && member()?.nick} fallback={user()?.display_name || user()?.username}>
+							{member()?.nick}
+						</Show>
+					</span>
+					<Show when={vs.mute || vs.self_mute}>
+						<TbMicrophoneOff style={vs.mute ? { color: "#ff372c" } : {}} />
+					</Show>
+					<Show when={vs.deaf || vs.self_deaf}>
+						<TbHeadphonesOff style={vs.deaf ? { color: "#ff372c" } : {}} />
+					</Show>
+				</div>
+			)}
+		</Show>
+	);
+}
+
 function VoiceChannel(props: { id: string; isCollapsed: Accessor<boolean> }): JSX.Element {
 	const channel = createMemo(() => ChannelStore.getGuildVoiceChannel(props.id));
 	const params = useParams();
@@ -189,6 +219,8 @@ function VoiceChannel(props: { id: string; isCollapsed: Accessor<boolean> }): JS
 	const mutedHide = createMemo(
 		() => (SettingsStore.userGuildSettings[params.guildId]?.hide_muted_channels && SettingsStore.channelOverrides[props.id]?.muted) ?? false,
 	);
+	const voiceStates = createMemo(() => VoiceStateStore.getSessionIdsForChannel(props.id));
+	// TODO: sort by name, streaming, camera etc
 
 	const currentPermissions = usePermissionsContext();
 	const canSee = createMemo(() =>
@@ -208,62 +240,66 @@ function VoiceChannel(props: { id: string; isCollapsed: Accessor<boolean> }): JS
 	return (
 		<Show when={((!(props.isCollapsed() || mutedHide()) && canSee()) || selc(props.id)) && channel()} keyed>
 			{(channel): JSX.Element => (
-				<A
-					href={`/channels/${params.guildId}/${props.id}`}
-					ref={(el): void => {
-						refMap.set(props.id, el);
-					}}
-				>
-					<div
-						classList={{
-							channel: true,
-							[`channel-type-${channel.type}`]: true,
-							[`channel-${props.id}`]: true,
-							selected: selc(props.id),
-						}}
-						use:ContextmenuDirective={{
-							menu: () => [
-								{
-									action: () => void 0,
-									disabled: true,
-									label: "Mark As Read",
-								},
-								Separator,
-								{
-									action: () => void 0,
-									label: "Invite People",
-								},
-								{
-									action: () => void navigator.clipboard.writeText(`https://discord.com/channels/${params.guildId}/${props.id}`),
-									label: "Copy Link",
-								},
-								Separator,
-								{
-									action: () => void 0,
-									enabled: () => false,
-									label: "Hide Names",
-									type: "switch",
-								},
-								Separator,
-								muteContextMenu(props.id, "Channel"),
-								Separator,
-								...Optional(true, [
-									{
-										action: () => void 0,
-										label: "//TODO: Channel Settings Entries",
-									},
-									Separator,
-								]),
-								Id(props.id, "Copy Channel ID"),
-							],
+				<>
+					<A
+						href={`/channels/${params.guildId}/${props.id}`}
+						ref={(el): void => {
+							refMap.set(props.id, el);
 						}}
 					>
-						<div class="channel-icon">
-							<ChannelIcon guildId={params.guildId} id={props.id} size={20} />
+						<div
+							classList={{
+								channel: true,
+								[`channel-type-${channel.type}`]: true,
+								[`channel-${props.id}`]: true,
+								selected: selc(props.id),
+							}}
+							use:ContextmenuDirective={{
+								menu: () => [
+									{
+										action: () => void 0,
+										disabled: true,
+										label: "Mark As Read",
+									},
+									Separator,
+									{
+										action: () => void 0,
+										label: "Invite People",
+									},
+									{
+										action: () =>
+											void navigator.clipboard.writeText(`https://discord.com/channels/${params.guildId}/${props.id}`),
+										label: "Copy Link",
+									},
+									Separator,
+									{
+										action: () => void 0,
+										enabled: () => false,
+										label: "Hide Names",
+										type: "switch",
+									},
+									Separator,
+									muteContextMenu(props.id, "Channel"),
+									Separator,
+									...Optional(true, [
+										{
+											action: () => void 0,
+											label: "//TODO: Channel Settings Entries",
+										},
+										Separator,
+									]),
+									Id(props.id, "Copy Channel ID"),
+								],
+							}}
+						>
+							<div class="channel-icon">
+								<ChannelIcon guildId={params.guildId} id={props.id} size={20} />
+							</div>
+							<span class="channel-name">{channel.name}</span>
 						</div>
-						<span class="channel-name">{channel.name}</span>
-					</div>
-				</A>
+					</A>
+					<For each={voiceStates()}>{(sessionId): JSX.Element => <VoiceCard sessionId={/*@once*/ sessionId} />}</For>
+				</>
 			)}
 		</Show>
 	);
