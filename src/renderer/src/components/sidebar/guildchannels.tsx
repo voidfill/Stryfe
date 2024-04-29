@@ -298,7 +298,9 @@ function VoiceChannel(props: { id: string; isCollapsed: Accessor<boolean> }): JS
 							<span class="channel-name">{channel.name}</span>
 						</div>
 					</A>
-					<For each={voiceStates()}>{(sessionId): JSX.Element => <VoiceCard sessionId={/*@once*/ sessionId} />}</For>
+					<Show when={channel.type === ChannelTypes.GUILD_VOICE}>
+						<For each={voiceStates()}>{(sessionId): JSX.Element => <VoiceCard sessionId={/*@once*/ sessionId} />}</For>
+					</Show>
 				</>
 			)}
 		</Show>

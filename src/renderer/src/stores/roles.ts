@@ -141,6 +141,12 @@ export default new (class RolesStore extends Store {
 					setRoles(role.id, { ...role, permissions: BigInt(role.permissions) });
 				});
 			},
+			MESSAGE_CREATE: ({ guild_id, member, author }) => {
+				if (!guild_id || !member) return;
+				if (!perMember.has(guild_id)) perMember.set(guild_id, new ReactiveMap());
+				const g = perMember.get(guild_id)!;
+				if (!g.has(author.id)) g.set(author.id, new ReactiveSet(member.roles));
+			},
 			READY: ({ guilds, merged_members }) => {
 				batch(() => {
 					for (const guild of guilds ?? []) {

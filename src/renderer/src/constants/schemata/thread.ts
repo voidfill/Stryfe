@@ -2,9 +2,11 @@ import { array, boolean, merge, nullable, number, object, optional, string } fro
 
 import { ChannelTypes } from "../channel";
 import { equalArray } from "./common";
+import { genericMessage } from "./message";
 import { mute_config } from "./settings";
 
 export const thread = object({
+	applied_tags: optional(array(string())),
 	flags: number(),
 	id: string(),
 	name: string(),
@@ -15,7 +17,7 @@ export const thread = object({
 		archive_timestamp: string(),
 		archived: boolean(),
 		auto_archive_duration: number(),
-		create_timestamp: optional(string()),
+		create_timestamp: optional(nullable(string())),
 		invitable: optional(boolean()),
 		locked: boolean(),
 	}),
@@ -58,4 +60,10 @@ export const THREAD_MEMBER_UPDATE = object({
 	mute_config: nullable(mute_config),
 	muted: boolean(),
 	user_id: string(),
+});
+
+export const THREAD_LIST_SYNC = object({
+	guild_id: string(),
+	most_recent_messages: nullable(array(merge([genericMessage, object({ referenced_message: optional(nullable(genericMessage)) })]))),
+	threads: nullable(array(thread)),
 });

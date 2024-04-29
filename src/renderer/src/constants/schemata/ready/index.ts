@@ -1,11 +1,12 @@
 import { any, array, boolean, merge, nullable, number, object, omit, optional, string, tuple, union, unknown } from "valibot";
 
 import { private_channel } from "../channels";
-import { equal, status, user, user_self } from "../common";
+import { status, user, user_self } from "../common";
 import { ready_guild, unavailable_guild } from "../guild";
 import guild_member from "../guild/member";
 import voice_state from "../guild/voicestate";
 import { activity, client_status } from "../presence";
+import { read_state_entry } from "../readstate";
 import { relationship } from "../relationship";
 import { guild_settings_entry } from "../settings";
 import connected_account from "./connectedaccount";
@@ -35,25 +36,7 @@ export const READY = object({
 	merged_members: nullable(array(nullable(tuple([merged_member])))),
 	private_channels: nullable(array(private_channel)),
 	read_state: object({
-		entries: nullable(
-			array(
-				union([
-					object({
-						flags: number(),
-						id: string(),
-						last_message_id: union([equal(0), string()]),
-						last_pin_timestamp: string(),
-						mention_count: number(),
-					}),
-					object({
-						badge_count: number(),
-						id: string(),
-						last_acked_id: string(),
-						read_state_type: number(),
-					}),
-				]),
-			),
-		),
+		entries: nullable(array(read_state_entry)),
 		partial: boolean(),
 		version: number(),
 	}),

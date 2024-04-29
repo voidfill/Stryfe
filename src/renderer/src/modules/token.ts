@@ -10,7 +10,7 @@ async function ensureEncryption(): Promise<boolean> {
 }
 
 export function isValidToken(token: string): boolean {
-	return tokenRegex.test(token);
+	return tokenRegex.test(token) && /\d+/.test(atob(token.split(".")[0]));
 }
 
 export async function getToken(): Promise<string | null> {
@@ -22,6 +22,7 @@ export async function getToken(): Promise<string | null> {
 	if (!isValidToken(token)) {
 		Logger.error("Invalid token stored in storage, clearing.");
 		clearToken();
+		return null;
 	}
 
 	return token;
@@ -32,6 +33,12 @@ export async function setToken(newToken: string): Promise<void> {
 	await ensureEncryption();
 	Storage.set("token", await window.ipc.encrypt(newToken));
 	window.location = "" as string & Location;
+}
+
+export async function getUserIdFromToken(): Promise<string | null> {
+	const token = await getToken();
+	if (!token) return null;
+	return atob(token.split(".")[0]);
 }
 
 export function clearToken(): void {

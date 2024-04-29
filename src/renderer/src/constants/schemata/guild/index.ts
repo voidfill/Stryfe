@@ -131,6 +131,6 @@ export const GUILD_AUDIT_LOG_ENTRY_CREATE = object({
 	changes: optional(nullable(array(object({ key: string(), new_value: any(), old_value: any() })))),
 	guild_id: string(),
 	id: string(),
-	target_id: string(),
+	target_id: nullable(string()),
 	user_id: string(),
 });

@@ -36,17 +36,17 @@ function UserName(props: { guildId?: string; id: string }): JSX.Element {
 		const highest = RoleStore.getHighestColoredForMember(props.guildId!, props.id);
 		if (highest) {
 			const role = RoleStore.getRole(highest);
-			if (role?.color) return "#" + role.color.toString(16);
+			if (typeof role?.color === "number") return "#" + role.color.toString(16).padStart(6, "0");
 		}
 		return "#fff";
 	});
 
 	return (
-		<span style={{ color: color() }}>
+		<div style={{ color: color() }}>
 			<Show when={member() && member()?.nick} fallback={user()?.display_name || user()?.username}>
 				{member()?.nick}
 			</Show>
-		</span>
+		</div>
 	);
 }
 

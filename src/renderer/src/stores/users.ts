@@ -55,12 +55,15 @@ export default new (class UserStore extends Store {
 					);
 				});
 			},
+			MESSAGE_CREATE: ({ author }) => {
+				if (!users[author.id]) setUsers(author.id, intoStored(author));
+			},
 			MESSAGES_FETCH_SUCCESS: ({ messages }) => {
 				if (!messages?.length) return;
 				setUsers(
 					produce((s) => {
 						for (const message of messages) {
-							if (message.author) s[message.author.id] ??= intoStored(message.author);
+							s[message.author.id] ??= intoStored(message.author);
 							if (message.referenced_message?.author)
 								s[message.referenced_message.author.id] ??= intoStored(message.referenced_message.author);
 						}

@@ -1,4 +1,4 @@
-import { array, boolean, merge, nullable, number, object, omit, optional, partial, special, string } from "valibot";
+import { array, boolean, merge, nullable, number, object, omit, optional, partial, special, string, tuple } from "valibot";
 
 import { MessageType } from "@constants/message";
 
@@ -89,6 +89,18 @@ export const MESSAGE_ACK = object({
 	mention_count: optional(number()),
 	message_id: string(),
 	version: number(),
+});
+
+export const MESSAGE_REACTION_ADD_MANY = object({
+	channel_id: string(),
+	guild_id: optional(string()),
+	message_id: string(),
+	reactions: array(
+		object({
+			emoji: object({ animated: optional(boolean()), id: nullable(string()), name: string() }),
+			users: array(string()),
+		}),
+	),
 });
 
 export const MESSAGE_REACTION_ADD = object({

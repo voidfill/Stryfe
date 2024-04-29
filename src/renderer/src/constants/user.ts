@@ -41,4 +41,5 @@ export enum ActivityTypes {
 	WATCHING,
 	CUSTOM,
 	COMPETING,
+	HANG_STATUS,
 }
