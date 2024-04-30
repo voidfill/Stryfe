@@ -1,9 +1,7 @@
-import { Navigate, useNavigate, useParams } from "@solidjs/router";
-import { createEffect, createMemo, createSelector, JSX, Show, untrack } from "solid-js";
+import { useNavigate, useParams } from "@solidjs/router";
+import { createEffect, createMemo, createSelector, JSX, Show } from "solid-js";
 
 import { ChannelTypes } from "@constants/channel";
-
-import Storage from "@modules/storage";
 
 import ChannelStore from "@stores/channels";
 import ConnectionStore from "@stores/connection";
@@ -14,7 +12,6 @@ import GuildsList from "@components/guilds";
 import Chat from "../chat";
 import { CurrentPermissionProvider } from "../common/permissionscontext";
 import { SelectedChannelContext, SelectedGuildContext } from "../common/selectioncontext";
-import MemberList from "../memberlist";
 import SideBar from "../sidebar";
 import FriendsView from "./friendsview";
 import HeaderBar from "./headerbar";
@@ -26,10 +23,6 @@ import shiggy from "@resources/shiggy.gif";
 import { lastSelectedChannels, setLastSelectedChannels, setWindowTitle, showMembers, showUserProfile } from "@renderer/signals";
 
 export default function MainView(): JSX.Element {
-	// we do not want to run all the setup if its just gonna navigate away.
-	// eslint-disable-next-line solid/components-return-once
-	if (!Storage.has("token")) return <Navigate href="/login" />;
-
 	const params = useParams(),
 		navigate = useNavigate(),
 		selectedChannel = createSelector(() => params.channelId),
@@ -39,24 +32,22 @@ export default function MainView(): JSX.Element {
 		);
 
 	createEffect(() => {
-		if (!params.channelId && lastSelectedChannels[params.guildId])
-			navigate(`/channels/${params.guildId}/${lastSelectedChannels[params.guildId]}`);
+		if (params.guildId === "@me") {
+			if (!currChannel() && params.channelId && lastSelectedChannels["@me"]) return navigate("/channels/@me/" + lastSelectedChannels["@me"]);
+			setLastSelectedChannels("@me", params.channelId);
+			return;
+		}
 
 		if (!currChannel()) {
 			const sortedChannels = ChannelStore.getSortedGuildChannels(params.guildId);
 			const channelId = sortedChannels?.uncategorized.other[0] || sortedChannels?.categorized[0]?.other[0];
 			if (channelId) navigate(`/channels/${params.guildId}/${channelId}`);
-		} else {
-			setLastSelectedChannels(params.guildId, params.channelId);
-			if (params.guildId !== "@me") {
-				const subscription = window.gateway.getGuildSubscription(params.guildId);
-				if (!subscription) window.gateway.updateGuildSubscription(params.guildId, { activities: true, threads: true, typing: true });
-			}
+			return;
 		}
 
-		untrack(() => {
-			Storage.set("lastSelectedChannels", lastSelectedChannels);
-		});
+		setLastSelectedChannels(params.guildId, params.channelId);
+		const subscription = window.gateway.getGuildSubscription(params.guildId);
+		if (!subscription) window.gateway.updateGuildSubscription(params.guildId, { activities: true, threads: true, typing: true });
 	});
 
 	createEffect(() => {

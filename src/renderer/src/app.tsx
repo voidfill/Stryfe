@@ -1,8 +1,6 @@
 import { HashRouter, Navigate, Route, useNavigate, useParams } from "@solidjs/router";
 import { createSignal, JSX, lazy, Show } from "solid-js";
 
-import Storage from "@modules/storage";
-
 import MainView from "@components/mainview";
 const Login = lazy(() => import("@components/login"));
 
@@ -10,6 +8,7 @@ import { FaSolidWindowMaximize, FaSolidWindowMinimize, FaSolidXmark } from "soli
 
 import { FocusAnimationDirective } from "./components/common/animationcontext";
 import Layers from "./modules/layers";
+import { getToken } from "./modules/token";
 import { setWindowTitle } from "./signals";
 
 import "./app.scss";
@@ -36,6 +35,13 @@ function NotFoundPage(): JSX.Element {
 }
 
 export default function App(): JSX.Element {
+	const [t, st] = createSignal<string | null>(null);
+	const [f, sf] = createSignal<boolean>(false);
+	getToken().then((s) => {
+		st(s);
+		sf(true);
+	});
+
 	return (
 		<div class={`app platform-${window.os_type.toLowerCase()}`} use:FocusAnimationDirective>
 			<Show when={window.os_type.toLowerCase() === "windows"}>
@@ -65,20 +71,22 @@ export default function App(): JSX.Element {
 			>
 				<Layers />
 				<div class="base">
-					<HashRouter>
-						<Route path="/" component={(): JSX.Element => <Navigate href={Storage.has("token") ? "/channels/@me" : "/login"} />} />
-						<Route path="/login" component={Login} />
-						<Route
-							path="/channels/:guildId/:channelId?/:messageId?"
-							component={MainView}
-							matchFilters={{
-								channelId: (id) => /^\d+$/.test(id),
-								guildId: (id) => id === "@me" || /^\d+$/.test(id),
-								messageId: (id) => /^\d+$/.test(id),
-							}}
-						/>
-						<Route path={"/*path"} component={NotFoundPage} />
-					</HashRouter>
+					<Show when={f()}>
+						<HashRouter>
+							<Route path="/" component={(): JSX.Element => <Navigate href={t()?.length ? "/channels/@me" : "/login"} />} />
+							<Route path="/login" component={Login} />
+							<Route
+								path="/channels/:guildId/:channelId?/:messageId?"
+								component={MainView}
+								matchFilters={{
+									channelId: (id) => /^\d+$/.test(id),
+									guildId: (id) => id === "@me" || /^\d+$/.test(id),
+									messageId: (id) => /^\d+$/.test(id),
+								}}
+							/>
+							<Route path={"/*path"} component={NotFoundPage} />
+						</HashRouter>
+					</Show>
 				</div>
 			</Show>
 		</div>

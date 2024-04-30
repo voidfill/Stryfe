@@ -33,3 +33,9 @@ export const CALL_CREATE = object({
 export const CALL_DELETE = object({
 	channel_id: string(),
 });
+
+export const VOICE_CHANNEL_STATUS_UPDATE = object({
+	guild_id: string(),
+	id: string(),
+	status: nullable(string()),
+});

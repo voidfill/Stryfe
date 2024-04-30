@@ -1,4 +1,4 @@
-import { array, boolean, merge, nullable, number, object, omit, optional, partial, special, string, tuple } from "valibot";
+import { array, boolean, merge, nullable, number, object, omit, optional, partial, special, string } from "valibot";
 
 import { MessageType } from "@constants/message";
 
@@ -78,17 +78,6 @@ export const MESSAGE_DELETE_BULK = object({
 	channel_id: string(),
 	guild_id: optional(string()),
 	ids: array(string()),
-});
-
-export const MESSAGE_ACK = object({
-	ack_type: optional(number()),
-	channel_id: string(),
-	flags: nullable(number()),
-	last_viewed: nullable(number()),
-	manual: optional(boolean()),
-	mention_count: optional(number()),
-	message_id: string(),
-	version: number(),
 });
 
 export const MESSAGE_REACTION_ADD_MANY = object({

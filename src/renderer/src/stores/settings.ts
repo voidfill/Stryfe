@@ -121,6 +121,7 @@ export default new (class SettingsStore extends Store {
 	constructor() {
 		super({
 			READY: ({ user_settings_proto, user_guild_settings }) => {
+				// TODO: set status from settings
 				batch(() => {
 					setPreloadedSettings(PreloadedUserSettings.fromBinary(base64ToUint8Array(user_settings_proto)));
 

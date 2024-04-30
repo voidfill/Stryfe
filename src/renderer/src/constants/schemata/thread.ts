@@ -2,7 +2,9 @@ import { array, boolean, merge, nullable, number, object, optional, string } fro
 
 import { ChannelTypes } from "../channel";
 import { equalArray } from "./common";
+import member from "./guild/member";
 import { genericMessage } from "./message";
+import { PRESENCE_UPDATE } from "./presence";
 import { mute_config } from "./settings";
 
 export const thread = object({
@@ -66,4 +68,24 @@ export const THREAD_LIST_SYNC = object({
 	guild_id: string(),
 	most_recent_messages: nullable(array(merge([genericMessage, object({ referenced_message: optional(nullable(genericMessage)) })]))),
 	threads: nullable(array(thread)),
+});
+
+export const THREAD_MEMBERS_UPDATE = object({
+	added_members: optional(
+		array(
+			object({
+				flags: number(),
+				id: string(),
+				join_timestamp: string(),
+				member: member,
+				presence: nullable(PRESENCE_UPDATE),
+				user_id: string(),
+			}),
+		),
+	),
+	guild_id: string(),
+	id: string(),
+	member_count: number(),
+	member_ids_preview: optional(array(string())),
+	removed_member_ids: optional(array(string())),
 });

@@ -1,10 +1,10 @@
-import { batch, createEffect, createSignal, untrack } from "solid-js";
+import { batch, untrack } from "solid-js";
 import { createStore, produce } from "solid-js/store";
-import { Output } from "valibot";
+import { boolean, fallback, Output } from "valibot";
 
 import { genericMessage as _genericMessage } from "@constants/schemata/message";
 
-import Storage from "@modules/storage";
+import Persistent from "@stores/persistent";
 
 import Store from ".";
 
@@ -171,10 +171,7 @@ function removeEntry(channelId: string, messageId: string): void {
 }
 
 // Should probably prompt to reload when disabling this
-export const [messageLoggerEnabled, setMessageLoggerEnabled] = createSignal(Storage.get("messageLoggerEnabled", false));
-createEffect(() => {
-	Storage.set("messageLoggerEnabled", messageLoggerEnabled());
-});
+export const [messageLoggerEnabled, setMessageLoggerEnabled] = Persistent.registerSignal("messageLoggerEnabled", fallback(boolean(), false));
 
 type message = DistributiveOmit<Output<typeof _genericMessage>, "id" | "channel_id" | "author" | "member" | "mentions" | "message_reference"> & {
 	author_id: string;

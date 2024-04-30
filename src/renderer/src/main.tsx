@@ -2,7 +2,6 @@ import { render } from "solid-js/web";
 
 import WebSocket from "@modules/gateway";
 import logger from "@modules/logger";
-import Storage from "@modules/storage";
 import { getToken } from "@modules/token";
 
 import { cfChallenge, getSuper } from "./modules/discordversion";
@@ -24,9 +23,10 @@ declare global {
 }
 
 (async (): Promise<void> => {
-	if (!(await window.ipc.isEncryptionAvailable()) || !Storage.has("token")) return;
+	if (!(await window.ipc.isEncryptionAvailable())) return;
 	try {
 		const [token, superProps] = await Promise.all([getToken(), getSuper()]);
+		if (!token || !superProps) return;
 		await cfChallenge();
 		API.init(
 			token!,

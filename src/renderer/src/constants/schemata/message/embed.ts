@@ -1,7 +1,5 @@
 import { array, boolean, number, object, optional, string } from "valibot";
 
-import { equalArray } from "../common";
-
 export const footer = object({
 	icon_url: optional(string()),
 	proxy_icon_url: optional(string()),

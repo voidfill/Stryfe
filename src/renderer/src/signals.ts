@@ -1,17 +1,22 @@
 import { createSignal } from "solid-js";
-import { createStore } from "solid-js/store";
+import { boolean, fallback, optional, record, string } from "valibot";
 
-import Storage from "@modules/storage";
+import Persistent from "@stores/persistent";
 
 export const [windowTitle, setWindowTitle] = createSignal("Stryfe");
 
-export const [lastSelectedChannels, setLastSelectedChannels] = createStore<{
-	[key: string]: string | undefined;
-}>({ ...Storage.get("lastSelectedChannels", {}), "@me": undefined });
+export const [lastSelectedChannels, setLastSelectedChannels] = Persistent.registerStore(
+	"lastSelectedChannels",
+	fallback(record(optional(string())), {}),
+	(v) => {
+		v["@me"] = undefined;
+		return v;
+	},
+);
 
-export const [showMembers, setShowMembers] = createSignal(Storage.get("showMembers", true));
-export const [showUserProfile, setShowUserProfile] = createSignal(Storage.get("showUserProfile", true));
-export const [showHelp, setShowHelp] = createSignal(Storage.get("showHelp", true));
+export const [showMembers, setShowMembers] = Persistent.registerSignal("showMembers", fallback(boolean(), true));
+export const [showUserProfile, setShowUserProfile] = Persistent.registerSignal("showUserProfile", fallback(boolean(), true));
+export const [showHelp, setShowHelp] = Persistent.registerSignal("showHelp", fallback(boolean(), true));
 
 export enum FriendsTabs {
 	ONLINE,

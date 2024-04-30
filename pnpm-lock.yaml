@@ -94,6 +94,9 @@ devDependencies:
   eslint-plugin-typescript-sort-keys:
     specifier: ^2.3.0
     version: 2.3.0(@typescript-eslint/parser@5.62.0)(eslint@8.57.0)(typescript@5.4.2)
+  idb-keyval:
+    specifier: ^6.2.1
+    version: 6.2.1
   nan:
     specifier: ^2.19.0
     version: 2.19.0
@@ -3242,6 +3245,10 @@ packages:
     engines: {node: '>=0.10.0'}
     dependencies:
       safer-buffer: 2.1.2
+    dev: true
+
+  /idb-keyval@6.2.1:
+    resolution: {integrity: sha512-8Sb3veuYCyrZL+VBt9LJfZjLUPWVvqn8tG28VqYNFCo43KHcKuq+b4EiXGeuaLAQWL2YmyDgMp2aSpH9JHsEQg==}
     dev: true
 
   /ieee754@1.2.1:

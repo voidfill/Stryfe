@@ -1,7 +1,7 @@
 import { any, array, boolean, merge, nullable, number, object, optional, record, string, union, unknown } from "valibot";
 
 import { guild_channel } from "../channels";
-import { equal, equalArray } from "../common";
+import { equal, equalArray, user } from "../common";
 import { mute_config } from "../settings";
 import { thread } from "../thread";
 import emoji from "./emoji";
@@ -133,4 +133,19 @@ export const GUILD_AUDIT_LOG_ENTRY_CREATE = object({
 	id: string(),
 	target_id: nullable(string()),
 	user_id: string(),
+});
+
+export const GUILD_SCHEDULED_EVENT_USER_ADD = object({
+	guild_id: string(),
+	guild_scheduled_event_exception_id: optional(string()),
+	guild_scheduled_event_id: string(),
+	response: number(),
+	user_id: string(),
+});
+
+export const GUILD_SCHEDULED_EVENT_USER_REMOVE = GUILD_SCHEDULED_EVENT_USER_ADD;
+
+export const GUILD_BAN_ADD = object({
+	guild_id: string(),
+	user: user,
 });

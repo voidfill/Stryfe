@@ -1,4 +1,4 @@
-import { number, object, string, union } from "valibot";
+import { boolean, nullable, number, object, optional, string, union } from "valibot";
 
 import { equal, equalArray } from "./common";
 
@@ -12,10 +12,11 @@ export const enum ReadStateType {
 
 export const read_state_entry = union([
 	object({
-		flags: equalArray([0, 1] as const),
+		flags: number(),
 		id: string(),
 		last_message_id: union([equal(0), string()]),
 		last_pin_timestamp: string(),
+		last_viewed: optional(number()),
 		mention_count: number(),
 	}),
 	object({
@@ -47,4 +48,21 @@ export const USER_NON_CHANNEL_ACK = object({
 
 export const RECENT_MENTION_DELETE = object({
 	message_id: string(),
+});
+
+export const CHANNEL_PINS_ACK = object({
+	channel_id: string(),
+	timestamp: string(),
+	version: number(),
+});
+
+export const MESSAGE_ACK = object({
+	ack_type: optional(number()),
+	channel_id: string(),
+	flags: nullable(number()),
+	last_viewed: nullable(number()),
+	manual: optional(boolean()),
+	mention_count: optional(number()),
+	message_id: string(),
+	version: number(),
 });

@@ -1,5 +1,6 @@
 import Logger from "@modules/logger";
-import Storage from "@modules/storage";
+
+import { del, get, set } from "idb-keyval";
 
 const tokenRegex = /\S+\.\S+\.\S+/;
 let token: string | null = null;
@@ -15,10 +16,11 @@ export function isValidToken(token: string): boolean {
 
 export async function getToken(): Promise<string | null> {
 	if (token) return token;
-	if (!Storage.has("token")) return null;
+	const t = await get("token");
+	if (!t || typeof t !== "string") return null;
 	await ensureEncryption();
 
-	token = await window.ipc.decrypt(Storage.get("token", ""));
+	token = await window.ipc.decrypt(t);
 	if (!isValidToken(token)) {
 		Logger.error("Invalid token stored in storage, clearing.");
 		clearToken();
@@ -31,7 +33,7 @@ export async function getToken(): Promise<string | null> {
 export async function setToken(newToken: string): Promise<void> {
 	token = newToken;
 	await ensureEncryption();
-	Storage.set("token", await window.ipc.encrypt(newToken));
+	await set("token", await window.ipc.encrypt(newToken));
 	window.location = "" as string & Location;
 }
 
@@ -42,6 +44,7 @@ export async function getUserIdFromToken(): Promise<string | null> {
 }
 
 export function clearToken(): void {
-	Storage.delete("token");
-	window.location = "" as string & Location;
+	del("token").then(() => {
+		window.location = "" as string & Location;
+	});
 }

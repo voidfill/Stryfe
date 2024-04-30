@@ -1,10 +1,9 @@
-import { createEffect, createMemo, createSignal, For, JSX, Match, Show, Switch } from "solid-js";
-import { Output } from "valibot";
+import { createMemo, For, JSX, Match, Show, Switch } from "solid-js";
+import { boolean, fallback, Output } from "valibot";
 
 import { MessageType } from "@constants/message";
 import _attachment from "@constants/schemata/message/attachment";
 
-import Storage from "@modules/storage";
 import { extractTimeStamp } from "@modules/unix";
 
 import MemberStore from "@stores/members";
@@ -18,15 +17,14 @@ import Avatar, { ShowStatus } from "@components/common/avatar";
 
 import "./message.scss";
 
+import Persistent from "@renderer/stores/persistent";
+
 HoverAnimationDirective;
 
 type attachment = Output<typeof _attachment>;
 
 const isCompact = createMemo(() => SettingsStore.preloadedSettings.textAndImages?.messageDisplayCompact?.value ?? false);
-export const [showAvatarsInCompact, setShowAvatarsInCompact] = createSignal(Storage.get("showAvatarsInCompact", false));
-createEffect(() => {
-	Storage.set("showAvatarsInCompact", showAvatarsInCompact());
-});
+export const [showAvatarsInCompact, setShowAvatarsInCompact] = Persistent.registerSignal("showAvatarsInCompact", fallback(boolean(), true));
 
 function UserName(props: { guildId?: string; id: string }): JSX.Element {
 	const member = createMemo(() => (props.guildId ? MemberStore.getMember(props.guildId, props.id) : undefined));

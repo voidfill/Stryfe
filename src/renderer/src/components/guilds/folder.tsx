@@ -1,19 +1,16 @@
-import { createEffect, createMemo, For, JSX, Show } from "solid-js";
-import { createStore } from "solid-js/store";
+import { createMemo, For, JSX, Show } from "solid-js";
+import { boolean, fallback, record, string } from "valibot";
 
 import GuildStore from "@stores/guilds";
+import Persistent from "@stores/persistent";
 
 import { AiOutlineFolder } from "solid-icons/ai";
 
 import Guild from "./guild";
 
-import Storage from "@renderer/modules/storage";
 import { PreloadedUserSettings_GuildFolder } from "discord-protos";
 
-const [collapsed, setCollapsed] = createStore(Storage.get<{ [key: string]: boolean }>("guildFoldersCollapsed", {}));
-createEffect(() => {
-	Storage.set("guildFoldersCollapsed", collapsed);
-});
+const [collapsed, setCollapsed] = Persistent.registerStore("collapsedFolders", fallback(record(string(), boolean()), {}));
 
 function MiniIcon(props: { id: string }): JSX.Element {
 	const url = createMemo(() => GuildStore.getIconUrl(props.id, 32, false));

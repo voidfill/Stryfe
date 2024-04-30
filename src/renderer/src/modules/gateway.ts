@@ -1,7 +1,8 @@
-import { safeParse } from "valibot";
+import { Output, safeParse } from "valibot";
 
 import { GatewayPayload, OPCodes, recoverableCloseCodes, SocketGatewayCloseCodes } from "@constants/gateway";
 import { dispatches as __allDispatches } from "@constants/schemata";
+import { activity as _activity } from "@constants/schemata/presence";
 
 import { clientProperties } from "./discordversion";
 import Dispatcher from "./dispatcher";
@@ -9,6 +10,8 @@ import { Logger } from "./logger";
 import packworker from "./packworker?worker&inline";
 import { clearToken } from "./token";
 import unpackworker from "./unpackworker?worker&inline";
+
+type activity = Output<typeof _activity>;
 
 declare global {
 	interface customDispatches {
@@ -349,5 +352,33 @@ export default class GatewaySocket {
 				});
 			}
 		}, 10);
+	}
+
+	#sentPresencesAt: number[] = [];
+	#scheduledPresenceUpdate?: Parameters<(typeof this)["updatePresence"]>[0];
+	updatePresence(presence: { activities: activity[]; afk: boolean; since: number; status: "online" | "idle" | "dnd" | "invisible" }): void {
+		// TODO: what the fuck did i write here, this does even work?
+		const trySendScheduled = (): void => {
+			if (!this.#scheduledPresenceUpdate) return;
+			if (this.#sentPresencesAt.length >= 5)
+				throw new Error("Tried to send too many presence updates in a short time, something went wrong with ratelimiting.");
+			this.#sentPresencesAt.push(Date.now());
+			this.updatePresence(this.#scheduledPresenceUpdate);
+			this.#scheduledPresenceUpdate = undefined;
+			setTimeout(() => {
+				this.#sentPresencesAt.shift();
+				trySendScheduled();
+			}, 21_000);
+		};
+
+		if (this.#sentPresencesAt.length < 5) {
+			this.#sentPresencesAt.push(Date.now());
+			setTimeout(() => {
+				this.#sentPresencesAt.shift();
+				trySendScheduled();
+			}, 21_000);
+			return;
+		}
+		this.#scheduledPresenceUpdate = presence;
 	}
 }
