@@ -1,6 +1,8 @@
 import { Accessor, createEffect, createSignal, JSX, onCleanup, Show, untrack } from "solid-js";
 
 import "tippy.js/dist/svg-arrow.css";
+import "tippy.js/animations/scale.css";
+import "tippy.js/animations/scale-subtle.css";
 import "./tooltip.scss";
 
 import makeTippy, { hideAll, Props, roundArrow } from "tippy.js";
@@ -25,6 +27,7 @@ makeTippy.setDefaultProps({
 	arrow: roundArrow,
 	delay: 0,
 	duration: 0,
+	maxWidth: "",
 	theme: "standard",
 	trigger: "mouseenter",
 });

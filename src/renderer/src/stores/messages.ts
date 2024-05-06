@@ -37,7 +37,7 @@ function addMessages(channelId: string, messageIds: string[], messageFetchType: 
 			if (!perChannel[channelId]) setPerChannel(channelId, []);
 
 			let insertIndex = 1;
-			while (perChannel[channelId][insertIndex] && BigInt(perChannel[channelId][insertIndex][0]) > BigInt(messageIds[0])) {
+			while (perChannel[channelId][insertIndex]?.length && BigInt(perChannel[channelId][insertIndex][0]) > BigInt(messageIds[0])) {
 				insertIndex++;
 			}
 

@@ -15,10 +15,11 @@ import UserStore from "@stores/users";
 import { HoverAnimationDirective } from "@components/common/animationcontext";
 import Avatar, { ShowStatus } from "@components/common/avatar";
 
+import { parse } from "./md";
+
 import "./message.scss";
 
 import Persistent from "@renderer/stores/persistent";
-
 HoverAnimationDirective;
 
 type attachment = Output<typeof _attachment>;
@@ -40,16 +41,25 @@ function UserName(props: { guildId?: string; id: string }): JSX.Element {
 	});
 
 	return (
-		<div style={{ color: color() }}>
+		<span class="username" style={{ color: color() }}>
 			<Show when={member() && member()?.nick} fallback={user()?.display_name || user()?.username}>
 				{member()?.nick}
 			</Show>
-		</div>
+		</span>
 	);
 }
 
 function Content(props: { content: string }): JSX.Element {
-	return <span class="message-content">{props.content}</span>;
+	return (
+		<span
+			class="message-content"
+			style={{
+				"white-space": "pre-wrap",
+			}}
+		>
+			{parse(props.content, { allowHeading: true })}
+		</span>
+	);
 }
 
 function Reply(props: { guildId?: string; id: string }): JSX.Element {

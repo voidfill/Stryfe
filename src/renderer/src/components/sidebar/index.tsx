@@ -35,7 +35,7 @@ function UserArea(): JSX.Element {
 								<Show when={hasCustomStatus()} fallback={<span class="user-name">{self()?.username}</span>}>
 									<div class="text-roll">
 										<div class="default status">
-											<CustomStatus userId={id} />
+											<CustomStatus userId={id} noToolTip />
 										</div>
 										<span class="hover user-name">{self()?.username}</span>
 									</div>

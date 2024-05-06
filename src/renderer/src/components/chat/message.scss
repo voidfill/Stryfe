@@ -6,6 +6,22 @@
 	display: flex;
 	flex-direction: column;
 
+	&.message-compact {
+		.username {
+			padding: 0 5px;
+		}
+	}
+
+	&.message-cozy {
+		.username {
+			padding-right: 5px;
+		}
+
+		.message-main {
+			padding-left: 4px;
+		}
+	}
+
 	.message-attachments {
 		display: flex;
 		flex-direction: column;
@@ -24,5 +40,6 @@
 			flex-grow: 0;
 			flex-shrink: 0;
 		}
+
 	}
 }

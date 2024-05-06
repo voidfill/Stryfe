@@ -30,7 +30,7 @@ function Emoji(props: { emoji: { animated?: boolean; id?: string; name: string }
 	);
 }
 
-export default function CustomStatus(props: { inline?: boolean; userId: string }): JSX.Element {
+export default function CustomStatus(props: { inline?: boolean; noToolTip?: boolean; userId: string }): JSX.Element {
 	let textRef: HTMLSpanElement | undefined, observer: ResizeObserver | undefined;
 	const status = createMemo(() => ActivityStore.getCustomStatus(props.userId));
 	const isPlaying = createMemo(() => ActivityStore.getActivities(props.userId)?.some((a) => a.type !== ActivityTypes.CUSTOM));
@@ -48,11 +48,21 @@ export default function CustomStatus(props: { inline?: boolean; userId: string }
 				onCleanup(() => observer?.disconnect());
 
 				return (
-					<div class="custom-status">
+					<div
+						class="custom-status"
+						use:tippy={{
+							content: () => status.text,
+							disabled: props.noToolTip || !isOverflowing(),
+							props: {
+								animation: "scale-subtle",
+								delay: [300, null],
+							},
+						}}
+					>
 						<Show when={status.emoji} keyed>
 							{(emoji): JSX.Element => <Emoji emoji={emoji} size={14} tooltip={!props.inline} />}
 						</Show>
-						<span ref={textRef} use:tippy={{ content: () => status.text, disabled: !isOverflowing() }} class="custom-status-text">
+						<span class="custom-status-text" ref={textRef}>
 							{status.text}
 						</span>
 						<Show when={isPlaying()}>
