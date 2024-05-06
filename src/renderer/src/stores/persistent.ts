@@ -33,7 +33,7 @@ export default new (class PersistentStorage {
 		transform?: (v: Output<T>) => Output<T>,
 	): [Store<Output<T>>, SetStoreFunction<Output<T>>] {
 		if (this.isInitialized) throw new Error("Cannot register store after initialization, please do it top-level");
-		const [store, s] = createStore(verifier.getFallback());
+		const [store, s] = createStore(verifier.fallback);
 		this.stored[key] = { schema: verifier, setter: s, transform };
 
 		const updater = (...args: any[]): void => {
@@ -51,7 +51,7 @@ export default new (class PersistentStorage {
 		transform?: (v: Output<T>) => Output<T>,
 	): [Accessor<Output<T>>, Setter<Output<T>>] {
 		if (this.isInitialized) throw new Error("Cannot register signal after initialization, please do it top-level");
-		const [g, s] = createSignal(verifier.getFallback());
+		const [g, s] = createSignal(verifier.fallback);
 		this.stored[key] = { schema: verifier, setter: s, transform };
 
 		createEffect(() => {
