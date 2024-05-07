@@ -3,6 +3,7 @@
 import { Dynamic } from "solid-js/web";
 
 import attachmentlink from "./attachmentlink";
+import blockquote from "./blockquote";
 import { channelmention, channelormessage } from "./channelormessage";
 import customemoji from "./customemoji";
 import { Parser, Rule, ruleTypeGuard as r } from "./lib";
@@ -14,31 +15,7 @@ import "./style.scss";
 
 const rules: Record<string, Rule<any>> = {
 	attachmentlink,
-	blockquote: r({
-		doesMatch: (source, state) => {
-			if (state.inQuote) return null;
-			if (state.prevCapture && !/^$|\n *$/.exec(state.prevCapture)) return null;
-			const match = /^( *>>> +([\s\S]*))|^( *>(?!>>) +[^\n]*(\n *>(?!>>) +[^\n]*)*\n?)/.exec(source);
-			if (!match) return null;
-			return {
-				capture: match[0],
-				data: match[0],
-			};
-		},
-		element: (data, parse, state) => {
-			state.inQuote = true;
-			state.allowHeading = false;
-
-			const tripleR = /^ *>>> ?/;
-			const isTripleR = tripleR.test(data);
-			data = data.replace(isTripleR ? tripleR : /^ *> ?/gm, "");
-			if (isTripleR) state.inline = true;
-
-			return <blockquote>{parse(data)}</blockquote>;
-		},
-		order: 6,
-		requiredFirstCharacters: ">",
-	}),
+	blockquote,
 	br: r({
 		doesMatch: (source) => {
 			const match = /^ {2,}\n/.exec(source);
@@ -154,7 +131,8 @@ const rules: Record<string, Rule<any>> = {
 		requiredFirstCharacters: "*",
 	}),
 	newline: r({
-		doesMatch: (source) => {
+		doesMatch: (source, state) => {
+			if (state.inline) return null;
 			const match = /^(?:\n *)*\n/.exec(source);
 			if (!match) return null;
 			return {
@@ -162,7 +140,7 @@ const rules: Record<string, Rule<any>> = {
 				data: null,
 			};
 		},
-		element: () => "\n",
+		element: () => <span>{"\n"}</span>,
 		order: 10,
 		requiredFirstCharacters: "\n",
 	}),
@@ -215,7 +193,7 @@ const rules: Record<string, Rule<any>> = {
 			if (!match) return null;
 			return {
 				capture: match[0],
-				data: match,
+				data: match[0],
 			};
 		},
 		element: (data) => <span>{data}</span>,

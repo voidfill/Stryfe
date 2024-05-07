@@ -21,7 +21,8 @@
 				padding: 4px;
 				border-radius: 4px;
 
-				&.selected, &:hover {
+				&.selected,
+				&:hover {
 					background-color: var(--background-primary);
 				}
 			}

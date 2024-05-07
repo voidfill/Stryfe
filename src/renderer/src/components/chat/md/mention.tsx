@@ -1,3 +1,6 @@
+import { useLocationContext } from "@components/common/locationcontext";
+import UserName from "@components/common/username";
+
 import { ruleTypeGuard } from "./lib";
 import { MentionBox } from "./util";
 
@@ -10,9 +13,13 @@ export const usermention = ruleTypeGuard({
 			data: match[1],
 		};
 	},
-	element: (data) => {
-		// TODO: make guild id context for message renderer or whatever
-		return <MentionBox>@{data}</MentionBox>;
+	element: (userId) => {
+		const location = useLocationContext();
+		return (
+			<MentionBox>
+				@<UserName guildId={location().guildId} id={userId} />
+			</MentionBox>
+		);
 	},
 	order: 25,
 	requiredFirstCharacters: "<@",

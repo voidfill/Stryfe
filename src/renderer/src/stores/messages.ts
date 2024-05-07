@@ -324,10 +324,10 @@ export default new (class MessageStore extends Store {
 					const messageFetchType = after
 						? MessageFetchType.AFTER
 						: before
-						? MessageFetchType.BEFORE
-						: around
-						? MessageFetchType.AROUND
-						: MessageFetchType.INITIAL;
+							? MessageFetchType.BEFORE
+							: around
+								? MessageFetchType.AROUND
+								: MessageFetchType.INITIAL;
 					addMessages(channelId, messageIds, messageFetchType, after ?? before ?? around);
 				});
 			},

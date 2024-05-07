@@ -10,7 +10,7 @@ import { FiUsers } from "solid-icons/fi";
 import { HoverAnimationDirective } from "../common/animationcontext";
 import Avatar, { ShowStatus } from "../common/avatar";
 import CustomStatus from "../common/customstatus";
-import { useSelectedChannelContext } from "../common/selectioncontext";
+import { useLocationContext } from "../common/locationcontext";
 
 HoverAnimationDirective;
 
@@ -18,11 +18,11 @@ function PrivateChannel(props: { id: string }): JSX.Element {
 	let ref: HTMLAnchorElement;
 	const channel = createMemo(() => ChannelStore.getDirectMessage(props.id));
 	const channelName = createMemo(() => ChannelStore.getPrivateChannelName(props.id));
-	const selc = useSelectedChannelContext();
+	const location = useLocationContext();
 	const [searchParams, setSearchParams] = useSearchParams();
 
 	createEffect(() => {
-		if (selc(props.id) && searchParams.jump) {
+		if (location().selectedChannel(props.id) && searchParams.jump) {
 			setSearchParams({ jump: undefined });
 			ref?.scrollIntoView({ behavior: "instant", block: "nearest" });
 		}
@@ -36,7 +36,7 @@ function PrivateChannel(props: { id: string }): JSX.Element {
 					channel: true,
 					[`channel-type-${channel().type}`]: true,
 					[`channel-${props.id}`]: true,
-					selected: selc(props.id),
+					selected: location().selectedChannel(props.id),
 				}}
 				use:HoverAnimationDirective
 			>

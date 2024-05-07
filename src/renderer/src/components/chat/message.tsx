@@ -6,15 +6,14 @@ import _attachment from "@constants/schemata/message/attachment";
 
 import { extractTimeStamp } from "@modules/unix";
 
-import MemberStore from "@stores/members";
 import MessageStore from "@stores/messages";
-import RoleStore from "@stores/roles";
 import SettingsStore from "@stores/settings";
-import UserStore from "@stores/users";
 
 import { HoverAnimationDirective } from "@components/common/animationcontext";
 import Avatar, { ShowStatus } from "@components/common/avatar";
 
+import { useLocationContext } from "../common/locationcontext";
+import UserName from "../common/username";
 import { parse } from "./md";
 
 import "./message.scss";
@@ -27,28 +26,6 @@ type attachment = Output<typeof _attachment>;
 const isCompact = createMemo(() => SettingsStore.preloadedSettings.textAndImages?.messageDisplayCompact?.value ?? false);
 export const [showAvatarsInCompact, setShowAvatarsInCompact] = Persistent.registerSignal("showAvatarsInCompact", fallback(boolean(), true));
 
-function UserName(props: { guildId?: string; id: string }): JSX.Element {
-	const member = createMemo(() => (props.guildId ? MemberStore.getMember(props.guildId, props.id) : undefined));
-	const user = createMemo(() => UserStore.getUser(props.id));
-	const color = createMemo<string>(() => {
-		if (!member()) return "#fff";
-		const highest = RoleStore.getHighestColoredForMember(props.guildId!, props.id);
-		if (highest) {
-			const role = RoleStore.getRole(highest);
-			if (typeof role?.color === "number") return "#" + role.color.toString(16).padStart(6, "0");
-		}
-		return "#fff";
-	});
-
-	return (
-		<span class="username" style={{ color: color() }}>
-			<Show when={member() && member()?.nick} fallback={user()?.display_name || user()?.username}>
-				{member()?.nick}
-			</Show>
-		</span>
-	);
-}
-
 function Content(props: { content: string }): JSX.Element {
 	return (
 		<span
@@ -57,7 +34,7 @@ function Content(props: { content: string }): JSX.Element {
 				"white-space": "pre-wrap",
 			}}
 		>
-			{parse(props.content, { allowHeading: true })}
+			{parse(props.content, { allowHeading: true, inline: true })}
 		</span>
 	);
 }
@@ -78,7 +55,9 @@ function Attachment(props: attachment): JSX.Element {
 	);
 }
 
-export default function Message(props: { guildId?: string; id: string; prevId?: string }): JSX.Element {
+export default function Message(props: { id: string; prevId?: string }): JSX.Element {
+	const location = useLocationContext();
+
 	const msg = createMemo(() => MessageStore.getMessage(props.id));
 	const state = createMemo(() => MessageStore.getMessageState(props.id));
 	const date = createMemo(() => extractTimeStamp(props.id));
@@ -118,7 +97,7 @@ export default function Message(props: { guildId?: string; id: string; prevId?: 
 						<Switch fallback={`This messagetype hasnt been implemented yet. type=${msg.type}`}>
 							<Match when={msg.type === MessageType.DEFAULT || msg.type === MessageType.REPLY}>
 								<Show when={msg.type === MessageType.REPLY}>
-									<Reply guildId={props.guildId} id={msg.message_reference!} />
+									<Reply guildId={location().guildId} id={msg.message_reference!} />
 								</Show>
 								<div class="message-container">
 									<div class="message-aside">
@@ -126,7 +105,7 @@ export default function Message(props: { guildId?: string; id: string; prevId?: 
 											<Avatar
 												size={32}
 												userId={msg.author_id}
-												guildId={props.guildId === "@me" ? undefined : props.guildId}
+												guildId={location().guildId === "@me" ? undefined : location().guildId}
 												showStatus={ShowStatus.NEVER}
 											/>
 										</Show>
@@ -140,17 +119,17 @@ export default function Message(props: { guildId?: string; id: string; prevId?: 
 														<Avatar
 															size={16}
 															userId={msg.author_id}
-															guildId={props.guildId === "@me" ? undefined : props.guildId}
+															guildId={location().guildId === "@me" ? undefined : location().guildId}
 															showStatus={ShowStatus.NEVER}
 														/>
 													</Show>
-													<UserName guildId={props.guildId!} id={msg.author_id} />
+													<UserName guildId={location().guildId} id={msg.author_id} color />
 												</>
 											}
 										>
 											<Show when={isGroupStart()}>
 												<div class="message-header">
-													<UserName guildId={props.guildId!} id={msg.author_id} />
+													<UserName guildId={location().guildId} id={msg.author_id} color />
 													{date().toLocaleTimeString()}
 												</div>
 											</Show>

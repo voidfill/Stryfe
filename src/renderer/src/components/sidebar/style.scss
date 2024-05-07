@@ -1,4 +1,5 @@
-.platform-windows, .platform-macos {
+.platform-windows,
+.platform-macos {
 	.sidebar {
 		border-top-left-radius: 8px;
 	}
@@ -182,8 +183,6 @@
 						text-overflow: ellipsis;
 					}
 				}
-
-
 
 				&:hover {
 					background-color: var(--background-secondary);

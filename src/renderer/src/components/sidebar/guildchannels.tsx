@@ -12,7 +12,6 @@ import SettingsStore, { NotificationLevel, notificationLevelToText } from "@stor
 import UserStore from "@stores/users";
 import VoiceStateStore from "@stores/voicestates";
 
-import { useSelectedChannelContext } from "@components/common/selectioncontext";
 import { FaSolidChevronDown } from "solid-icons/fa";
 import { TbMicrophoneOff } from "solid-icons/tb";
 import { TbHeadphonesOff } from "solid-icons/tb";
@@ -20,6 +19,7 @@ import { TbHeadphonesOff } from "solid-icons/tb";
 import Avatar, { ShowStatus } from "../common/avatar";
 import ChannelIcon from "../common/channelicon";
 import { ContextmenuDirective, Id, menuItem, Optional, Separator } from "../common/contextmenu";
+import { useLocationContext } from "../common/locationcontext";
 import { usePermissionsContext } from "../common/permissionscontext";
 
 ContextmenuDirective;
@@ -34,7 +34,7 @@ function muteContextMenu(id: string, toMuteLabel: string): menuItem {
 				subText: SettingsStore.channelOverrides[id]?.mute_config?.end_time
 					? "Muted Until" + SettingsStore.channelOverrides[id]?.mute_config?.end_time
 					: undefined, // TODO: format time
-		  }
+			}
 		: {
 				action: () => SettingsStore.muteChannel(id),
 				label: `Mute ${toMuteLabel}`,
@@ -65,7 +65,7 @@ function muteContextMenu(id: string, toMuteLabel: string): menuItem {
 					},
 				],
 				type: "submenu",
-		  };
+			};
 }
 
 function notificationContextMenu(id: string, parentId: string | undefined, guildId: string, notificationLevel: () => NotificationLevel): menuItem {
@@ -106,7 +106,7 @@ function notificationContextMenu(id: string, parentId: string | undefined, guild
 
 function TextChannel(props: { id: string; isCollapsed: Accessor<boolean>; parentId?: string }): JSX.Element {
 	const params = useParams();
-	const selc = useSelectedChannelContext();
+	const location = useLocationContext();
 	const channel = createMemo(() => ChannelStore.getGuildTextChannel(props.id));
 	const mutedHide = createMemo(
 		() => (SettingsStore.userGuildSettings[params.guildId]?.hide_muted_channels && SettingsStore.channelOverrides[props.id]?.muted) ?? false,
@@ -129,7 +129,7 @@ function TextChannel(props: { id: string; isCollapsed: Accessor<boolean>; parent
 	});
 
 	return (
-		<Show when={((!(props.isCollapsed() || mutedHide()) && canSee()) || selc(props.id)) && channel()} keyed>
+		<Show when={((!(props.isCollapsed() || mutedHide()) && canSee()) || location().selectedChannel(props.id)) && channel()} keyed>
 			{(channel): JSX.Element => (
 				<A
 					href={`/channels/${params.guildId}/${props.id}`}
@@ -142,7 +142,7 @@ function TextChannel(props: { id: string; isCollapsed: Accessor<boolean>; parent
 							channel: true,
 							[`channel-type-${channel.type}`]: true,
 							[`channel-${props.id}`]: true,
-							selected: selc(props.id),
+							selected: location().selectedChannel(props.id),
 						}}
 						use:ContextmenuDirective={{
 							menu: () => [
@@ -215,7 +215,7 @@ function VoiceCard(props: { sessionId: string }): JSX.Element {
 function VoiceChannel(props: { id: string; isCollapsed: Accessor<boolean> }): JSX.Element {
 	const channel = createMemo(() => ChannelStore.getGuildVoiceChannel(props.id));
 	const params = useParams();
-	const selc = useSelectedChannelContext();
+	const location = useLocationContext();
 	const mutedHide = createMemo(
 		() => (SettingsStore.userGuildSettings[params.guildId]?.hide_muted_channels && SettingsStore.channelOverrides[props.id]?.muted) ?? false,
 	);
@@ -238,7 +238,7 @@ function VoiceChannel(props: { id: string; isCollapsed: Accessor<boolean> }): JS
 	});
 
 	return (
-		<Show when={((!(props.isCollapsed() || mutedHide()) && canSee()) || selc(props.id)) && channel()} keyed>
+		<Show when={((!(props.isCollapsed() || mutedHide()) && canSee()) || location().selectedChannel(props.id)) && channel()} keyed>
 			{(channel): JSX.Element => (
 				<>
 					<A
@@ -252,7 +252,7 @@ function VoiceChannel(props: { id: string; isCollapsed: Accessor<boolean> }): JS
 								channel: true,
 								[`channel-type-${channel.type}`]: true,
 								[`channel-${props.id}`]: true,
-								selected: selc(props.id),
+								selected: location().selectedChannel(props.id),
 							}}
 							use:ContextmenuDirective={{
 								menu: () => [

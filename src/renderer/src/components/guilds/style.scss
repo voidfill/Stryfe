@@ -3,7 +3,6 @@
 	--folder-hover: var(--background-secondary-alt);
 }
 
-
 .guilds-list {
 	display: flex;
 	flex-shrink: 0;
@@ -68,7 +67,8 @@
 			}
 		}
 
-		&.selected .guild-icon, .guild-icon:hover {
+		&.selected .guild-icon,
+		.guild-icon:hover {
 			border-radius: 33%;
 
 			&.acronym {

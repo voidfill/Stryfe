@@ -1,34 +1,17 @@
 import { createMemo, createSignal, JSX, onCleanup, onMount, Show } from "solid-js";
 
-import { emojiURL } from "@constants/images";
 import { ActivityTypes } from "@constants/user";
 
 import ActivityStore from "@stores/activities";
 
 import { BsCardText } from "solid-icons/bs";
 
-import { useAnimationContext } from "./animationcontext";
+import Emoji from "./emoji";
 import tippy from "./tooltip";
 
 import "./customstatus.scss";
 
 tippy;
-
-function Emoji(props: { emoji: { animated?: boolean; id?: string; name: string }; size: number; tooltip: boolean }): JSX.Element {
-	const doAnimate = useAnimationContext();
-
-	return (
-		<Show when={props.emoji.id} fallback={<span>{props.emoji.name}</span>}>
-			<img
-				use:tippy={{ content: () => props.emoji.name, disabled: !props.tooltip }}
-				width={props.size}
-				height={props.size}
-				src={emojiURL(props.emoji.id!, 44, props.emoji.animated && doAnimate())}
-				alt=""
-			/>
-		</Show>
-	);
-}
 
 export default function CustomStatus(props: { inline?: boolean; noToolTip?: boolean; userId: string }): JSX.Element {
 	let textRef: HTMLSpanElement | undefined, observer: ResizeObserver | undefined;

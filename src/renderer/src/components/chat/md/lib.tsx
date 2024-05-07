@@ -4,8 +4,11 @@
 import { JSX } from "solid-js/jsx-runtime";
 
 type state = {
-	[key: string]: string | number | boolean | null | undefined;
-	prevCapture?: string;
+	[key: string]: any;
+	readonly outputData: {
+		[key: string]: any;
+	};
+	readonly prevCapture?: string;
 };
 
 export type Rule<T> = {
@@ -20,7 +23,13 @@ export function ruleTypeGuard<T>(rule: Rule<T>): Rule<T> {
 	return rule;
 }
 
-export function Parser(rules: Rule<any>[]): (source: string, state?: state) => JSX.Element {
+export function Parser(rules: Rule<any>[]): (
+	source: string,
+	state?: state,
+) => {
+	element: JSX.Element;
+	outputData: { [key: string]: any };
+} {
 	rules = rules.sort((a, b) => {
 		if (a.order === b.order) return a.hasQuality ? -1 : 1;
 		return a.order - b.order;
@@ -61,5 +70,8 @@ export function Parser(rules: Rule<any>[]): (source: string, state?: state) => J
 		return output;
 	}
 
-	return (source: string, startState: state = {}) => parse(source, startState);
+	return (source: string, startState: state = { outputData: {} }) => ({
+		element: <span class="markdown-root">{parse(source, startState)}</span>,
+		outputData: startState.outputData,
+	});
 }

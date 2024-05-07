@@ -1,4 +1,7 @@
+import Emoji from "@components/common/emoji";
+
 import { ruleTypeGuard } from "./lib";
+
 export default ruleTypeGuard({
 	doesMatch: (source) => {
 		const match = /^<(a)?:(\w+):(\d+)>/.exec(source);
@@ -9,7 +12,7 @@ export default ruleTypeGuard({
 		};
 	},
 	element: (data) => {
-		return <span>customemoji {data.name}</span>;
+		return <Emoji emoji={data} size={44} tooltip={true} />;
 	},
 	order: 4,
 	requiredFirstCharacters: "<",

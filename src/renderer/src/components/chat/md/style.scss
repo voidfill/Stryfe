@@ -1,7 +1,28 @@
-.mention-box {
-	background-color: #5644fdd0;
+.markdown-root {
+	white-space: break-spaces;
+	word-break: break-word;
 
-	&.clickable {
-		cursor: pointer;
+	.mention-box {
+		background-color: #5644fdd0;
+
+		&.clickable {
+			cursor: pointer;
+		}
+	}
+
+	.md-blockquote {
+		display: flex;
+		flex-direction: row;
+
+		> div {
+			width: 4px;
+			background-color: #838383;
+			border-radius: 4px;
+			margin-right: 4px;
+		}
+
+		> blockquote {
+			margin: 0;
+		}
 	}
 }

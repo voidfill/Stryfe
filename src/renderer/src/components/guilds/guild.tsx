@@ -9,7 +9,7 @@ import { tippy } from "@components/common/tooltip";
 
 import { HoverAnimationDirective, useAnimationContext } from "../common/animationcontext";
 import { Colors, ContextmenuDirective, Id, Optional, Separator } from "../common/contextmenu";
-import { useSelectedGuildContext } from "../common/selectioncontext";
+import { useLocationContext } from "../common/locationcontext";
 
 import { lastSelectedChannels } from "@renderer/signals";
 HoverAnimationDirective;
@@ -38,7 +38,7 @@ function Indicator(props: { id: string }): JSX.Element {
 
 export default function Guild(props: { id: string }): JSX.Element {
 	const guild = createMemo(() => GuildStore.getGuild(props.id));
-	const selg = useSelectedGuildContext();
+	const location = useLocationContext();
 	const notificationLevel = createMemo(() => SettingsStore.getGuildNotificationLevel(props.id));
 
 	return (
@@ -48,7 +48,7 @@ export default function Guild(props: { id: string }): JSX.Element {
 					available: true,
 					guild: true,
 					[`guild-${props.id}`]: true,
-					selected: selg(props.id),
+					selected: location().selectedGuild(props.id),
 				}}
 			>
 				<Indicator id={props.id} />
@@ -81,7 +81,7 @@ export default function Guild(props: { id: string }): JSX.Element {
 											subText: SettingsStore.userGuildSettings[props.id]?.mute_config?.end_time
 												? `Muted until ${SettingsStore.userGuildSettings[props.id]?.mute_config?.end_time}`
 												: undefined,
-									  }
+										}
 									: {
 											action: () => SettingsStore.muteGuild(props.id),
 											label: "Mute Server",
@@ -118,7 +118,7 @@ export default function Guild(props: { id: string }): JSX.Element {
 												},
 											],
 											type: "submenu",
-									  },
+										},
 								{
 									action: (): void => {},
 									label: "Notification Settings",

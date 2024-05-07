@@ -7,7 +7,10 @@ export const enum LogLevels {
 }
 
 export class Logger {
-	constructor(private readonly name = "Stryfe", private readonly color = "purple") {}
+	constructor(
+		private readonly name = "Stryfe",
+		private readonly color = "purple",
+	) {}
 
 	private _log(level: LogLevels, ...args: any[]): void {
 		console[level](`%c[${this.name}]`, `font-weight: bold; color: ${this.color};`, ...args);

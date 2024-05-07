@@ -10,8 +10,8 @@ import GuildStore from "@stores/guilds";
 import GuildsList from "@components/guilds";
 
 import Chat from "../chat";
+import { LocationContext } from "../common/locationcontext";
 import { CurrentPermissionProvider } from "../common/permissionscontext";
-import { SelectedChannelContext, SelectedGuildContext } from "../common/selectioncontext";
 import SideBar from "../sidebar";
 import FriendsView from "./friendsview";
 import HeaderBar from "./headerbar";
@@ -80,40 +80,45 @@ export default function MainView(): JSX.Element {
 				</div>
 			}
 		>
-			<SelectedChannelContext.Provider value={selectedChannel}>
-				<SelectedGuildContext.Provider value={selectedGuild}>
-					<CurrentPermissionProvider>
-						<div class="main-view">
-							<GuildsList />
-							<SideBar />
-							<div class="channel-wrapper">
-								<HeaderBar />
-								<div class="channel" style={{ "flex-grow": 1 }}>
-									<Show
-										when={currChannel()}
-										fallback={
-											<Show
-												when={params.guildId === "@me" && !params.channelId}
-												fallback={<div class="nochannel">no channel selected</div>}
-											>
-												<FriendsView />
-											</Show>
-										}
-									>
-										<Chat />
-										<Show when={showMembers() && params.channelId && currChannel()?.type !== ChannelTypes.DM}>
-											{0 /*<MemberList />*/}
+			<LocationContext.Provider
+				value={() => ({
+					channelId: params.channelId,
+					guildId: params.guildId,
+					selectedChannel,
+					selectedGuild,
+				})}
+			>
+				<CurrentPermissionProvider>
+					<div class="main-view">
+						<GuildsList />
+						<SideBar />
+						<div class="channel-wrapper">
+							<HeaderBar />
+							<div class="channel" style={{ "flex-grow": 1 }}>
+								<Show
+									when={currChannel()}
+									fallback={
+										<Show
+											when={params.guildId === "@me" && !params.channelId}
+											fallback={<div class="nochannel">no channel selected</div>}
+										>
+											<FriendsView />
 										</Show>
-										<Show when={showUserProfile() && currChannel()?.type === ChannelTypes.DM}>
-											<span>DM User Profile</span>
-										</Show>
+									}
+								>
+									<Chat />
+									<Show when={showMembers() && params.channelId && currChannel()?.type !== ChannelTypes.DM}>
+										{0 /*<MemberList />*/}
 									</Show>
-								</div>
+									<Show when={showUserProfile() && currChannel()?.type === ChannelTypes.DM}>
+										<span>DM User Profile</span>
+									</Show>
+								</Show>
 							</div>
 						</div>
-					</CurrentPermissionProvider>
-				</SelectedGuildContext.Provider>
-			</SelectedChannelContext.Provider>
+					</div>
+				</CurrentPermissionProvider>
+			</LocationContext.Provider>
 		</Show>
 	);
 }
