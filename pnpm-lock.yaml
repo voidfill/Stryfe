@@ -29,6 +29,9 @@ importers:
       erl:
         specifier: link:native/erl
         version: link:native/erl
+      highlight.js:
+        specifier: ^11.9.0
+        version: 11.9.0
       tippy.js:
         specifier: ^6.3.7
         version: 6.3.7
@@ -1810,6 +1813,10 @@ packages:
   hasown@2.0.1:
     resolution: {integrity: sha512-1/th4MHjnwncwXsIW6QMzlvYL9kG5e/CpVvLRZe4XPa8TOUNbCELqmvhDmnkNsAjwaG4+I8gJJL0JBvTTLO9qA==}
     engines: {node: '>= 0.4'}
+
+  highlight.js@11.9.0:
+    resolution: {integrity: sha512-fJ7cW7fQGCYAkgv4CPfwFHrfd/cLS4Hau96JuJ+ZTOWhjnhoeN1ub1tFmALm/+lW5z4WCAuAV9bm05AP0mS6Gw==}
+    engines: {node: '>=12.0.0'}
 
   hosted-git-info@4.1.0:
     resolution: {integrity: sha512-kyCuEOWjJqZuDbRHzL8V93NzQhwIB71oFWSyzVo+KPZI+pnQPPxucdkrOZvkLRnrf5URsQM+IJ09Dw29cRALIA==}
@@ -4638,6 +4645,8 @@ snapshots:
     dependencies:
       function-bind: 1.1.2
     optional: true
+
+  highlight.js@11.9.0: {}
 
   hosted-git-info@4.1.0:
     dependencies:

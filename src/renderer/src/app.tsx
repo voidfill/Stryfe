@@ -12,6 +12,7 @@ import { getToken } from "./modules/token";
 import { setWindowTitle } from "./signals";
 
 import "./app.scss";
+import "highlight.js/styles/github-dark.min.css";
 
 FocusAnimationDirective;
 

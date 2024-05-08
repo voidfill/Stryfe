@@ -120,7 +120,7 @@ function LazyScroller(props: { around?: string; channelId: string; guildId?: str
 			}}
 		>
 			<div class="messages-wrapper">
-				<For each={chunk()}>{(id, i): JSX.Element => <Message id={id} prevId={chunk()?.[i() - 1]} guildId={props.guildId} />}</For>
+				<For each={chunk()}>{(id, i): JSX.Element => <Message id={id} prevId={chunk()?.[i() - 1]} />}</For>
 			</div>
 		</div>
 	);

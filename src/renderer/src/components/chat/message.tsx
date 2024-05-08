@@ -3,6 +3,7 @@ import { boolean, fallback, Output } from "valibot";
 
 import { MessageType } from "@constants/message";
 import _attachment from "@constants/schemata/message/attachment";
+import _embed from "@constants/schemata/message/embed";
 
 import { extractTimeStamp } from "@modules/unix";
 
@@ -22,36 +23,52 @@ import Persistent from "@renderer/stores/persistent";
 HoverAnimationDirective;
 
 type attachment = Output<typeof _attachment>;
+type embed = Output<typeof _embed>;
 
 const isCompact = createMemo(() => SettingsStore.preloadedSettings.textAndImages?.messageDisplayCompact?.value ?? false);
 export const [showAvatarsInCompact, setShowAvatarsInCompact] = Persistent.registerSignal("showAvatarsInCompact", fallback(boolean(), true));
-
-function Content(props: { content: string }): JSX.Element {
-	return (
-		<span
-			class="message-content"
-			style={{
-				"white-space": "pre-wrap",
-			}}
-		>
-			{parse(props.content, { allowHeading: true, inline: true })}
-		</span>
-	);
-}
 
 function Reply(props: { guildId?: string; id: string }): JSX.Element {
 	return <div class="message-reply">imagine this is a reply</div>;
 }
 
-function Attachment(props: attachment): JSX.Element {
+function Attachment(props: { attachment: attachment; spoilers: { [key: string]: boolean } }): JSX.Element {
 	return (
 		<div class="message-attachment">
 			<Switch fallback={"imagine this is an attachment" + JSON.stringify(props)}>
-				<Match when={props.content_type?.startsWith("image/")}>
-					<img src={props.proxy_url} alt={props.filename} />
+				<Match when={props.attachment.content_type?.startsWith("image/")}>
+					<img src={props.attachment.proxy_url} alt={props.attachment.filename} />
 				</Match>
 			</Switch>
 		</div>
+	);
+}
+
+function Embed(props: { embed: embed; spoilers: { [key: string]: boolean } }): JSX.Element {
+	return (
+		<div class="message-embed">
+			{JSON.stringify(props.embed)} {JSON.stringify(props.spoilers)}
+		</div>
+	);
+}
+
+function Sticker(props: { format_type: number; id: string; name: string }): JSX.Element {
+	return <div class="message-sticker">{JSON.stringify(props)}</div>;
+}
+
+function Divider(props: { date: Date; id: string; isNextDay: boolean; prevId?: string }): JSX.Element {
+	// TODO: figure out if exactly id is unread
+
+	return (
+		<Show when={props.isNextDay || false /* ^^ */}>
+			<div classList={{ "message-divider": true, unread: false }}>
+				<div class="divider-line" />
+				<Show when={props.isNextDay}>
+					<span class="divider-date">{props.date.toDateString()}</span>
+				</Show>
+				<div class="divider-line" />
+			</div>
+		</Show>
 	);
 }
 
@@ -76,11 +93,14 @@ export default function Message(props: { id: string; prevId?: string }): JSX.Ele
 		return false;
 	});
 
+	const content = createMemo(() => msg()?.content ?? "");
+	const md = createMemo(() => parse(content(), { allowHeading: true, inline: true, outputData: {} }));
+
 	return (
 		<Show when={msg()} keyed>
 			{(msg): JSX.Element => (
 				<>
-					<Show when={isNextDay()}>date divider or unread? {date().toLocaleDateString()}</Show>
+					<Divider isNextDay={isNextDay()} date={date()} id={props.id} prevId={props.prevId} />
 					<div
 						classList={{
 							"is-group-start": isGroupStart(),
@@ -134,15 +154,26 @@ export default function Message(props: { id: string; prevId?: string }): JSX.Ele
 												</div>
 											</Show>
 										</Show>
-										<Content content={msg.content} />
+										<span class="message-content">{md().element}</span>
 										<Show when={msg.attachments}>
 											<div class="message-attachments">
-												<For each={msg.attachments}>{(attachment): JSX.Element => Attachment(attachment)}</For>
+												<For each={msg.attachments}>
+													{(attachment): JSX.Element => (
+														<Attachment attachment={attachment} spoilers={md().outputData.spoilers ?? {}} />
+													)}
+												</For>
+											</div>
+										</Show>
+										<Show when={msg.embeds}>
+											<div class="message-embeds">
+												<For each={msg.embeds}>
+													{(e): JSX.Element => <Embed embed={e} spoilers={md().outputData.spoilers ?? {}} />}
+												</For>
 											</div>
 										</Show>
 										<Show when={msg.sticker_items}>
 											<div class="message-stickers">
-												<For each={msg.sticker_items}>{(s): string => JSON.stringify(s)}</For>
+												<For each={msg.sticker_items}>{(s): JSX.Element => Sticker(s)}</For>
 											</div>
 										</Show>
 									</div>

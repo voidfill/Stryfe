@@ -27,6 +27,7 @@
 		"discord-protos": "^1.0.5",
 		"electron-updater": "^6.1.8",
 		"erl": "link:native/erl",
+		"highlight.js": "^11.9.0",
 		"tippy.js": "^6.3.7",
 		"zlib-sync": "^0.1.9"
 	},

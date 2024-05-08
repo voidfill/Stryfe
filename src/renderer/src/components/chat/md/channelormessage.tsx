@@ -9,6 +9,8 @@ import GuildStore from "@stores/guilds";
 import PermissionStore from "@stores/permissions";
 import UserStore from "@stores/users";
 
+import { BsChatLeftText } from "solid-icons/bs";
+
 import { ruleTypeGuard } from "./lib";
 import { MentionBox } from "./util";
 
@@ -64,7 +66,10 @@ function ChannelOrMessage(props: d): JSX.Element {
 						{" > "}
 					</Show>
 					# {channelName()}
-					<Show when={props.messageId}>{" > message "}</Show>
+					<Show when={props.messageId}>
+						{" > "}
+						<BsChatLeftText size={16} />
+					</Show>
 				</Show>
 			</Show>
 		</MentionBox>

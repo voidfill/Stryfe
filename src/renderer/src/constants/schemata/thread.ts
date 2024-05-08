@@ -86,6 +86,6 @@ export const THREAD_MEMBERS_UPDATE = object({
 	guild_id: string(),
 	id: string(),
 	member_count: number(),
-	member_ids_preview: optional(array(string())),
+	member_ids_preview: optional(nullable(array(string()))),
 	removed_member_ids: optional(array(string())),
 });

@@ -17,7 +17,11 @@ export default ruleTypeGuard({
 		};
 	},
 	element: (data, _, state) => {
-		if (state.inSpoiler) false; // TODO: insert data into output to mark that this attachment should be spoilered. + add spoiler md el
+		if (state.inSpoiler) {
+			state.outputData.spoilers ??= {};
+			state.outputData.spoilers[data.url] = true;
+		}
+
 		return <MentionBox>{data.filename}</MentionBox>;
 	},
 	order: 15.5,

@@ -29,6 +29,10 @@
 	}
 
 	&.message-cozy {
+		&.is-group-start {
+			margin-top: 17px;
+		}
+
 		.username {
 			padding-right: 5px;
 		}
@@ -56,5 +60,33 @@
 			flex-grow: 0;
 			flex-shrink: 0;
 		}
+
+		.message-main {
+			flex-grow: 1;
+			max-width: 90%;
+		}
+	}
+}
+
+.message-divider {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	margin: 24px 14px 8px 16px;
+
+	--divider-color: #b3b3b3;
+
+	&.unread {
+		--divider-color: #ff3c3c;
+	}
+
+	> .divider-date {
+		padding: 0 10px;
+	}
+
+	> .divider-line {
+		flex-grow: 1;
+		height: 1px;
+		background-color: var(--divider-color);
 	}
 }

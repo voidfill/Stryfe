@@ -1,9 +1,20 @@
+:root {
+	--text-spoiler-color: #1d1d1d;
+	--code-background-color: #2e2e2e;
+}
+
 .markdown-root {
 	white-space: break-spaces;
 	word-break: break-word;
 
 	.mention-box {
 		background-color: #5644fdd0;
+		padding: 2px;
+		border-radius: 1px;
+
+		svg {
+			vertical-align: middle;
+		}
 
 		&.clickable {
 			cursor: pointer;
@@ -24,5 +35,52 @@
 		> blockquote {
 			margin: 0;
 		}
+	}
+
+	.md-spoiler {
+		transition: all 0.3s;
+		background-color: var(--text-spoiler-color);
+		cursor: pointer;
+		border-radius: 2px;
+
+		> span {
+			opacity: 0;
+			pointer-events: none;
+			transition: all 0.3s;
+		}
+
+		&.open {
+			background-color: #333333;
+			cursor: unset;
+
+			> span {
+				opacity: 1;
+				pointer-events: all;
+			}
+		}
+	}
+
+	.md-url {
+		color: #03a2d9;
+		cursor: pointer;
+
+		&:hover {
+			text-decoration: underline;
+		}
+	}
+
+	.md-inlinecode {
+		background-color: var(--code-background-color);
+		border-radius: 4px;
+		padding: 0 4px;
+	}
+
+	.md-codeblock code {
+		display: block;
+		background-color: var(--code-background-color);
+		border-radius: 4px;
+		padding: 0.5em;
+		border: 1px solid #181818;
+		white-space: pre-wrap;
 	}
 }

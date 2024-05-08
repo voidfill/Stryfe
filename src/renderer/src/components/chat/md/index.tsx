@@ -5,11 +5,14 @@ import { Dynamic } from "solid-js/web";
 import attachmentlink from "./attachmentlink";
 import blockquote from "./blockquote";
 import { channelmention, channelormessage } from "./channelormessage";
+import { codeblock, inlinecode } from "./code";
 import customemoji from "./customemoji";
 import { Parser, Rule, ruleTypeGuard as r } from "./lib";
 import { othermention, usermention } from "./mention";
 import rolemention from "./rolemention";
+import spoiler from "./spoiler";
 import timestamp from "./timestamp";
+import url from "./url";
 
 import "./style.scss";
 
@@ -30,26 +33,7 @@ const rules: Record<string, Rule<any>> = {
 	}),
 	channelmention,
 	channelormessage,
-	codeblock: r({
-		doesMatch: (source) => {
-			const match = /^```(?:([a-z0-9_+\-.#]+?)\n)?\n*([^\n][^]*?)\n*```/i.exec(source);
-			if (!match) return null;
-			return {
-				capture: match[0],
-				data: { content: match[2], lang: match[1] },
-			};
-		},
-		element: (data) => (
-			<>
-				<span>lang: {data.lang}</span>
-				<pre>
-					<code>{data.content}</code>
-				</pre>
-			</>
-		),
-		order: 4,
-		requiredFirstCharacters: "```",
-	}),
+	codeblock,
 	customemoji,
 	em: r({
 		doesMatch: (source) => {
@@ -101,19 +85,7 @@ const rules: Record<string, Rule<any>> = {
 		order: 0,
 		requiredFirstCharacters: "#",
 	}),
-	inlinecode: r({
-		doesMatch: (source) => {
-			const match = /^(`+)([\s\S]*?[^`])\1(?!`)/.exec(source);
-			if (!match) return null;
-			return {
-				capture: match[0],
-				data: match[2],
-			};
-		},
-		element: (data) => <code>{data}</code>,
-		order: 23,
-		requiredFirstCharacters: "`",
-	}),
+	inlinecode,
 	looseEm: r({
 		doesMatch: (source) => {
 			// eslint-disable-next-line no-useless-escape
@@ -172,6 +144,7 @@ const rules: Record<string, Rule<any>> = {
 		order: 21,
 		requiredFirstCharacters: "~~",
 	}),
+	spoiler,
 	strong: r({
 		doesMatch: (source) => {
 			const match = /^\*\*((?:\\[\s\S]|[^\\])+?)\*\*(?!\*)/.exec(source);
@@ -214,6 +187,7 @@ const rules: Record<string, Rule<any>> = {
 		order: 21,
 		requiredFirstCharacters: "__",
 	}),
+	url,
 	usermention,
 };
 
