@@ -169,7 +169,10 @@ const rules: Record<string, Rule<any>> = {
 				data: match[0],
 			};
 		},
-		element: (data) => <span>{data}</span>,
+		element: (data, _, state) => {
+			if (state.formatInline) data = data.replaceAll(/\n/g, " ");
+			return <span>{data}</span>;
+		},
 		order: Infinity,
 	}),
 	timestamp,

@@ -2,8 +2,9 @@ import { array, boolean, merge, nullable, number, object, omit, optional, partia
 
 import { MessageType } from "@constants/message";
 
-import { user } from "../common";
+import { equalArray, user } from "../common";
 import guild_member from "../guild/member";
+import { StickerFormatType } from "../guild/sticker";
 import attachment from "./attachment";
 import component from "./component";
 import embed from "./embed";
@@ -38,7 +39,7 @@ export const genericMessage = object({
 	sticker_items: optional(
 		array(
 			object({
-				format_type: number(),
+				format_type: equalArray([StickerFormatType.PNG, StickerFormatType.APNG, StickerFormatType.LOTTIE, StickerFormatType.GIF]),
 				id: string(),
 				name: string(),
 			}),

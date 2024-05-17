@@ -80,7 +80,7 @@ function createWindow(): BrowserWindow {
 
 	mainWindow.webContents.session.webRequest.onBeforeSendHeaders(
 		{
-			urls: ["*://*/*"],
+			urls: ["*://*/*", "wss://*/*"],
 		},
 		(details, callback) => {
 			details.requestHeaders["Origin"] = details.requestHeaders["Referer"] = "https://discord.com";
@@ -88,19 +88,6 @@ function createWindow(): BrowserWindow {
 				details.requestHeaders["User-Agent"] = newUserAgent;
 			}
 
-			callback({ cancel: false, requestHeaders: details.requestHeaders });
-		},
-	);
-
-	mainWindow.webContents.session.webRequest.onBeforeSendHeaders(
-		{
-			urls: ["wss://*/*"],
-		},
-		(details, callback) => {
-			details.requestHeaders["Origin"] = details.requestHeaders["Referer"] = "https://discord.com";
-			if (newUserAgent) {
-				details.requestHeaders["User-Agent"] = newUserAgent;
-			}
 			callback({ cancel: false, requestHeaders: details.requestHeaders });
 		},
 	);

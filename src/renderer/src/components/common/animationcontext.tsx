@@ -66,11 +66,20 @@ export function HoverAnimationDirective(el: Element): void {
 	});
 }
 
+export function NoAnimationDirective(): void {
+	const owner = getOwner();
+
+	createRenderEffect(() => {
+		owner!.context = { ...owner!.context, [AnimationContext.id]: (): boolean => false };
+	});
+}
+
 declare module "solid-js" {
 	namespace JSX {
 		interface Directives {
 			FocusAnimationDirective: any;
 			HoverAnimationDirective: any;
+			NoAnimationDirective: any;
 		}
 	}
 }

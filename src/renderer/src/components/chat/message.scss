@@ -7,6 +7,11 @@
 	flex-direction: column;
 	user-select: text;
 
+	&.message-compact.is-group-start .message-aside span.message-date,
+	&:hover .message-aside span.message-date {
+		opacity: 1;
+	}
+
 	.avatar {
 		user-select: none;
 	}
@@ -15,11 +20,6 @@
 		vertical-align: bottom;
 		height: 1.375rem;
 		width: 1.375rem;
-	}
-
-	.message-content {
-		font-size: 1rem;
-		line-height: 1.375rem;
 	}
 
 	&.message-compact {
@@ -59,6 +59,10 @@
 			justify-content: flex-end;
 			flex-grow: 0;
 			flex-shrink: 0;
+
+			.message-date {
+				opacity: 0;
+			}
 		}
 
 		.message-main {
@@ -88,5 +92,51 @@
 		flex-grow: 1;
 		height: 1px;
 		background-color: var(--divider-color);
+	}
+}
+
+.message-reply {
+	display: flex;
+	flex-direction: row;
+	user-select: none;
+
+	.reply-line {
+		border-top-left-radius: 4px;
+		border-top: 2px solid grey;
+		border-left: 2px solid grey;
+		margin-top: 5px;
+		margin-right: 4px;
+		margin-bottom: 2px;
+		width: 30px;
+		margin-left: 40px;
+		flex-shrink: 0;
+	}
+
+	.avatar {
+		margin-right: 4px;
+	}
+
+	.content {
+		text-overflow: ellipsis;
+		overflow: hidden;
+		flex-shrink: 1;
+
+		.markdown-root {
+			pointer-events: none;
+		}
+
+		* {
+			display: inline;
+			white-space: break-spaces;
+			font-size: 1em;
+		}
+
+		code {
+			white-space: nowrap;
+		}
+
+		:is(h1, h2, h3)::after {
+			content: " ";
+		}
 	}
 }

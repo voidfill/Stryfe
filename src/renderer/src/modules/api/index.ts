@@ -29,6 +29,8 @@ const messageArraySchema = array(
 	]),
 );
 
+const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
 class API {
 	#initialized = false;
 	#captchaHandler: any;
@@ -64,6 +66,7 @@ class API {
 					Authorization: this.#token,
 					"x-debug-options": "bugReporterEnabled",
 					"x-discord-locale": "en-US",
+					"x-discord-timezone": tz,
 					"x-super-properties": this.#b64info,
 				}),
 				"Content-Type": "application/json",

@@ -221,6 +221,7 @@ function VoiceChannel(props: { id: string; isCollapsed: Accessor<boolean> }): JS
 	);
 	const voiceStates = createMemo(() => VoiceStateStore.getSessionIdsForChannel(props.id));
 	// TODO: sort by name, streaming, camera etc
+	// TODO: maybe add a specific list for users that are on stage? filtering onchange voice states seems like a bad idea
 
 	const currentPermissions = usePermissionsContext();
 	const canSee = createMemo(() =>

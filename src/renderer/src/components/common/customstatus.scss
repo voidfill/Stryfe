@@ -8,6 +8,7 @@
 	img {
 		margin-right: 4px;
 	}
+
 	> span {
 		font-size: 12px;
 		line-height: 16px;
@@ -15,9 +16,10 @@
 		overflow: hidden;
 		text-overflow: ellipsis;
 
-		&:first-child {
-			flex-shrink: 0;
-		}
+	}
+
+	>*:not(.custom-status-text) {
+		flex-shrink: 0;
 	}
 
 	.activity-box {

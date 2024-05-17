@@ -1,4 +1,4 @@
-import { useParams } from "@solidjs/router";
+import { useLocation, useParams } from "@solidjs/router";
 import { createEffect, createMemo, For, JSX, onMount, untrack } from "solid-js";
 import { createStore } from "solid-js/store";
 
@@ -12,14 +12,31 @@ import { hasBit } from "@stores/permissions";
 
 import { usePermissionsContext } from "@components/common/permissionscontext";
 
+import { useLocationContext } from "../common/locationcontext";
 import Message from "./message";
 
 export default function Chat(): JSX.Element {
 	const params = useParams();
 
 	return (
-		<div class="chat" style={{ height: "100%" }}>
+		<div class="chat" style={{ display: "flex", "flex-direction": "column", height: "100%" }}>
 			<LazyScroller around={params.messageId} channelId={params.channelId} guildId={params.guildId} />
+			<TextArea />
+		</div>
+	);
+}
+
+function TextArea(): JSX.Element {
+	const location = useLocationContext();
+	const channelName = createMemo(() =>
+		location().guildId === "@me"
+			? "@" + ChannelStore.getPrivateChannelName(location().channelId)
+			: "#" + ChannelStore.getGuildChannel(location().channelId)?.name,
+	);
+
+	return (
+		<div class="text-area">
+			<textarea placeholder={`Message ${channelName() ?? "#unknown-channel"}`} style={{ all: "unset" }} />
 		</div>
 	);
 }
@@ -47,35 +64,29 @@ function LazyScroller(props: { around?: string; channelId: string; guildId?: str
 	const pctx = usePermissionsContext();
 	const canFetchMessages = createMemo(() => hasBit(pctx().channel, permissions.READ_MESSAGE_HISTORY));
 	function hasBefore(id: string): boolean {
-		const earliest = MessageStore.getEarliestMessageId(props.channelId);
+		const earliest = untrack(() => MessageStore.getEarliestMessageId(props.channelId));
 		if (!earliest) return true;
 		return BigInt(id) > BigInt(earliest);
 	}
 	function hasAfter(id: string): boolean {
-		const latest = ChannelStore.getLastMessageId(props.channelId);
+		const latest = untrack(() => ChannelStore.getLastMessageId(props.channelId));
 		if (!latest) return true;
 		return BigInt(id) < BigInt(latest);
 	}
 
 	onMount(() => {
-		// float 0 - 1
-		const scrollPercentage = createMemo(() =>
-			Math.abs((scrollPositions[props.channelId] ?? 0) / (scrollRef.scrollHeight - scrollRef.clientHeight || 1)),
-		);
-
 		createEffect(() => {
-			scrollPercentage();
+			const sp = scrollPositions[props.channelId] ?? 0;
 			if (isFetching) return;
 
-			if (scrollPercentage() > 0.7 && chunk()?.length && hasBefore(chunk()?.[0] ?? "0")) {
+			if (scrollRef.scrollHeight + sp < 2 * scrollRef.clientHeight && chunk()?.length && hasBefore(chunk()?.[0] ?? "0")) {
 				isFetching = true;
 				Api.getMessages({ before: chunk()?.[0], channelId: props.channelId }).then(() => {
 					isFetching = false;
 				});
-			}
-
-			if (scrollPercentage() < 0.3 && chunk()?.length && hasAfter(chunk()?.[(chunk()?.length ?? 1) - 1] ?? "0")) {
+			} else if (Math.abs(sp) < scrollRef.clientHeight && chunk()?.length && hasAfter(chunk()?.[(chunk()?.length ?? 1) - 1] ?? "0")) {
 				isFetching = true;
+
 				Api.getMessages({ after: chunk()?.[(chunk()?.length ?? 1) - 1], channelId: props.channelId }).then(() => {
 					isFetching = false;
 				});
@@ -112,8 +123,7 @@ function LazyScroller(props: { around?: string; channelId: string; guildId?: str
 				contain: "strict",
 				display: "flex",
 				"flex-direction": "column-reverse",
-				height: "100%",
-				"min-height": "100%",
+				"flex-grow": 1,
 				"overflow-x": "hidden",
 				"overflow-y": "auto",
 				width: "100%",
