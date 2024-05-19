@@ -1,130 +1,35 @@
 import { createMemo, For, JSX, Match, Show, Switch } from "solid-js";
-import { boolean, fallback, Output } from "valibot";
+import { boolean, fallback } from "valibot";
 
 import { MessageType } from "@constants/message";
-import _attachment from "@constants/schemata/message/attachment";
-import _embed from "@constants/schemata/message/embed";
 
 import { extractTimeStamp } from "@modules/unix";
 
 import MessageStore from "@stores/messages";
+import Persistent from "@stores/persistent";
 import SettingsStore from "@stores/settings";
 
-import { HoverAnimationDirective, NoAnimationDirective, useAnimationContext } from "@components/common/animationcontext";
+import { HoverAnimationDirective, NoAnimationDirective } from "@components/common/animationcontext";
 import Avatar, { ShowStatus } from "@components/common/avatar";
+import { useLocationContext } from "@components/common/locationcontext";
+import { parse } from "@components/common/md";
 import tippy from "@components/common/tooltip";
+import UserName from "@components/common/username";
 
-import { useLocationContext } from "../common/locationcontext";
-import UserName from "../common/username";
-import { parse } from "./md";
+import { Attachments } from "./attachment";
+import Divider from "./divider";
+import Embed from "./embed";
+import Reply from "./reply";
+import Sticker from "./sticker";
 
-import "./message.scss";
-
-import { stickerURL } from "@renderer/constants/images";
-import { StickerFormatType } from "@renderer/constants/schemata/guild/sticker";
-import Persistent from "@renderer/stores/persistent";
+import "./style.scss";
 
 NoAnimationDirective;
 HoverAnimationDirective;
 tippy;
 
-type attachment = Output<typeof _attachment>;
-type embed = Output<typeof _embed>;
-
 const isCompact = createMemo(() => SettingsStore.preloadedSettings.textAndImages?.messageDisplayCompact?.value ?? false);
 export const [showAvatarsInCompact, setShowAvatarsInCompact] = Persistent.registerSignal("showAvatarsInCompact", fallback(boolean(), true));
-
-function Reply(props: { guildId?: string; id: string }): JSX.Element {
-	const msg = createMemo(() => MessageStore.getMessage(props.id));
-	const content = createMemo(() => msg()?.content ?? "");
-
-	return (
-		<div class="message-reply" use:NoAnimationDirective>
-			<Show
-				when={msg()}
-				fallback={
-					<>
-						<div class="content">Failed to load message?</div>
-					</>
-				}
-				keyed
-			>
-				{(m) => {
-					const md = createMemo(() => parse(content(), { allowHeading: true, formatInline: true, inline: true, outputData: {} }));
-					return (
-						<>
-							<div class="reply-line" />
-							<Avatar size={16} userId={m.author_id} guildId={props.guildId} showStatus={ShowStatus.NEVER} />
-							<UserName guildId={props.guildId} id={m.author_id} color />
-							<div class="content">{md().element}</div>
-						</>
-					);
-				}}
-			</Show>
-		</div>
-	);
-}
-
-function Attachment(props: { attachment: attachment; spoilers: { [key: string]: boolean } }): JSX.Element {
-	return (
-		<div class="message-attachment">
-			<Switch fallback={"imagine this is an attachment" + JSON.stringify(props)}>
-				<Match when={props.attachment.content_type?.startsWith("image/")}>
-					<img src={props.attachment.proxy_url} alt={props.attachment.filename} />
-				</Match>
-			</Switch>
-		</div>
-	);
-}
-
-function Embed(props: { embed: embed; spoilers: { [key: string]: boolean } }): JSX.Element {
-	return (
-		<div class="message-embed">
-			{JSON.stringify(props.embed)} {JSON.stringify(props.spoilers)}
-		</div>
-	);
-}
-
-function Sticker(props: { format_type: number; id: string; name: string }): JSX.Element {
-	const doAnimate = useAnimationContext();
-
-	return (
-		<div
-			classList={{
-				"message-sticker": true,
-				[`sticker-id-${props.id}`]: true,
-			}}
-			style={{ height: "160px", width: "160px" }}
-			use:tippy={{
-				content: () => props.name,
-			}}
-		>
-			<Show when={props.format_type !== StickerFormatType.LOTTIE}>
-				<img
-					src={stickerURL(props.id, props.format_type, 160, doAnimate())}
-					alt={props.name}
-					style={{ height: "100%", left: "0", "object-fit": "contain", top: "0", width: "100%" }}
-				/>
-			</Show>
-		</div>
-	);
-}
-
-function Divider(props: { date: Date; id: string; isNextDay: boolean; prevId?: string }): JSX.Element {
-	// TODO: figure out if exactly id is unread
-
-	return (
-		<Show when={props.isNextDay || false /* ^^ */}>
-			<div classList={{ "message-divider": true, unread: false }}>
-				<div class="divider-line" />
-				<Show when={props.isNextDay}>
-					<span class="divider-date">{props.date.toDateString()}</span>
-				</Show>
-				<div class="divider-line" />
-			</div>
-		</Show>
-	);
-}
 
 export default function Message(props: { id: string; prevId?: string }): JSX.Element {
 	const location = useLocationContext();
@@ -217,15 +122,7 @@ export default function Message(props: { id: string; prevId?: string }): JSX.Ele
 													</Show>
 												</Show>
 												<span class="message-content">{md().element}</span>
-												<Show when={msg.attachments}>
-													<div class="message-attachments">
-														<For each={msg.attachments}>
-															{(attachment): JSX.Element => (
-																<Attachment attachment={attachment} spoilers={md().outputData.spoilers ?? {}} />
-															)}
-														</For>
-													</div>
-												</Show>
+												<Attachments messageId={props.id} />
 												<Show when={msg.embeds}>
 													<div class="message-embeds">
 														<For each={msg.embeds}>
@@ -235,7 +132,7 @@ export default function Message(props: { id: string; prevId?: string }): JSX.Ele
 												</Show>
 												<Show when={msg.sticker_items}>
 													<div class="message-stickers">
-														<For each={msg.sticker_items}>{(s): JSX.Element => Sticker(s)}</For>
+														<For each={msg.sticker_items}>{Sticker}</For>
 													</div>
 												</Show>
 											</div>

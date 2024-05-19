@@ -490,6 +490,14 @@ export default new (class ChannelStore extends Store {
 	getDMForUser(userId: string): string | undefined {
 		return dmForUser[userId];
 	}
+
+	getChannelName(channelId: string): string | undefined {
+		const c = this.getChannel(channelId);
+		if (!c) return undefined;
+		if ("name" in c && c.name) return c.name;
+		if (c.type === ChannelTypes.DM || c.type === ChannelTypes.GROUP_DM) return this.getPrivateChannelName(channelId);
+		return undefined;
+	}
 })();
 
 function sortGuildChannels(guildId: string): (typeof sortedGuildChannels extends ReactiveMap<any, infer V> ? V : never) | undefined {

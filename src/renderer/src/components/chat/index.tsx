@@ -1,42 +1,27 @@
-import { useLocation, useParams } from "@solidjs/router";
 import { createEffect, createMemo, For, JSX, onMount, untrack } from "solid-js";
 import { createStore } from "solid-js/store";
 
+import { ChannelTypes } from "@constants/channel";
 import permissions from "@constants/permissions";
 
 import Api from "@modules/api";
 
 import ChannelStore from "@stores/channels";
 import MessageStore from "@stores/messages";
-import { hasBit } from "@stores/permissions";
 
 import { usePermissionsContext } from "@components/common/permissionscontext";
 
 import { useLocationContext } from "../common/locationcontext";
 import Message from "./message";
+import TextArea from "./textarea";
 
 export default function Chat(): JSX.Element {
-	const params = useParams();
-
-	return (
-		<div class="chat" style={{ display: "flex", "flex-direction": "column", height: "100%" }}>
-			<LazyScroller around={params.messageId} channelId={params.channelId} guildId={params.guildId} />
-			<TextArea />
-		</div>
-	);
-}
-
-function TextArea(): JSX.Element {
 	const location = useLocationContext();
-	const channelName = createMemo(() =>
-		location().guildId === "@me"
-			? "@" + ChannelStore.getPrivateChannelName(location().channelId)
-			: "#" + ChannelStore.getGuildChannel(location().channelId)?.name,
-	);
 
 	return (
-		<div class="text-area">
-			<textarea placeholder={`Message ${channelName() ?? "#unknown-channel"}`} style={{ all: "unset" }} />
+		<div class="chat" style={{ display: "flex", "flex-direction": "column", "flex-grow": 1, height: "100%" }}>
+			<LazyScroller around={location().messageId} channelId={location().channelId} guildId={location().guildId} />
+			<TextArea />
 		</div>
 	);
 }
@@ -60,9 +45,14 @@ function LazyScroller(props: { around?: string; channelId: string; guildId?: str
 		}
 	}
 
+	const channel = createMemo(() => ChannelStore.getChannel(props.channelId));
 	const chunk = createMemo(() => MessageStore.getChunk(props.channelId, props.around));
 	const pctx = usePermissionsContext();
-	const canFetchMessages = createMemo(() => hasBit(pctx().channel, permissions.READ_MESSAGE_HISTORY));
+	const canFetchMessages = createMemo(
+		() =>
+			(channel() && (channel()?.type === ChannelTypes.DM || channel()?.type === ChannelTypes.GROUP_DM)) ||
+			pctx().can(permissions.READ_MESSAGE_HISTORY | permissions.VIEW_CHANNEL),
+	);
 	function hasBefore(id: string): boolean {
 		const earliest = untrack(() => MessageStore.getEarliestMessageId(props.channelId));
 		if (!earliest) return true;

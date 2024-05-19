@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from "@solidjs/router";
-import { createEffect, createMemo, createSelector, JSX, Show } from "solid-js";
+import { createEffect, createMemo, createSelector, JSX, Match, Show, Switch } from "solid-js";
 
 import { ChannelTypes } from "@constants/channel";
 
@@ -84,6 +84,7 @@ export default function MainView(): JSX.Element {
 				value={() => ({
 					channelId: params.channelId,
 					guildId: params.guildId,
+					messageId: params.messageId || undefined,
 					selectedChannel,
 					selectedGuild,
 				})}
@@ -94,7 +95,7 @@ export default function MainView(): JSX.Element {
 						<SideBar />
 						<div class="channel-wrapper">
 							<HeaderBar />
-							<div class="channel" style={{ "flex-grow": 1 }}>
+							<div class="channel" style={{ display: "flex", "flex-direction": "row", "flex-grow": 1 }}>
 								<Show
 									when={currChannel()}
 									fallback={
@@ -106,13 +107,28 @@ export default function MainView(): JSX.Element {
 										</Show>
 									}
 								>
-									<Chat />
-									<Show when={showMembers() && params.channelId && currChannel()?.type !== ChannelTypes.DM}>
-										{0 /*<MemberList />*/}
-									</Show>
-									<Show when={showUserProfile() && currChannel()?.type === ChannelTypes.DM}>
-										<span>DM User Profile</span>
-									</Show>
+									<Switch
+										fallback={
+											<>
+												<Chat />
+												<Show when={showMembers() && params.channelId && currChannel()?.type !== ChannelTypes.DM}>
+													<span>Members</span>
+												</Show>
+												<Show when={showUserProfile() && currChannel()?.type === ChannelTypes.DM}>
+													<span>DM User Profile</span>
+												</Show>
+											</>
+										}
+									>
+										<Match
+											when={
+												currChannel()?.type === ChannelTypes.GUILD_FORUM || currChannel()?.type === ChannelTypes.GUILD_MEDIA
+											}
+										>
+											forum/media channel
+										</Match>
+										<Match when={currChannel()?.type === ChannelTypes.GUILD_DIRECTORY}>directory channel</Match>
+									</Switch>
 								</Show>
 							</div>
 						</div>

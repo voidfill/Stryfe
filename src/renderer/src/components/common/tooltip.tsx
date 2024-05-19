@@ -33,7 +33,7 @@ makeTippy.setDefaultProps({
 });
 
 window.addEventListener(
-	"scroll",
+	"mousewheel",
 	() => {
 		hideAll({ duration: 0 });
 	},

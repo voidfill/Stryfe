@@ -22,12 +22,7 @@ type d = {
 
 function ChannelOrMessage(props: d): JSX.Element {
 	const channel = createMemo(() => ChannelStore.getChannel(props.channelId));
-	const channelName = createMemo(() => {
-		const c = channel();
-		if (!c) return;
-		if ("name" in c) return c.name;
-		return ChannelStore.getPrivateChannelName(props.channelId);
-	});
+	const channelName = createMemo(() => ChannelStore.getChannelName(props.channelId));
 	const guildId = createMemo(() => {
 		const c = channel();
 		if (!c || !("guild_id" in c)) return null;

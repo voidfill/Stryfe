@@ -184,11 +184,11 @@ export default new (class PermissionsStore extends Store {
 
 	// eslint-disable-next-line solid/reactivity
 	can({
+		basePermissions,
+		channelId,
+		guildId,
 		memberId,
 		toCheck,
-		guildId,
-		channelId,
-		basePermissions,
 	}: {
 		basePermissions?: bigint;
 		channelId?: string;

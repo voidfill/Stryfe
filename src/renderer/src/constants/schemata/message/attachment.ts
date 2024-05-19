@@ -1,6 +1,7 @@
 import { boolean, nullable, number, object, optional, string } from "valibot";
 
 export default object({
+	content_scan_version: optional(number()),
 	content_type: optional(string()),
 	description: optional(string()),
 	duration_secs: optional(number()),

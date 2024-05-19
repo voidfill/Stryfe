@@ -7,7 +7,6 @@ import permissions from "@constants/permissions";
 import ChannelStore from "@stores/channels";
 import GuildStore from "@stores/guilds";
 import MemberStore from "@stores/members";
-import PermissionsStore from "@stores/permissions";
 import SettingsStore, { NotificationLevel, notificationLevelToText } from "@stores/settings";
 import UserStore from "@stores/users";
 import VoiceStateStore from "@stores/voicestates";
@@ -114,15 +113,7 @@ function TextChannel(props: { id: string; isCollapsed: Accessor<boolean>; parent
 	const notificationLevel = createMemo(() => SettingsStore.getChannelNotificationLevel(props.id));
 
 	const currentPermissions = usePermissionsContext();
-	const canSee = createMemo(() =>
-		PermissionsStore.can({
-			basePermissions: currentPermissions().guild,
-			channelId: props.id,
-			guildId: params.guildId,
-			memberId: UserStore.getSelfId()!,
-			toCheck: permissions.VIEW_CHANNEL,
-		}),
-	);
+	const canSee = createMemo(() => currentPermissions().can(permissions.VIEW_CHANNEL, props.id));
 
 	onCleanup(() => {
 		refMap.delete(props.id);
@@ -224,15 +215,7 @@ function VoiceChannel(props: { id: string; isCollapsed: Accessor<boolean> }): JS
 	// TODO: maybe add a specific list for users that are on stage? filtering onchange voice states seems like a bad idea
 
 	const currentPermissions = usePermissionsContext();
-	const canSee = createMemo(() =>
-		PermissionsStore.can({
-			basePermissions: currentPermissions().guild,
-			channelId: props.id,
-			guildId: params.guildId,
-			memberId: UserStore.getSelfId()!,
-			toCheck: permissions.VIEW_CHANNEL,
-		}),
-	);
+	const canSee = createMemo(() => currentPermissions().can(permissions.VIEW_CHANNEL, props.id));
 
 	onCleanup(() => {
 		refMap.delete(props.id);
@@ -315,27 +298,10 @@ function Category(props: { id: string; other: string[]; voice: string[] }): JSX.
 	const notificationLevel = createMemo(() => SettingsStore.getChannelNotificationLevel(props.id));
 	const currentPermissions = usePermissionsContext();
 
-	const mapFn = (id: string): boolean =>
-		PermissionsStore.can({
-			basePermissions: currentPermissions().guild,
-			channelId: id,
-			guildId: params.guildId,
-			memberId: UserStore.getSelfId()!,
-			toCheck: permissions.VIEW_CHANNEL,
-		});
+	const mapFn = (id: string): boolean => currentPermissions().can(permissions.VIEW_CHANNEL, id);
 	const canSeeChild = createMemo(() => props.other.some(mapFn) || props.voice.some(mapFn));
 	const canSee = createMemo(
-		() =>
-			(!props.other.length &&
-				!props.voice.length &&
-				PermissionsStore.can({
-					basePermissions: currentPermissions().guild,
-					channelId: props.id,
-					guildId: params.guildId,
-					memberId: UserStore.getSelfId()!,
-					toCheck: permissions.MANAGE_CHANNELS,
-				})) ||
-			canSeeChild(),
+		() => (!props.other.length && !props.voice.length && currentPermissions().can(permissions.MANAGE_CHANNELS, props.id)) || canSeeChild(),
 	);
 
 	onCleanup(() => {

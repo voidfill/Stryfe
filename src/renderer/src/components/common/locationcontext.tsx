@@ -3,6 +3,7 @@ import { Accessor, createContext, useContext } from "solid-js";
 type l = {
 	channelId: string;
 	guildId: string;
+	messageId?: string;
 	selectedChannel: (v: string) => boolean;
 	selectedGuild: (v: string) => boolean;
 };

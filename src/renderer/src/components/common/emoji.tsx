@@ -1,9 +1,9 @@
 import { JSX, Show } from "solid-js";
 
+import { emojiURL } from "@constants/images";
+
 import { useAnimationContext } from "./animationcontext";
 import tippy from "./tooltip";
-
-import { emojiURL } from "@renderer/constants/images";
 
 tippy;
 
@@ -14,7 +14,7 @@ export default function Emoji(props: { emoji: { animated?: boolean; id?: string;
 		<Show when={props.emoji.id} fallback={<span>{props.emoji.name}</span>}>
 			<img
 				class={`emoji ${props.emoji.animated ? "animated" : ""} emoji-${props.emoji.name} emoji-id-${props.emoji.id}`}
-				use:tippy={{ content: () => props.emoji.name, disabled: !props.tooltip }}
+				use:tippy={{ content: () => `:${props.emoji.name}:`, disabled: !props.tooltip }}
 				width={props.size}
 				height={props.size}
 				src={emojiURL(props.emoji.id!, props.size, props.emoji.animated && doAnimate())}

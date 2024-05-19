@@ -42,12 +42,6 @@
 		}
 	}
 
-	.message-attachments {
-		display: flex;
-		flex-direction: column;
-		max-width: 550px;
-	}
-
 	.message-container {
 		display: flex;
 		flex-direction: row;
@@ -69,6 +63,18 @@
 			flex-grow: 1;
 			max-width: 90%;
 		}
+	}
+}
+
+.message-attachments {
+	display: flex;
+	flex-direction: column;
+
+	.message-attachment :is(img, video) {
+		border-radius: 8px;
+		max-width: 550px;
+		max-height: 350px;
+		cursor: pointer;
 	}
 }
 
@@ -120,23 +126,5 @@
 		text-overflow: ellipsis;
 		overflow: hidden;
 		flex-shrink: 1;
-
-		.markdown-root {
-			pointer-events: none;
-		}
-
-		* {
-			display: inline;
-			white-space: break-spaces;
-			font-size: 1em;
-		}
-
-		code {
-			white-space: nowrap;
-		}
-
-		:is(h1, h2, h3)::after {
-			content: " ";
-		}
 	}
 }

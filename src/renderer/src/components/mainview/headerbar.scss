@@ -1,0 +1,59 @@
+.header-bar {
+	height: 48px;
+	flex-shrink: 0;
+	box-shadow: 0 1px 0 0 var(--accent-secondary);
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	padding: 0 8px;
+
+	.icon {
+		color: var(--accent-secondary);
+		filter: brightness(1);
+		transition: all 0.1s ease-in-out;
+	}
+
+	.left {
+		display: flex;
+		flex-direction: row;
+		flex-grow: 1;
+		flex-shrink: 1;
+		align-items: center;
+		gap: 8px;
+	}
+
+	.right {
+		display: flex;
+		flex-direction: row;
+		flex-grow: 0;
+		flex-shrink: 0;
+		align-items: center;
+		gap: 8px;
+	}
+
+	.friends-button {
+		padding: 4px 8px;
+		border-radius: 4px;
+		transition: background-color 0.1s ease-in-out;
+
+		&:hover,
+		&.selected {
+			background-color: var(--accent-primary);
+		}
+	}
+
+	.topic-divider {
+		width: 1px;
+		height: 18px;
+		background-color: grey;
+	}
+
+	.channel-topic {
+		flex-grow: 1;
+		flex-shrink: 1;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		cursor: pointer;
+	}
+}

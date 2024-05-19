@@ -12,12 +12,13 @@ import { othermention, usermention } from "./mention";
 import rolemention from "./rolemention";
 import spoiler from "./spoiler";
 import timestamp from "./timestamp";
-import url from "./url";
+import { autolink, url } from "./url";
 
 import "./style.scss";
 
 const rules: Record<string, Rule<any>> = {
 	attachmentlink,
+	autolink,
 	blockquote,
 	br: r({
 		doesMatch: (source) => {
