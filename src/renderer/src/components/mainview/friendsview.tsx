@@ -56,7 +56,7 @@ function FriendItem(props: { id: string }): JSX.Element {
 	const statusText = createMemo(() => statusToText(StatusStore.getStatus(props.id)));
 
 	return (
-		<Show when={(user()?.display_name?.toLowerCase().includes(lower()) || user().username?.toLowerCase().includes(lower())) && user()} keyed>
+		<Show when={(user()?.display_name?.toLowerCase().includes(lower()) || user().username?.toLowerCase().includes(lower())) && user()}>
 			{(user): JSX.Element => {
 				return (
 					<div
@@ -96,9 +96,9 @@ function FriendItem(props: { id: string }): JSX.Element {
 						<Avatar userId={props.id} size={32} showStatus={ShowStatus.ALWAYS} />
 						<div class="friend-info">
 							<div class="username">
-								<span class="friend-global-name">{user.display_name || user.username}</span>
+								<span class="friend-global-name">{user().display_name || user().username}</span>
 								<span class="friend-username">
-									{user.display_name || user.discriminator === "0" ? user.username : "#" + user.discriminator}
+									{user().display_name || user().discriminator === "0" ? user().username : "#" + user().discriminator}
 								</span>
 							</div>
 							<span class="friend-status">

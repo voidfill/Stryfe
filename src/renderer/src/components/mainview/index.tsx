@@ -12,6 +12,7 @@ import GuildsList from "@components/guilds";
 import Chat from "../chat";
 import { LocationContext } from "../common/locationcontext";
 import { CurrentPermissionProvider } from "../common/permissionscontext";
+import MemberList from "../memberlist";
 import SideBar from "../sidebar";
 import FriendsView from "./friendsview";
 import HeaderBar from "./headerbar";
@@ -112,7 +113,7 @@ export default function MainView(): JSX.Element {
 											<>
 												<Chat />
 												<Show when={showMembers() && params.channelId && currChannel()?.type !== ChannelTypes.DM}>
-													<span>Members</span>
+													<MemberList />
 												</Show>
 												<Show when={showDMUserProfile() && currChannel()?.type === ChannelTypes.DM}>
 													<span>DM User Profile</span>

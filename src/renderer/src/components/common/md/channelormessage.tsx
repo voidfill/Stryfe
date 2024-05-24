@@ -11,6 +11,7 @@ import UserStore from "@stores/users";
 
 import { BsChatLeftText } from "solid-icons/bs";
 
+import { useLocationContext } from "../locationcontext";
 import { ruleTypeGuard } from "./lib";
 import { MentionBox } from "./util";
 
@@ -44,6 +45,8 @@ function ChannelOrMessage(props: d): JSX.Element {
 	const guild = createMemo(() => {
 		return guildId() ? GuildStore.getGuild(guildId()!) : null;
 	});
+	const location = useLocationContext();
+	const isSameGuild = createMemo(() => guildId() === location().guildId);
 
 	const navigate = useNavigate();
 
@@ -56,9 +59,13 @@ function ChannelOrMessage(props: d): JSX.Element {
 		>
 			<Show when={channelName()} fallback={"# unknown"}>
 				<Show when={canAccess()} fallback={"No Access"}>
-					<Show when={guild()} keyed>
-						{guild()?.name}
-						{" > "}
+					<Show when={!isSameGuild() && guild()}>
+						{(g) => (
+							<>
+								{g().name}
+								{" > "}
+							</>
+						)}
 					</Show>
 					# {channelName()}
 					<Show when={props.messageId}>

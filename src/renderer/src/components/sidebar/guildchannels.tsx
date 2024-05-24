@@ -124,6 +124,7 @@ function TextChannel(props: { id: string; isCollapsed: Accessor<boolean>; parent
 		refMap.delete(props.id);
 	});
 
+	// TODO: get rid of keyed
 	return (
 		<Show when={((!(props.isCollapsed() || mutedHide()) && canSee()) || location().selectedChannel(props.id)) && channel()} keyed>
 			{(channel): JSX.Element => (

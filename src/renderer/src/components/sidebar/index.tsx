@@ -16,6 +16,7 @@ import PrivateChannels from "./privatechannels";
 import "./style.scss";
 
 function UserArea(): JSX.Element {
+	// TODO: fuck this, we should get uid over token and work from there
 	const self = createMemo(() => UserStore.getSelf());
 	const displayName = createMemo(() => self()?.display_name || self()?.username);
 	const hasCustomStatus = createMemo(() => {
@@ -26,18 +27,18 @@ function UserArea(): JSX.Element {
 	return (
 		<div class="user-area">
 			<button class="avatar-wrapper">
-				<Show when={self()?.id} keyed>
-					{(id): JSX.Element => (
+				<Show when={self()}>
+					{(user): JSX.Element => (
 						<>
-							<Avatar size={32} userId={id} noTyping />
+							<Avatar size={32} userId={user().id} noTyping />
 							<div class="user-info">
 								<span class="user-display-name">{displayName()}</span>
-								<Show when={hasCustomStatus()} fallback={<span class="user-name">{self()?.username}</span>}>
+								<Show when={hasCustomStatus()} fallback={<span class="user-name">{user().username}</span>}>
 									<div class="text-roll">
 										<div class="default status">
-											<CustomStatus userId={id} noToolTip />
+											<CustomStatus userId={user().id} noToolTip />
 										</div>
-										<span class="hover user-name">{self()?.username}</span>
+										<span class="hover user-name">{user().username}</span>
 									</div>
 								</Show>
 							</div>

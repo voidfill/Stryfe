@@ -133,6 +133,11 @@ export default new (class MemberStore extends Store {
 	}
 
 	// eslint-disable-next-line solid/reactivity
+	hasMember(guildId: string, userId: string): boolean {
+		return !!members[guildId]?.[userId];
+	}
+
+	// eslint-disable-next-line solid/reactivity
 	getMember(guildId: string, userId: string): storedMember | undefined {
 		return members[guildId]?.[userId];
 	}
@@ -171,5 +176,13 @@ export default new (class MemberStore extends Store {
 			presences: true,
 			user_ids: toRequest,
 		});
+	}
+
+	getName(guildId: string, userId: string): string | undefined {
+		const member = this.getMember(guildId, userId);
+		if (member?.nick) return member.nick;
+		const user = UserStore.getUser(userId);
+		if (!user) return undefined;
+		return user.display_name || user.username;
 	}
 })();

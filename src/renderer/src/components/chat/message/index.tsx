@@ -54,7 +54,7 @@ export default function Message(props: { id: string; prevId?: string }): JSX.Ele
 	const content = createMemo(() => msg()?.content ?? "");
 
 	return (
-		<Show when={msg()} keyed>
+		<Show when={msg()}>
 			{(msg): JSX.Element => (
 				<>
 					<Divider isNextDay={isNextDay()} date={date()} id={props.id} prevId={props.prevId} />
@@ -62,9 +62,9 @@ export default function Message(props: { id: string; prevId?: string }): JSX.Ele
 						classList={{
 							"is-group-start": isGroupStart(),
 							"is-mentioned": false, // TODO
-							[`message-author-${msg.author_id}`]: true,
+							[`message-author-${msg().author_id}`]: true,
 							message: true,
-							[`message-type-${msg.type}`]: true,
+							[`message-type-${msg().type}`]: true,
 							"message-compact": isCompact(),
 							"message-cozy": !isCompact(),
 							[`message-state-${state()}`]: true,
@@ -77,10 +77,10 @@ export default function Message(props: { id: string; prevId?: string }): JSX.Ele
 							const md = createMemo(() => parse(content(), { allowHeading: true, inline: true, outputData: {} }));
 
 							return (
-								<Switch fallback={`This messagetype hasnt been implemented yet. type=${msg.type}`}>
-									<Match when={msg.type === MessageType.DEFAULT || msg.type === MessageType.REPLY}>
-										<Show when={msg.type === MessageType.REPLY}>
-											<Reply guildId={location().guildId} id={msg.message_reference!} />
+								<Switch fallback={`This messagetype hasnt been implemented yet. type=${msg().type}`}>
+									<Match when={msg().type === MessageType.DEFAULT || msg().type === MessageType.REPLY}>
+										<Show when={msg().type === MessageType.REPLY}>
+											<Reply guildId={location().guildId} id={msg().message_reference!} />
 										</Show>
 										<div class="message-container">
 											<div class="message-aside">
@@ -90,7 +90,7 @@ export default function Message(props: { id: string; prevId?: string }): JSX.Ele
 												>
 													<Avatar
 														size={32}
-														userId={msg.author_id}
+														userId={msg().author_id}
 														guildId={location().guildId === "@me" ? undefined : location().guildId}
 														showStatus={ShowStatus.NEVER}
 													/>
@@ -104,29 +104,29 @@ export default function Message(props: { id: string; prevId?: string }): JSX.Ele
 															<Show when={showAvatarsInCompact()}>
 																<Avatar
 																	size={16}
-																	userId={msg.author_id}
+																	userId={msg().author_id}
 																	guildId={location().guildId === "@me" ? undefined : location().guildId}
 																	showStatus={ShowStatus.NEVER}
 																/>
 															</Show>
-															<UserName guildId={location().guildId} id={msg.author_id} color />
+															<UserName guildId={location().guildId} id={msg().author_id} color roleIcon />
 														</>
 													}
 												>
 													<Show when={isGroupStart()}>
 														<div class="message-header">
-															<UserName guildId={location().guildId} id={msg.author_id} color />
+															<UserName guildId={location().guildId} id={msg().author_id} color roleIcon />
 															{date().toLocaleTimeString()}
 														</div>
 													</Show>
 												</Show>
 												<span class="message-content">{md().element}</span>
 												<div classList={{ "message-accessories": true, [`message-accesories-${props.id}`]: true }}>
-													<For each={msg.attachments ?? []}>{Attachment}</For>
-													<For each={msg.embeds ?? []}>
+													<For each={msg().attachments ?? []}>{Attachment}</For>
+													<For each={msg().embeds ?? []}>
 														{(e): JSX.Element => <Embed embed={e} spoilers={md().outputData.spoilers ?? {}} />}
 													</For>
-													<For each={msg.sticker_items ?? []}>{Sticker}</For>
+													<For each={msg().sticker_items ?? []}>{Sticker}</For>
 												</div>
 											</div>
 										</div>

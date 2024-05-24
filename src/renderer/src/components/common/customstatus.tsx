@@ -20,15 +20,13 @@ export default function CustomStatus(props: { inline?: boolean; noToolTip?: bool
 	const isPlaying = createMemo(() => ActivityStore.getActivities(props.userId)?.some((a) => a.type !== ActivityTypes.CUSTOM));
 
 	return (
-		<Show when={status()} keyed>
+		<Show when={status()}>
 			{(status): JSX.Element => {
 				return (
 					<div class="custom-status">
-						<Show when={status.emoji} keyed>
-							{(emoji): JSX.Element => <Emoji emoji={emoji} size={14} tooltip={!props.inline} />}
-						</Show>
-						<span class="custom-status-text" use:OverflowTooltip={() => status.text}>
-							{status.text}
+						<Show when={status().emoji}>{(emoji): JSX.Element => <Emoji emoji={emoji()} size={14} tooltip={!props.inline} />}</Show>
+						<span class="custom-status-text" use:OverflowTooltip={() => status().text}>
+							{status().text}
 						</span>
 						<Show when={isPlaying()}>
 							<BsCardText class="activity-box" size={14} />

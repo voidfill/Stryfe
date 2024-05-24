@@ -1,14 +1,19 @@
 import { createMemo, JSX, Show } from "solid-js";
 
+import { roleIconURL } from "@constants/images";
+
 import MemberStore from "@stores/members";
 import RoleStore from "@stores/roles";
 import UserStore from "@stores/users";
 
-export default function UserName(props: { color?: boolean; guildId?: string; id: string }): JSX.Element {
-	const member = createMemo(() => (props.guildId ? MemberStore.getMember(props.guildId, props.id) : undefined));
+import tippy from "./tooltip";
+
+tippy;
+
+export default function UserName(props: { color?: boolean; guildId?: string; id: string; roleIcon?: boolean }): JSX.Element {
 	const user = createMemo(() => UserStore.getUser(props.id));
 	const color = createMemo<string>(() => {
-		if (!props.color || !member()) return "#fff";
+		if (!props.color || !props.guildId || !MemberStore.hasMember(props.guildId, props.id) || !user()) return "#fff";
 		const highest = RoleStore.getHighestColoredForMember(props.guildId!, props.id);
 		if (highest) {
 			const role = RoleStore.getRole(highest);
@@ -16,11 +21,31 @@ export default function UserName(props: { color?: boolean; guildId?: string; id:
 		}
 		return "#fff";
 	});
+	const name = createMemo<string | undefined>(() =>
+		props.guildId ? MemberStore.getName(props.guildId, props.id) : user()?.username || user()?.display_name || undefined,
+	);
+	const iconRoleId = createMemo<string | undefined>(() =>
+		props.roleIcon && props.guildId ? RoleStore.getHighestIconForMember(props.guildId, props.id) : undefined,
+	);
+	const iconRole = createMemo(() => {
+		const i = iconRoleId();
+		if (!i) return undefined;
+		return RoleStore.getRole(i);
+	});
 
 	return (
 		<span class="username" style={{ color: color() }}>
-			<Show when={member() && member()?.nick} fallback={user()?.display_name || user()?.username}>
-				{member()?.nick}
+			<Show when={name()} fallback={"unknown"} keyed>
+				{(n) => n}
+			</Show>
+			<Show when={props.roleIcon && iconRole()}>
+				{(r) => (
+					<span class="role-icon-container" use:tippy={{ content: () => r().name }}>
+						<Show when={r().icon} fallback={r().unicode_emoji}>
+							{(i) => <img class="role-icon" src={roleIconURL(iconRoleId()!, i(), 20)} alt={r.name} />}
+						</Show>
+					</span>
+				)}
 			</Show>
 		</span>
 	);

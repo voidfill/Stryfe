@@ -130,14 +130,18 @@ export default function ChannelIcon(props: { guildId: string; id: string; size: 
 		isLimited = createMemo(() => !PermissionsStore.hasBit(everyoneOverwrites(), permissions.VIEW_CHANNEL));
 
 	return (
-		<Show when={channel()} keyed>
+		<Show when={channel()}>
 			{(channel): JSX.Element => (
 				<ModifiedIcon
-					hasThreads={channel.type !== ChannelTypes.GUILD_FORUM && channel.type !== ChannelTypes.GUILD_MEDIA && hasThreads()}
+					hasThreads={channel().type !== ChannelTypes.GUILD_FORUM && channel().type !== ChannelTypes.GUILD_MEDIA && hasThreads()}
 					isLimited={isLimited()}
-					isNSFW={("nsfw" in channel && channel.nsfw) || false}
+					isNSFW={((): boolean => {
+						const c = channel();
+						if (!("nsfw" in c)) return false;
+						return c.nsfw || false;
+					})()}
 					size={props.size}
-					type={channel.type}
+					type={channel().type}
 				/>
 			)}
 		</Show>

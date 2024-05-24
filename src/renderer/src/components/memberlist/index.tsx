@@ -1,32 +1,27 @@
-import { useParams } from "@solidjs/router";
-import { createMemo, For, JSX, Show } from "solid-js";
+import { createMemo, For, JSX } from "solid-js";
 
 import MemberStore from "@stores/members";
 
 import Avatar from "../common/avatar";
+import { useLocationContext } from "../common/locationcontext";
 
 export default function MemberList(): JSX.Element {
-	const params = useParams();
-	const members = createMemo(() => MemberStore.getMembers(params.guildId));
+	const location = useLocationContext();
+	const members = createMemo(() => MemberStore.getMembers(location().guildId));
 
 	return (
 		<div class="member-list">
-			This is just for testing for now.
-			<Show when={members()} keyed>
-				{(m): JSX.Element => (
-					<For each={m}>
-						{(id): JSX.Element => {
-							const name = createMemo(() => MemberStore.getMember(params.guildId, id)?.nick);
-							return (
-								<div>
-									<Avatar size={32} guildId={params.guildId} userId={id} />
-									{id} {name()}
-								</div>
-							);
-						}}
-					</For>
-				)}
-			</Show>
+			<For each={members() ?? []}>
+				{(id): JSX.Element => {
+					const name = createMemo(() => MemberStore.getName(location().guildId, id));
+					return (
+						<div>
+							<Avatar size={32} guildId={location().guildId} userId={id} />
+							{name()}
+						</div>
+					);
+				}}
+			</For>
 		</div>
 	);
 }

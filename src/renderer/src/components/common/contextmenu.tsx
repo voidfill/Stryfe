@@ -93,6 +93,8 @@ function clamp(num: number, min: number, max: number): number {
 	return num <= min ? min : num >= max ? max : num;
 }
 
+// TODO: something is broken, only the first click works in a menu that stays open.
+
 function Menu(props: {
 	hide: () => void;
 	id: string;
@@ -207,100 +209,100 @@ function Menu(props: {
 								<Match when={item.type === "separator"}>
 									<div class="ctxmenu-separator" />
 								</Match>
-								<Match when={(!item.type || item.type === "text") && item} keyed>
+								<Match when={(!item.type || item.type === "text") && item}>
 									{(item): sJSX.Element => (
 										<div
 											id={id()}
 											classList={{
 												"ctxmenu-item": true,
-												[`color-${item.color ?? Colors.PRIMARY}`]: true,
-												disabled: item.disabled,
+												[`color-${item().color ?? Colors.PRIMARY}`]: true,
+												disabled: item().disabled,
 												selected: isSelected(),
 											}}
 											onClick={(e): void => {
 												e.stopPropagation();
 												e.preventDefault();
-												if (item.disabled) return;
-												item.action();
+												if (item().disabled) return;
+												item().action();
 												props.hide();
 											}}
 											onMouseEnter={(): void => {
-												if (item.disabled) return;
+												if (item().disabled) return;
 												props.selectedItem[1](id());
 											}}
 										>
 											<div class="ctx-text">
-												<span class="ctx-label">{item.label}</span>
-												<Show when={item.subText}>
-													<span class="ctx-subtext">{item.subText}</span>
+												<span class="ctx-label">{item().label}</span>
+												<Show when={item().subText}>
+													<span class="ctx-subtext">{item().subText}</span>
 												</Show>
 											</div>
 										</div>
 									)}
 								</Match>
-								<Match when={item.type === "icon" && item} keyed>
+								<Match when={item.type === "icon" && item}>
 									{(item): sJSX.Element => (
 										<div
 											id={id()}
 											classList={{
 												"ctxmenu-item": true,
-												[`color-${("color" in item && item.color) || Colors.PRIMARY}`]: true,
-												disabled: item.disabled,
+												[`color-${("color" in item() && item().color) || Colors.PRIMARY}`]: true,
+												disabled: item().disabled,
 												selected: isSelected(),
 											}}
 											onClick={(e): void => {
 												e.stopPropagation();
 												e.preventDefault();
-												if (item.disabled) return;
-												item.action();
+												if (item().disabled) return;
+												item().action();
 												props.hide();
 											}}
 											onMouseEnter={(): void => {
-												if (item.disabled) return;
+												if (item().disabled) return;
 												props.selectedItem[1](id());
 											}}
 										>
 											<div class="ctx-text">
-												<span class="ctx-label">{item.label}</span>
-												<Show when={item.subText}>
-													<span class="ctx-subtext">{item.subText}</span>
+												<span class="ctx-label">{item().label}</span>
+												<Show when={item().subText}>
+													<span class="ctx-subtext">{item().subText}</span>
 												</Show>
 											</div>
 											<div class="ctx-icon">
-												{item.icon({
+												{item().icon({
 													size: 18,
 												})}
 											</div>
 										</div>
 									)}
 								</Match>
-								<Match when={item.type === "switch" && item} keyed>
+								<Match when={item.type === "switch" && item}>
 									{(item): sJSX.Element => (
 										<div
 											id={id()}
 											classList={{
 												"ctxmenu-item": true,
-												[`color-${item.color ?? Colors.PRIMARY}`]: true,
+												[`color-${item().color ?? Colors.PRIMARY}`]: true,
 												selected: isSelected(),
 											}}
 											onClick={(e): void => {
 												e.stopPropagation();
 												e.preventDefault();
-												item.action();
+												item().action();
 											}}
 											onMouseEnter={(): void => props.selectedItem[1](id())}
 										>
 											<div class="ctx-text">
-												<span class="ctx-label">{item.label}</span>
-												<Show when={item.subText}>
-													<span class="ctx-subtext">{item.subText}</span>
+												<span class="ctx-label">{item().label}</span>
+												<Show when={item().subText}>
+													<span class="ctx-subtext">{item().subText}</span>
 												</Show>
 											</div>
-											<input class="ctx-checkbox" type="checkbox" checked={item.enabled()} />
+											<input class="ctx-checkbox" type="checkbox" checked={item().enabled()} />
 										</div>
 									)}
 								</Match>
-								<Match when={item.type === "submenu" && item} keyed>
+								<Match when={item.type === "submenu" && item}>
 									{(item): sJSX.Element => {
 										const isSelected = createMemo(() => props.selectedItem[0]().startsWith(id()));
 										let smRef: HTMLDivElement | undefined;
@@ -311,7 +313,7 @@ function Menu(props: {
 													id={id()}
 													classList={{
 														"ctxmenu-item": true,
-														[`color-${item.color ?? Colors.PRIMARY}`]: true,
+														[`color-${item().color ?? Colors.PRIMARY}`]: true,
 														selected: isSelected(),
 													}}
 													ref={smRef}
@@ -319,14 +321,14 @@ function Menu(props: {
 													onClick={(e): void => {
 														e.stopPropagation();
 														e.preventDefault();
-														item.action();
+														item().action();
 														props.hide();
 													}}
 												>
 													<div class="ctx-text">
-														<span class="ctx-label">{item.label}</span>
-														<Show when={item.subText}>
-															<span class="ctx-subtext">{item.subText}</span>
+														<span class="ctx-label">{item().label}</span>
+														<Show when={item().subText}>
+															<span class="ctx-subtext">{item().subText}</span>
 														</Show>
 													</div>
 													<div class="ctx-icon">
@@ -339,8 +341,8 @@ function Menu(props: {
 														ref={(): void => {}}
 														selectedItem={props.selectedItem}
 														id={id()}
-														menu={item.submenu}
-														searchable={item.searchable}
+														menu={item().submenu}
+														searchable={item().searchable}
 														parentRect={smRef!.getBoundingClientRect() as DOMRect}
 														onmouseenter={(): void => props.selectedItem[1](id())}
 														onmouseleave={(): void => props.selectedItem[1](props.id)}

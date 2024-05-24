@@ -220,4 +220,22 @@ export default new (class RolesStore extends Store {
 
 		return highest;
 	}
+
+	getHighestIconForMember(guildId: string, memberId: string): string | undefined {
+		const roles = this.getMemberRoles(guildId, memberId);
+		let highest: string | undefined,
+			rank = 0;
+
+		for (const role of roles ?? []) {
+			const r = this.getRole(role);
+			if (!(r?.icon || r?.unicode_emoji)) continue;
+			const roleRank = r?.position ?? 0;
+			if (roleRank > rank) {
+				rank = roleRank;
+				highest = role;
+			}
+		}
+
+		return highest;
+	}
 })();

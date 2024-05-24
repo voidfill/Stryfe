@@ -57,3 +57,7 @@ export function stickerURL(id: string, format: StickerFormatType, size: number, 
 			return `${mediaBaseURL}/stickers/${id}.gif?size=${size}`;
 	}
 }
+
+export function roleIconURL(id: string, hash: string, size: number): string {
+	return `${cdnBaseURL}/role-icons/${id}/${hash}.webp?size=${validSize(size)}&quality=lossless`;
+}

@@ -12,6 +12,7 @@ const MAX_HEIGHT = 350;
 
 export function maxDims(opts: { height?: number | null; width?: number | null }): { height: number; width: number } {
 	if (!opts.width || !opts.height) return { height: 0, width: 0 };
+	if (opts.width <= MAX_WIDTH && opts.height <= MAX_HEIGHT) return { height: opts.height, width: opts.width };
 	const ar = opts.width / opts.height;
 	if (ar > 1) {
 		const nw = Math.min(MAX_WIDTH, opts.width);

@@ -23,15 +23,14 @@ export default function Reply(props: { guildId?: string; id: string }): JSX.Elem
 						<div class="content">Failed to load message?</div>
 					</>
 				}
-				keyed
 			>
 				{(m) => {
 					const md = createMemo(() => parse(content(), { allowHeading: true, formatInline: true, inline: true, outputData: {} }));
 					return (
 						<>
 							<div class="reply-line" />
-							<Avatar size={16} userId={m.author_id} guildId={props.guildId} showStatus={ShowStatus.NEVER} />
-							<UserName guildId={props.guildId} id={m.author_id} color />
+							<Avatar size={16} userId={m().author_id} guildId={props.guildId} showStatus={ShowStatus.NEVER} />
+							<UserName guildId={props.guildId} id={m().author_id} color />
 							<div class="content md-format-inline">{md().element}</div>
 						</>
 					);

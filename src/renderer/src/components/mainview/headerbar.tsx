@@ -126,22 +126,27 @@ function Forum(props: { id: string }): JSX.Element {
 
 function TextOrVoice(props: { id: string }): JSX.Element {
 	const channel = createMemo(() => ChannelStore.getGuildChannel(props.id));
+	const topic = createMemo(() => {
+		const c = channel();
+		if (!c || !("topic" in c) || !c.topic) return "";
+		return c.topic;
+	});
+
 	return (
-		<Show when={channel()} keyed>
-			{(c): JSX.Element => {
-				const md = createMemo(() =>
-					parse("topic" in c ? c.topic || "" : "", { allowHeading: true, formatInline: true, inline: true, outputData: {} }),
-				);
-				return (
-					<>
-						<span class="channel-name">{c.name}</span>
-						<Show when={"topic" in c && c.topic?.length}>
+		<Show when={channel()}>
+			<>
+				<span class="channel-name">{channel()?.name}</span>
+				<Show when={topic()} keyed>
+					{(t) => (
+						<>
 							<div class="topic-divider" />
-							<div class="channel-topic md-format-inline">{md().element}</div>
-						</Show>
-					</>
-				);
-			}}
+							<div class="channel-topic md-format-inline">
+								{parse(t, { allowHeading: true, formatInline: true, inline: true, outputData: {} }).element}
+							</div>
+						</>
+					)}
+				</Show>
+			</>
 		</Show>
 	);
 }
