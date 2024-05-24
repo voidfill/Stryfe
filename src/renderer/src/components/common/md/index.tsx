@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
-
 import { Dynamic } from "solid-js/web";
 
 import attachmentlink from "./attachmentlink";
@@ -70,6 +68,7 @@ const rules: Record<string, Rule<any>> = {
 	}),
 	heading: r({
 		doesMatch: (source, state) => {
+			if (state.prevCapture && !state.prevCapture.endsWith("\n")) return null;
 			if (!state.allowHeading) return null;
 			const match = /^ *(#{1,3})(?:\s+)((?![#]+)[^\n]+?)#*\s*(?:\n|$)/.exec(source);
 			if (!match) return null;

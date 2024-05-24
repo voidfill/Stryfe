@@ -11,8 +11,10 @@ import { HoverAnimationDirective } from "../common/animationcontext";
 import Avatar, { ShowStatus } from "../common/avatar";
 import CustomStatus from "../common/customstatus";
 import { useLocationContext } from "../common/locationcontext";
+import OverflowTooltip from "../common/overflowtooltip";
 
 HoverAnimationDirective;
+OverflowTooltip;
 
 function PrivateChannel(props: { id: string }): JSX.Element {
 	let ref: HTMLAnchorElement;
@@ -29,7 +31,7 @@ function PrivateChannel(props: { id: string }): JSX.Element {
 	});
 
 	return (
-		// @ts-expect-error nuh uh
+		// @ts-expect-error ref
 		<A ref={ref} href={`/channels/@me/${props.id}`}>
 			<div
 				classList={{
@@ -46,7 +48,9 @@ function PrivateChannel(props: { id: string }): JSX.Element {
 					</Show>
 				</div>
 				<div class="channel-text">
-					<span class="channel-name">{channelName()}</span>
+					<span class="channel-name" use:OverflowTooltip={() => channelName()}>
+						{channelName()}
+					</span>
 					<Show when={channel().type === ChannelTypes.DM}>
 						<CustomStatus userId={channel().recipient_ids[0]} inline />
 					</Show>
@@ -70,7 +74,7 @@ export default function PrivateChannels(): JSX.Element {
 		<div
 			class="channels private-channels scroller scroller-thin scroller-hover-thumb"
 			ref={
-				// @ts-expect-error nuh uh
+				// @ts-expect-error ref
 				ref
 			}
 			onScroll={(): void => {

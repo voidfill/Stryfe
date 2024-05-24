@@ -1,8 +1,10 @@
 import { A } from "@solidjs/router";
 import { createMemo, JSX, Show } from "solid-js";
 
+import { HighlightLevel, NotificationLevel } from "@constants/schemata/settings";
+
 import GuildStore from "@stores/guilds";
-import SettingsStore, { HighlightLevel, NotificationLevel, notificationLevelToText } from "@stores/settings";
+import SettingsStore, { notificationLevelToText } from "@stores/settings";
 import UserStore from "@stores/users";
 
 import { tippy } from "@components/common/tooltip";

@@ -1,8 +1,11 @@
-import { createMemo, JSX } from "solid-js";
+import { createMemo, createSignal, JSX, Show } from "solid-js";
+
+import permissions from "@constants/permissions";
 
 import ChannelStore from "@stores/channels";
 
 import { useLocationContext } from "@components/common/locationcontext";
+import { usePermissionsContext } from "@components/common/permissionscontext";
 
 export default function TextArea(): JSX.Element {
 	const location = useLocationContext();
@@ -12,9 +15,27 @@ export default function TextArea(): JSX.Element {
 			: "#" + ChannelStore.getGuildChannel(location().channelId)?.name,
 	);
 
+	const pctx = usePermissionsContext();
+	const canSendMessages = createMemo(() => pctx().can(permissions.SEND_MESSAGES)); // TODO: check if in thread and can send messages in thread
+
+	const [content, setContent] = createSignal("");
+
 	return (
-		<div class="text-area">
-			<textarea placeholder={`Message ${channelName() ?? "#unknown-channel"}`} style={{ all: "unset" }} />
+		<div class="textarea">
+			<div class="textarea-container">
+				<Show when={canSendMessages()} fallback={<span>You do not have permission to send messages in this channel.</span>}>
+					<textarea
+						class="textarea-input"
+						contentEditable
+						role="textbox"
+						aria-multiline
+						spellcheck
+						onInput={(e): void => void setContent(e.target.textContent ?? "")}
+						placeholder={`Message ${channelName()}`}
+						value={content()}
+					/>
+				</Show>
+			</div>
 		</div>
 	);
 }

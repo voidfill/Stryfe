@@ -1,17 +1,17 @@
-import { Accessor, batch, createEffect, createSignal, Setter } from "solid-js";
+import { Accessor, batch, createSignal, Setter, untrack } from "solid-js";
 import { createStore, SetStoreFunction, Store, unwrap } from "solid-js/store";
 import { Output, safeParse, SchemaWithFallback } from "valibot";
 
-import { clear, entries, set } from "idb-keyval";
+import { clear, entries, get, set } from "idb-keyval";
 
 export default new (class PersistentStorage {
 	stored: Record<string, { schema: SchemaWithFallback; setter: Setter<any> | SetStoreFunction<any>; transform?: (v: any) => any }> = {};
-	isInitialized = false;
+	hasInitialized = false;
 
 	constructor() {
-		requestAnimationFrame(() => {
+		queueMicrotask(() => {
 			this.init();
-			this.isInitialized = true;
+			this.hasInitialized = true;
 		});
 	}
 
@@ -32,8 +32,13 @@ export default new (class PersistentStorage {
 		verifier: T,
 		transform?: (v: Output<T>) => Output<T>,
 	): [Store<Output<T>>, SetStoreFunction<Output<T>>] {
-		if (this.isInitialized) throw new Error("Cannot register store after initialization, please do it top-level");
 		const [store, s] = createStore(verifier.fallback);
+		if (this.hasInitialized) {
+			get(key).then((v) => {
+				const res = safeParse(verifier, v);
+				if (res.success) s(transform ? transform(res.output) : res.output);
+			});
+		}
 		this.stored[key] = { schema: verifier, setter: s, transform };
 
 		const updater = (...args: any[]): void => {
@@ -50,15 +55,23 @@ export default new (class PersistentStorage {
 		verifier: T,
 		transform?: (v: Output<T>) => Output<T>,
 	): [Accessor<Output<T>>, Setter<Output<T>>] {
-		if (this.isInitialized) throw new Error("Cannot register signal after initialization, please do it top-level");
 		const [g, s] = createSignal(verifier.fallback);
+		if (this.hasInitialized) {
+			get(key).then((v) => {
+				const res = safeParse(verifier, v);
+				if (res.success) s(transform ? transform(res.output) : res.output);
+			});
+		}
 		this.stored[key] = { schema: verifier, setter: s, transform };
 
-		createEffect(() => {
-			set(key, g());
-		});
+		const updater = (...args: any[]): any => {
+			// @ts-expect-error what even
+			const res = s(...args);
+			set(key, untrack(g));
+			return res;
+		};
 
-		return [g, s];
+		return [g, updater as typeof s];
 	}
 
 	clear = clear;

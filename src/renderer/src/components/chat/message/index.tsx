@@ -1,12 +1,10 @@
 import { createMemo, For, JSX, Match, Show, Switch } from "solid-js";
-import { boolean, fallback } from "valibot";
 
 import { MessageType } from "@constants/message";
 
 import { extractTimeStamp } from "@modules/unix";
 
 import MessageStore from "@stores/messages";
-import Persistent from "@stores/persistent";
 import SettingsStore from "@stores/settings";
 
 import { HoverAnimationDirective, NoAnimationDirective } from "@components/common/animationcontext";
@@ -16,7 +14,7 @@ import { parse } from "@components/common/md";
 import tippy from "@components/common/tooltip";
 import UserName from "@components/common/username";
 
-import { Attachments } from "./attachment";
+import { Attachment } from "./attachment";
 import Divider from "./divider";
 import Embed from "./embed";
 import Reply from "./reply";
@@ -24,12 +22,13 @@ import Sticker from "./sticker";
 
 import "./style.scss";
 
+import { showAvatarsInCompact } from "@renderer/signals";
+
 NoAnimationDirective;
 HoverAnimationDirective;
 tippy;
 
 const isCompact = createMemo(() => SettingsStore.preloadedSettings.textAndImages?.messageDisplayCompact?.value ?? false);
-export const [showAvatarsInCompact, setShowAvatarsInCompact] = Persistent.registerSignal("showAvatarsInCompact", fallback(boolean(), true));
 
 export default function Message(props: { id: string; prevId?: string }): JSX.Element {
 	const location = useLocationContext();
@@ -122,19 +121,13 @@ export default function Message(props: { id: string; prevId?: string }): JSX.Ele
 													</Show>
 												</Show>
 												<span class="message-content">{md().element}</span>
-												<Attachments messageId={props.id} />
-												<Show when={msg.embeds}>
-													<div class="message-embeds">
-														<For each={msg.embeds}>
-															{(e): JSX.Element => <Embed embed={e} spoilers={md().outputData.spoilers ?? {}} />}
-														</For>
-													</div>
-												</Show>
-												<Show when={msg.sticker_items}>
-													<div class="message-stickers">
-														<For each={msg.sticker_items}>{Sticker}</For>
-													</div>
-												</Show>
+												<div classList={{ "message-accessories": true, [`message-accesories-${props.id}`]: true }}>
+													<For each={msg.attachments ?? []}>{Attachment}</For>
+													<For each={msg.embeds ?? []}>
+														{(e): JSX.Element => <Embed embed={e} spoilers={md().outputData.spoilers ?? {}} />}
+													</For>
+													<For each={msg.sticker_items ?? []}>{Sticker}</For>
+												</div>
 											</div>
 										</div>
 									</Match>

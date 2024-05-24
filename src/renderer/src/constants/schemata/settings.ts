@@ -1,9 +1,25 @@
 import { array, boolean, nullable, number, object, string } from "valibot";
 
-import { HighlightLevel, NotificationLevel, UserSettingsType } from "@stores/settings";
-
 import { equalArray } from "./common";
 
+export const enum UserSettingsType {
+	PRELOADED_USER_SETTINGS = 1,
+	FRECENCY_AND_FAVORITES_SETTINGS = 2,
+	TEST_SETTINGS = 3, // explode
+}
+
+export const enum NotificationLevel {
+	ALL_MESSAGES = 0,
+	ONLY_MENTIONS = 1,
+	NOTHING = 2,
+	PARENT_DEFAULT = 3,
+}
+
+export const enum HighlightLevel {
+	DEFAULT = 0,
+	DISABLED = 1,
+	ENABLED = 2,
+}
 const nl = equalArray([
 	NotificationLevel.ALL_MESSAGES,
 	NotificationLevel.ONLY_MENTIONS,

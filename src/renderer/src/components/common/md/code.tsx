@@ -33,7 +33,7 @@ export const codeblock = ruleTypeGuard({
 					<pre>
 						<code
 							ref={
-								// @ts-expect-error no
+								// @ts-expect-error ref
 								ref
 							}
 						>

@@ -74,36 +74,34 @@ function computeChannelPermissions(guildId: string, channelId: string, memberId:
 export default new (class PermissionsStore extends Store {
 	constructor() {
 		super({
-			// @ts-expect-error i am way too lazy to properly type narrow this and i check for existence anyways
-			CHANNEL_CREATE: ({ id, permission_overwrites }) => {
-				if (!permission_overwrites) return;
+			CHANNEL_CREATE: (channel) => {
+				if (!("permission_overwrites" in channel && channel.permission_overwrites)) return;
 
 				const o: (typeof overwrites)[string] = {};
-				for (const overwrite of permission_overwrites) {
+				for (const overwrite of channel.permission_overwrites) {
 					o[overwrite.id] = {
 						allow: BigInt(overwrite.allow),
 						deny: BigInt(overwrite.deny),
 						type: overwrite.type,
 					};
 				}
-				setOverwrites(id, o);
+				setOverwrites(channel.id, o);
 			},
 			CHANNEL_DELETE: ({ id }) => {
 				setOverwrites(produce((o) => delete o[id]));
 			},
-			// @ts-expect-error same as above
-			CHANNEL_UPDATE: ({ id, permission_overwrites }) => {
-				if (!permission_overwrites) return;
+			CHANNEL_UPDATE: (channel) => {
+				if (!("permission_overwrites" in channel && channel.permission_overwrites)) return;
 
 				const o: (typeof overwrites)[string] = {};
-				for (const overwrite of permission_overwrites) {
+				for (const overwrite of channel.permission_overwrites) {
 					o[overwrite.id] = {
 						allow: BigInt(overwrite.allow),
 						deny: BigInt(overwrite.deny),
 						type: overwrite.type,
 					};
 				}
-				setOverwrites(id, o);
+				setOverwrites(channel.id, o);
 			},
 			GUILD_CREATE: (guild) => {
 				if (guild.unavailable) return;

@@ -15,8 +15,9 @@ export const [lastSelectedChannels, setLastSelectedChannels] = Persistent.regist
 );
 
 export const [showMembers, setShowMembers] = Persistent.registerSignal("showMembers", fallback(boolean(), true));
-export const [showUserProfile, setShowUserProfile] = Persistent.registerSignal("showUserProfile", fallback(boolean(), true));
+export const [showDMUserProfile, setShowDMUserProfile] = Persistent.registerSignal("showDMUserProfile", fallback(boolean(), true));
 export const [showHelp, setShowHelp] = Persistent.registerSignal("showHelp", fallback(boolean(), true));
+export const [showAvatarsInCompact, setShowAvatarsInCompact] = Persistent.registerSignal("showAvatarsInCompact", fallback(boolean(), true));
 
 export enum FriendsTabs {
 	ONLINE,

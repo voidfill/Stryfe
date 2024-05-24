@@ -20,7 +20,7 @@ import "./style.scss";
 
 import shiggy from "@resources/shiggy.gif";
 
-import { lastSelectedChannels, setLastSelectedChannels, setWindowTitle, showMembers, showUserProfile } from "@renderer/signals";
+import { lastSelectedChannels, setLastSelectedChannels, setWindowTitle, showDMUserProfile, showMembers } from "@renderer/signals";
 
 export default function MainView(): JSX.Element {
 	const params = useParams(),
@@ -114,7 +114,7 @@ export default function MainView(): JSX.Element {
 												<Show when={showMembers() && params.channelId && currChannel()?.type !== ChannelTypes.DM}>
 													<span>Members</span>
 												</Show>
-												<Show when={showUserProfile() && currChannel()?.type === ChannelTypes.DM}>
+												<Show when={showDMUserProfile() && currChannel()?.type === ChannelTypes.DM}>
 													<span>DM User Profile</span>
 												</Show>
 											</>

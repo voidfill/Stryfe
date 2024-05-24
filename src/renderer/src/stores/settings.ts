@@ -3,6 +3,7 @@ import { createStore, produce } from "solid-js/store";
 import { Output } from "valibot";
 
 import { channel_override, guild_settings_entry } from "@constants/schemata/settings";
+import { HighlightLevel, NotificationLevel, UserSettingsType } from "@constants/schemata/settings";
 
 import Api from "@modules/api";
 
@@ -10,25 +11,6 @@ import Store from ".";
 import ChannelStore from "./channels";
 
 import { FrecencyUserSettings, PreloadedUserSettings } from "discord-protos";
-
-export const enum UserSettingsType {
-	PRELOADED_USER_SETTINGS = 1,
-	FRECENCY_AND_FAVORITES_SETTINGS = 2,
-	TEST_SETTINGS = 3, // explode
-}
-
-export const enum NotificationLevel {
-	ALL_MESSAGES = 0,
-	ONLY_MENTIONS = 1,
-	NOTHING = 2,
-	PARENT_DEFAULT = 3,
-}
-
-export const enum HighlightLevel {
-	DEFAULT = 0,
-	DISABLED = 1,
-	ENABLED = 2,
-}
 
 export function notificationLevelToText(level: NotificationLevel, isTopLevel?: boolean): string {
 	switch (level) {

@@ -6,6 +6,7 @@ import ChannelStore from "@stores/channels";
 import UserStore from "@stores/users";
 
 import tippy from "@components/common/tooltip";
+import { FaSolidCircleUser } from "solid-icons/fa";
 import { FiHelpCircle, FiUsers } from "solid-icons/fi";
 
 import Avatar, { ShowStatus } from "../common/avatar";
@@ -15,7 +16,16 @@ import { parse } from "../common/md";
 
 import "./headerbar.scss";
 
-import { friendsTab, FriendsTabs, setFriendsTab, showHelp } from "@renderer/signals";
+import {
+	friendsTab,
+	FriendsTabs,
+	setFriendsTab,
+	setShowDMUserProfile,
+	setShowMembers,
+	showDMUserProfile,
+	showHelp,
+	showMembers,
+} from "@renderer/signals";
 
 tippy;
 
@@ -119,8 +129,9 @@ function TextOrVoice(props: { id: string }): JSX.Element {
 	return (
 		<Show when={channel()} keyed>
 			{(c): JSX.Element => {
-				// @ts-expect-error yes this property might not exist but we or it so its fine
-				const md = createMemo(() => parse(c.topic || "", { allowHeading: true, formatInline: true, inline: true }));
+				const md = createMemo(() =>
+					parse("topic" in c ? c.topic || "" : "", { allowHeading: true, formatInline: true, inline: true, outputData: {} }),
+				);
 				return (
 					<>
 						<span class="channel-name">{c.name}</span>
@@ -170,6 +181,28 @@ export default function HeaderBar(): JSX.Element {
 				</Show>
 			</div>
 			<div class="right">
+				<Show when={type() !== undefined && type() !== ChannelTypes.DM}>
+					<button
+						classList={{
+							active: showMembers(),
+							"members-button": true,
+						}}
+						onClick={() => setShowMembers((p): boolean => !p)}
+					>
+						<FiUsers class="icon" size={24} />
+					</button>
+				</Show>
+				<Show when={type() === ChannelTypes.DM}>
+					<button
+						classList={{
+							active: showDMUserProfile(),
+							"dm-user-profile-button": true,
+						}}
+						onClick={() => setShowDMUserProfile((p): boolean => !p)}
+					>
+						<FaSolidCircleUser class="icon" size={24} />
+					</button>
+				</Show>
 				<Show when={location().channelId}>
 					<span>Search</span>
 				</Show>

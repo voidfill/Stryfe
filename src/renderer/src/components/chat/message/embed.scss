@@ -1,0 +1,23 @@
+.message-embed {
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	max-width: 516px;
+	padding: 0.5rem 1rem 1rem 0.75rem;
+	border-color: var(--background-quaternary);
+	border-left-width: 4px;
+	border-left-style: solid;
+	border-radius: 4px;
+	background-color: var(--background-tertiary);
+
+	.embed-author {
+		> img {
+			border-radius: 50%;
+			margin-right: 0.5rem;
+		}
+	}
+}
+
+.message-embed-container {
+	display: flex;
+}

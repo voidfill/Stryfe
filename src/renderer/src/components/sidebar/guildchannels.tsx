@@ -3,11 +3,12 @@ import { Accessor, createEffect, createMemo, For, JSX, onCleanup, Show, untrack 
 
 import { ChannelTypes } from "@constants/channel";
 import permissions from "@constants/permissions";
+import { NotificationLevel } from "@constants/schemata/settings";
 
 import ChannelStore from "@stores/channels";
 import GuildStore from "@stores/guilds";
 import MemberStore from "@stores/members";
-import SettingsStore, { NotificationLevel, notificationLevelToText } from "@stores/settings";
+import SettingsStore, { notificationLevelToText } from "@stores/settings";
 import UserStore from "@stores/users";
 import VoiceStateStore from "@stores/voicestates";
 
@@ -15,13 +16,17 @@ import { FaSolidChevronDown } from "solid-icons/fa";
 import { TbMicrophoneOff } from "solid-icons/tb";
 import { TbHeadphonesOff } from "solid-icons/tb";
 
+import { HoverAnimationDirective } from "../common/animationcontext";
 import Avatar, { ShowStatus } from "../common/avatar";
 import ChannelIcon from "../common/channelicon";
 import { ContextmenuDirective, Id, menuItem, Optional, Separator } from "../common/contextmenu";
 import { useLocationContext } from "../common/locationcontext";
+import OverflowTooltip from "../common/overflowtooltip";
 import { usePermissionsContext } from "../common/permissionscontext";
 
 ContextmenuDirective;
+HoverAnimationDirective;
+OverflowTooltip;
 
 const refMap = new Map<string, any>();
 
@@ -168,7 +173,9 @@ function TextChannel(props: { id: string; isCollapsed: Accessor<boolean>; parent
 						<div class="channel-icon">
 							<ChannelIcon guildId={params.guildId} id={props.id} size={20} />
 						</div>
-						<span class="channel-name">{channel.name}</span>
+						<span class="channel-name" use:OverflowTooltip={() => channel.name}>
+							{channel.name}
+						</span>
 					</div>
 				</A>
 			)}
@@ -184,7 +191,7 @@ function VoiceCard(props: { sessionId: string }): JSX.Element {
 	return (
 		<Show when={voiceState()} keyed>
 			{(vs): JSX.Element => (
-				<div classList={{ "voice-card": true, [`voice-user-id-${vs.user_id}`]: true }}>
+				<div classList={{ "voice-card": true, [`voice-user-id-${vs.user_id}`]: true }} use:HoverAnimationDirective>
 					<Avatar userId={vs.user_id} guildId={vs.guild_id ?? undefined} size={24} showStatus={ShowStatus.NEVER} />
 					<span class="username">
 						<Show when={member() && member()?.nick} fallback={user()?.display_name || user()?.username}>
@@ -279,7 +286,9 @@ function VoiceChannel(props: { id: string; isCollapsed: Accessor<boolean> }): JS
 							<div class="channel-icon">
 								<ChannelIcon guildId={params.guildId} id={props.id} size={20} />
 							</div>
-							<span class="channel-name">{channel.name}</span>
+							<span class="channel-name" use:OverflowTooltip={() => channel.name}>
+								{channel.name}
+							</span>
 						</div>
 					</A>
 					<Show when={channel.type === ChannelTypes.GUILD_VOICE}>
@@ -364,7 +373,9 @@ function Category(props: { id: string; other: string[]; voice: string[] }): JSX.
 						<div class="channel-icon">
 							<FaSolidChevronDown size={12} />
 						</div>
-						<span class="channel-name">{category.name}</span>
+						<span class="channel-name" use:OverflowTooltip={() => category.name}>
+							{category.name}
+						</span>
 					</div>
 					<For each={props.other}>
 						{(id): JSX.Element => <TextChannel id={/*@once*/ id} parentId={/*@once*/ props.id} isCollapsed={isCollapsed} />}
@@ -404,7 +415,7 @@ export default function GuildChannels(): JSX.Element {
 			<div
 				class="channels guild-channels scroller scroller-thin scroller-hover-thumb"
 				ref={
-					// @ts-expect-error nuh uh
+					// @ts-expect-error ref
 					ref
 				}
 				onScroll={(): void => {

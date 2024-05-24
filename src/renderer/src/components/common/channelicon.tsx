@@ -91,6 +91,9 @@ export function ModifiedIcon(props: { hasThreads: boolean; isLimited: boolean; i
 			use:tippy={{
 				content: () =>
 					channelTypeToText(props.type) + (props.isLimited || props.isNSFW ? ` (${props.isNSFW ? "Age-Restricted" : "Limited"})` : ""),
+				props: {
+					delay: [300, 0],
+				},
 			}}
 		>
 			<foreignObject

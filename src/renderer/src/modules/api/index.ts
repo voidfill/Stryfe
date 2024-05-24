@@ -5,7 +5,7 @@ import { genericMessage } from "@constants/schemata/message";
 import Dispatcher from "@modules/dispatcher";
 import { Logger } from "@modules/logger";
 
-import { UserSettingsType } from "@stores/settings";
+import { UserSettingsType } from "@renderer/constants/schemata/settings";
 
 const logger = new Logger("API", "red");
 const API_VERSION = 9;

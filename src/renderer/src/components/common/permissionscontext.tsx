@@ -30,7 +30,7 @@ export function CurrentPermissionProvider(props: ParentProps): JSX.Element {
 
 	const v = createMemo(() => ({
 		can: (check: bigint, channelId?: string): boolean => {
-			if (isOwner() || hasBit(basePermissions(), Permissions.ADMINISTRATOR)) return true;
+			if (location().guildId === "@me" || isOwner() || hasBit(basePermissions(), Permissions.ADMINISTRATOR)) return true;
 			if (channelId && channelId !== location().channelId)
 				return PermissionsStore.canIgnoreAdmin({
 					basePermissions: basePermissions(),
