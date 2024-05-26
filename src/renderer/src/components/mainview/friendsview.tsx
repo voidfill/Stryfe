@@ -15,7 +15,7 @@ import { IoChatbubbleEllipsesSharp } from "solid-icons/io";
 
 import { HoverAnimationDirective } from "../common/animationcontext";
 import Avatar, { ShowStatus } from "../common/avatar";
-import { Colors, ContextmenuDirective } from "../common/contextmenu";
+import { Colors, ContextmenuDirective, Item } from "../common/contextmenu";
 import CustomStatus from "../common/customstatus";
 import tippy from "../common/tooltip";
 
@@ -62,22 +62,11 @@ function FriendItem(props: { id: string }): JSX.Element {
 					<div
 						use:HoverAnimationDirective
 						use:ContextmenuDirective={{
-							menu: () => [
-								{
-									action: () => void 0,
-									label: "Profile",
-									type: "text",
-								},
-								{
-									action: (): void => {
-										const id = untrack((): string | undefined => ChannelStore.getDMForUser(props.id));
-										if (!id) return; // TODO: create dm, transition to it
-										return void navigate(`/channels/@me/${id}?jump=true`);
-									},
-									label: "Message",
-									type: "text",
-								},
-							],
+							menu: () => (
+								<>
+									<Item label="TODO: menu" />
+								</>
+							),
 						}}
 						class="friend-item"
 						onClick={(): void => {
@@ -129,15 +118,8 @@ function FriendItem(props: { id: string }): JSX.Element {
 									</button>
 									<button
 										use:ContextmenuDirective={{
-											menu: () => [
-												{
-													action: () => void 0,
-													color: Colors.RED,
-													label: "Remove Friend",
-													type: "text",
-												},
-											],
-											showOn: "click",
+											menu: () => <Item label="Remove Friend" color={Colors.RED} />,
+											on: "click",
 										}}
 										use:tippy={{ content: () => "More" }}
 										class="friend-button"

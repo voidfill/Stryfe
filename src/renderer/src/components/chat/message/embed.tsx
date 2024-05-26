@@ -4,8 +4,7 @@ import { Output } from "valibot";
 
 import _embed from "@constants/schemata/message/embed";
 
-import { Spoiler } from "./attachment";
-import { maxDims } from "./attachment";
+import { maxDims, Spoiler } from "./attachment";
 
 import "./embed.scss";
 

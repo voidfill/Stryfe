@@ -1,35 +1,27 @@
 import {
-	type Accessor,
+	Accessor,
+	createContext,
 	createEffect,
 	createMemo,
 	createRenderEffect,
+	createSelector,
 	createSignal,
 	For,
-	Match,
+	JSX,
 	onCleanup,
 	onMount,
 	Show,
-	Switch,
 	untrack,
+	useContext,
 } from "solid-js";
-import { type JSX as sJSX } from "solid-js/jsx-runtime";
+import { createStore, produce } from "solid-js/store";
+import { ReactiveMap } from "@solid-primitives/map";
 
-import { addLayer, removeLayer } from "@modules/layers";
-
-import { BiSolidCopyAlt } from "solid-icons/bi";
 import { FaSolidChevronRight } from "solid-icons/fa";
 
 import "./contextmenu.scss";
 
-declare module "solid-js" {
-	namespace JSX {
-		interface Directives {
-			ContextmenuDirective: contextmenuProps;
-		}
-	}
-}
-
-const ctxmenuPadding = 8;
+import { addLayer, removeLayer } from "@renderer/modules/layers";
 
 export enum Colors {
 	PRIMARY = "primary",
@@ -38,438 +30,523 @@ export enum Colors {
 	YELLOW = "yellow",
 }
 
-export type menuItem =
-	| ({
-			action: () => void;
-			color?: Colors;
-			label: string;
-			subText?: string;
-	  } & (
-			| {
-					disabled?: boolean;
-					type?: "text";
-			  }
-			| {
-					disabled?: boolean;
-					icon: (props: { size: number }) => sJSX.Element;
-					type: "icon";
-			  }
-			| {
-					searchable?: boolean;
-					submenu: menuItem[];
-					type: "submenu";
-			  }
-			| {
-					enabled: Accessor<boolean>;
-					type: "switch";
-			  }
-	  ))
-	| {
-			type: "separator";
-	  };
+const ctxmenuPadding = 8;
 
-export const Separator: menuItem = {
-	type: "separator",
+const getUniqueId = (() => {
+	let id = 0n;
+	return (): string => `ctx-${id++}`;
+})();
+
+const searchTerms = new ReactiveMap<string, string>();
+const refMap = new ReactiveMap<string, Element>();
+const parentMap = new Map<string, string>();
+
+type context = {
+	get: () => string;
+	hide: () => void;
+	is: (id: string) => boolean;
+	off: (id: string) => void;
+	on: (id: string) => void;
 };
 
-export const Id = (id: string, name: string): menuItem => ({
-	action: () => navigator.clipboard.writeText(id),
-	icon: BiSolidCopyAlt,
-	label: name,
-	type: "icon",
-});
-
-export function Optional(condition: any, element: menuItem | menuItem[]): menuItem[] {
-	return condition ? (Array.isArray(element) ? element : [element]) : [];
-}
-
-type contextmenuProps = {
-	menu: () => menuItem[];
-	searchable?: boolean;
-	showOn?: "contextmenu" | "click";
+type genericProps = {
+	action?: () => boolean | void; // return a truthy value to keep the menu open
+	color?: Colors;
+	disabled?: boolean;
+	icon?: ((props: { size: number }) => JSX.Element) | JSX.Element;
+	label: string;
+	subText?: string;
 };
+
+type parentRect = {
+	height: number;
+	width: number;
+	x: number;
+	y: number;
+};
+
+const menuContext = createContext<context>({ get: () => "", hide: () => {}, is: () => false, off: () => {}, on: () => {} });
 
 function clamp(num: number, min: number, max: number): number {
 	return num <= min ? min : num >= max ? max : num;
 }
 
-// TODO: something is broken, only the first click works in a menu that stays open.
-
-function Menu(props: {
-	hide: () => void;
-	id: string;
-	isSubmenu?: boolean;
-	menu: menuItem[];
-	onmouseenter: () => void;
-	onmouseleave: () => void;
-	parentRect: DOMRect;
-	ref: (e: HTMLDivElement) => void;
-	searchable?: boolean;
-	selectedItem: [Accessor<string>, (next: string) => void];
-}): sJSX.Element {
-	let mref: HTMLDivElement | undefined;
+function Wrapper(props: { children: JSX.Element; for: string; parentRect: parentRect; ref?: (r: Element) => void; toplevel: boolean }): JSX.Element {
+	let ref: HTMLElement | undefined;
 	const [x, setX] = createSignal(0);
 	const [y, setY] = createSignal(0);
 
 	onMount(() => {
-		setY(clamp(props.parentRect.y, 0, window.innerHeight - mref!.offsetHeight - ctxmenuPadding));
-		if (props.parentRect.x + props.parentRect.width + mref!.offsetWidth > window.innerWidth - ctxmenuPadding) {
-			setX(
-				clamp(
-					props.parentRect.x - mref!.offsetWidth + (props.isSubmenu ? ctxmenuPadding * -0.5 : 0),
-					0,
-					window.innerWidth - mref!.offsetWidth - ctxmenuPadding,
-				),
-			);
+		setY(clamp(props.parentRect.y, 0, window.innerHeight - ref!.offsetHeight - ctxmenuPadding));
+		if (props.parentRect.x + props.parentRect.width + ref!.offsetWidth > window.innerWidth - ctxmenuPadding) {
+			setX(clamp(props.parentRect.x - ref!.offsetWidth, 0, window.innerWidth - ref!.offsetWidth - ctxmenuPadding));
 		} else {
-			setX(
-				clamp(
-					props.parentRect.x + props.parentRect.width + (props.isSubmenu ? ctxmenuPadding * 0.5 : 0),
-					0,
-					window.innerWidth - mref!.offsetWidth - ctxmenuPadding,
-				),
-			);
+			setX(clamp(props.parentRect.x + props.parentRect.width, 0, window.innerWidth - ref!.offsetWidth - ctxmenuPadding));
 		}
-
-		createEffect(() => {
-			if (props.searchable && props.selectedItem[0]() === searchRef?.id) {
-				searchRef?.focus();
-			}
-		});
-	});
-
-	let searchRef: HTMLInputElement | undefined;
-	const [search, setSearch] = createSignal("");
-	const lower = createMemo(() => search().toLowerCase());
-
-	onCleanup(() => {
-		searchRef?.blur();
-	});
-
-	const each = createMemo(() => {
-		if (lower() && props.searchable)
-			return props.menu.filter((e) => {
-				if (e.type === "separator") return false;
-				return e.label.toLowerCase().includes(lower());
-			});
-		return props.menu;
 	});
 
 	return (
 		<div
-			ref={(e): void => {
-				mref = e;
-				props.ref(e);
+			ref={(r) => {
+				ref = r;
+				props.ref?.(r);
 			}}
-			classList={{
-				ctxmenu: true,
-				submenu: props.isSubmenu,
-			}}
+			classList={{ "ctx-toplevel": props.toplevel, "ctx-wrapper": true }}
 			style={{
-				"--padding": `${ctxmenuPadding}px`,
 				left: `${x()}px`,
-				position: "fixed",
 				top: `${y()}px`,
 			}}
-			// eslint-disable-next-line solid/reactivity
-			onMouseEnter={/* @once */ props.onmouseenter}
-			// eslint-disable-next-line solid/reactivity
-			onMouseLeave={/* @once */ props.onmouseleave}
+			data-wrapper-for={props.for}
 		>
-			<div class="ctxmenu-bg scroller scroller-thin scroller scroller-hover-thumb">
-				<Show when={props.searchable}>
-					<input
-						id={props.id + "-search"}
-						type="text"
-						ref={searchRef}
-						value={search()}
-						onInput={(e): void => {
-							props.selectedItem[1](props.id);
-							setSearch(e.currentTarget.value);
-						}}
-						onMouseEnter={(): void => {
-							props.selectedItem[1](props.id);
-							searchRef?.focus();
-						}}
-						onMouseLeave={(): void => {
-							props.selectedItem[1](props.id);
-							searchRef?.blur();
-						}}
-					/>
-					<div class="ctxmenu-separator" />
-				</Show>
-
-				<For each={each()}>
-					{(item, i): sJSX.Element => {
-						const id = createMemo(() => `${props.id}-${i()}`);
-						const isSelected = createMemo(() => props.selectedItem[0]() === id());
-
-						return (
-							<Switch>
-								<Match when={item.type === "separator"}>
-									<div class="ctxmenu-separator" />
-								</Match>
-								<Match when={(!item.type || item.type === "text") && item}>
-									{(item): sJSX.Element => (
-										<div
-											id={id()}
-											classList={{
-												"ctxmenu-item": true,
-												[`color-${item().color ?? Colors.PRIMARY}`]: true,
-												disabled: item().disabled,
-												selected: isSelected(),
-											}}
-											onClick={(e): void => {
-												e.stopPropagation();
-												e.preventDefault();
-												if (item().disabled) return;
-												item().action();
-												props.hide();
-											}}
-											onMouseEnter={(): void => {
-												if (item().disabled) return;
-												props.selectedItem[1](id());
-											}}
-										>
-											<div class="ctx-text">
-												<span class="ctx-label">{item().label}</span>
-												<Show when={item().subText}>
-													<span class="ctx-subtext">{item().subText}</span>
-												</Show>
-											</div>
-										</div>
-									)}
-								</Match>
-								<Match when={item.type === "icon" && item}>
-									{(item): sJSX.Element => (
-										<div
-											id={id()}
-											classList={{
-												"ctxmenu-item": true,
-												[`color-${("color" in item() && item().color) || Colors.PRIMARY}`]: true,
-												disabled: item().disabled,
-												selected: isSelected(),
-											}}
-											onClick={(e): void => {
-												e.stopPropagation();
-												e.preventDefault();
-												if (item().disabled) return;
-												item().action();
-												props.hide();
-											}}
-											onMouseEnter={(): void => {
-												if (item().disabled) return;
-												props.selectedItem[1](id());
-											}}
-										>
-											<div class="ctx-text">
-												<span class="ctx-label">{item().label}</span>
-												<Show when={item().subText}>
-													<span class="ctx-subtext">{item().subText}</span>
-												</Show>
-											</div>
-											<div class="ctx-icon">
-												{item().icon({
-													size: 18,
-												})}
-											</div>
-										</div>
-									)}
-								</Match>
-								<Match when={item.type === "switch" && item}>
-									{(item): sJSX.Element => (
-										<div
-											id={id()}
-											classList={{
-												"ctxmenu-item": true,
-												[`color-${item().color ?? Colors.PRIMARY}`]: true,
-												selected: isSelected(),
-											}}
-											onClick={(e): void => {
-												e.stopPropagation();
-												e.preventDefault();
-												item().action();
-											}}
-											onMouseEnter={(): void => props.selectedItem[1](id())}
-										>
-											<div class="ctx-text">
-												<span class="ctx-label">{item().label}</span>
-												<Show when={item().subText}>
-													<span class="ctx-subtext">{item().subText}</span>
-												</Show>
-											</div>
-											<input class="ctx-checkbox" type="checkbox" checked={item().enabled()} />
-										</div>
-									)}
-								</Match>
-								<Match when={item.type === "submenu" && item}>
-									{(item): sJSX.Element => {
-										const isSelected = createMemo(() => props.selectedItem[0]().startsWith(id()));
-										let smRef: HTMLDivElement | undefined;
-
-										return (
-											<>
-												<div
-													id={id()}
-													classList={{
-														"ctxmenu-item": true,
-														[`color-${item().color ?? Colors.PRIMARY}`]: true,
-														selected: isSelected(),
-													}}
-													ref={smRef}
-													onMouseEnter={(): void => props.selectedItem[1](id())}
-													onClick={(e): void => {
-														e.stopPropagation();
-														e.preventDefault();
-														item().action();
-														props.hide();
-													}}
-												>
-													<div class="ctx-text">
-														<span class="ctx-label">{item().label}</span>
-														<Show when={item().subText}>
-															<span class="ctx-subtext">{item().subText}</span>
-														</Show>
-													</div>
-													<div class="ctx-icon">
-														<FaSolidChevronRight size={12} />
-													</div>
-												</div>
-												<Show when={isSelected()}>
-													<Menu
-														hide={props.hide}
-														ref={(): void => {}}
-														selectedItem={props.selectedItem}
-														id={id()}
-														menu={item().submenu}
-														searchable={item().searchable}
-														parentRect={smRef!.getBoundingClientRect() as DOMRect}
-														onmouseenter={(): void => props.selectedItem[1](id())}
-														onmouseleave={(): void => props.selectedItem[1](props.id)}
-														isSubmenu
-													/>
-												</Show>
-											</>
-										);
-									}}
-								</Match>
-							</Switch>
-						);
-					}}
-				</For>
+			<div class="ctx-wrapper-inner" data-wrapper-for={props.for}>
+				{props.children}
 			</div>
 		</div>
 	);
 }
 
-export function ContextmenuDirective(element: Element, value: Accessor<contextmenuProps>): void {
+function Search(props: { for: string }): JSX.Element {
+	const { is, off, on } = useContext(menuContext);
+	const [r, sr] = createSignal<HTMLInputElement | undefined>(undefined);
+	const selfId = createMemo(() => props.for + "-search");
+
+	onMount(() => {
+		parentMap.set(selfId(), props.for);
+
+		createEffect(() => {
+			if (!r()) return;
+			if (is(selfId())) r()!.focus();
+			else r()!.blur();
+		});
+	});
+
+	onCleanup(() => {
+		searchTerms.delete(props.for);
+		refMap.delete(selfId());
+		off(selfId());
+		parentMap.delete(selfId());
+	});
+
+	return (
+		<input
+			classList={{ "ctx-search": true, selected: is(selfId()) }}
+			id={selfId()}
+			ref={(r) => {
+				sr(r);
+				refMap.set(selfId(), r);
+			}}
+			onInput={(e) => searchTerms.set(props.for, e.currentTarget.value.trim().toLowerCase())}
+			onMouseEnter={() => on(selfId())}
+			onMouseLeave={() => off(selfId())}
+		/>
+	);
+}
+
+function MenuItem(
+	props: genericProps & {
+		id: string;
+		ref?: (r: Element) => void;
+		subMenu?: boolean;
+		subMenuItems?: JSX.Element;
+	},
+): JSX.Element {
+	const { off, on, is, get, hide } = useContext(menuContext);
+
+	const [r, sr] = createSignal<Element | undefined>(undefined);
+	const [parentId, setParentId] = createSignal<string | undefined>(undefined);
+	const isVisible = createMemo(() => {
+		const parent = parentId();
+		if (!parent) return true;
+		const search = searchTerms.get(parent);
+		if (!search?.length) return true;
+		return props.label.toLowerCase().includes(search);
+	});
+	const subMenuVisible = createMemo(() => {
+		if (!props.subMenu) return false;
+		if (is(props.id)) return true;
+		const el = refMap.get(get());
+		if (!el) return false;
+		return r()?.contains(el) ?? false;
+	});
+
+	createEffect(() => {
+		const parentId = r()?.parentElement?.getAttribute("data-wrapper-for");
+		if (!parentId) return;
+		setParentId(parentId);
+		parentMap.set(props.id, parentId);
+	});
+
+	onCleanup(() => {
+		off(props.id);
+		refMap.delete(props.id);
+		parentMap.delete(props.id);
+	});
+
+	createEffect(() => {
+		if (props.disabled) off(props.id);
+	});
+
+	return (
+		<Show when={isVisible()}>
+			<div
+				ref={(r) => {
+					sr(r);
+					props.ref?.(r);
+					refMap.set(props.id, r);
+				}}
+				classList={{
+					[`color-${props.color ?? Colors.PRIMARY}`]: true,
+					"ctx-menu-item": true,
+					"ctx-submenu": !!props.subMenu,
+					disabled: props.disabled,
+					selected: is(props.id),
+				}}
+				id={props.id}
+				onClick={(e) => {
+					e.preventDefault();
+					e.stopPropagation();
+					if (props.disabled || !props.action) return;
+					if (props.action()) return;
+					hide();
+				}}
+				onMouseEnter={() => !props.disabled && on(props.id)}
+				onMouseLeave={() => off(props.id)}
+			>
+				<div class="ctx-text">
+					<span class="ctx-label">{props.label}</span>
+					<Show when={props.subText}>
+						<span class="ctx-sub-text">{props.subText}</span>
+					</Show>
+				</div>
+				<Show when={props.icon}>
+					<div class="ctx-icon">{typeof props.icon === "function" ? props.icon!({ size: 16 }) : props.icon}</div>
+				</Show>
+				<Show when={subMenuVisible()}>{props.subMenuItems}</Show>
+			</div>
+		</Show>
+	);
+}
+
+export function SubMenu(props: genericProps & { children: JSX.Element; searchable?: boolean }): JSX.Element {
+	const id = getUniqueId();
+	const [r, sr] = createSignal<Element | undefined>(undefined);
+
+	return (
+		<MenuItem
+			id={id}
+			label={props.label}
+			subText={props.subText}
+			disabled={props.disabled}
+			action={props.action}
+			color={props.color}
+			ref={sr}
+			subMenu
+			subMenuItems={
+				<Wrapper
+					children={
+						<>
+							<Show when={props.searchable}>
+								<Search for={id} />
+							</Show>
+							{props.children}
+						</>
+					}
+					for={id}
+					parentRect={r()!.getBoundingClientRect()}
+					toplevel={false}
+				/>
+			}
+			icon={<FaSolidChevronRight size={12} />}
+		/>
+	);
+}
+
+export function Item(props: genericProps): JSX.Element {
+	const id = getUniqueId();
+	return <MenuItem id={id} {...props} />;
+}
+
+export function Separator(): JSX.Element {
+	return <div class="ctx-separator" />;
+}
+
+export function Id(props: { id: string; of?: string }): JSX.Element {
+	return <Item label={`Copy ${props.of ? props.of + " " : ""}ID`} action={() => void navigator.clipboard.writeText(props.id)} />;
+}
+
+function Check(props: { enabled: boolean; type: "radio" | "checkbox" }): JSX.Element {
+	// TODO: Implement checkbox, styling
+	return <input class="ctx-radio" type="radio" checked={props.enabled} />;
+}
+
+export function Choice<T>(props: { choices: { label: string; value: T }[]; color?: Colors; get: Accessor<T>; set: (v: T) => void }): JSX.Element {
+	return (
+		<For each={props.choices}>
+			{({ label, value }) => (
+				<Item
+					label={label}
+					action={() => {
+						props.set(value);
+						return true;
+					}}
+					color={props.color}
+					icon={<Check enabled={props.get() === value} type="radio" />}
+				/>
+			)}
+		</For>
+	);
+}
+
+export function Switch(props: {
+	color?: Colors;
+	enabled: Accessor<boolean>;
+	label: string;
+	set: (v: boolean) => void;
+	subText?: string;
+}): JSX.Element {
+	return (
+		<Item
+			label={props.label}
+			action={() => {
+				props.set(!props.enabled());
+				return true;
+			}}
+			color={props.color}
+			icon={<Check enabled={props.enabled()} type="checkbox" />}
+			subText={props.subText}
+		/>
+	);
+}
+
+export function ContextmenuDirective(
+	element: Element,
+	value: Accessor<{ menu: () => JSX.Element; on?: "click" | "contextmenu"; searchable?: boolean }>,
+): void {
 	let layerId: number | undefined;
-	let menu: HTMLDivElement | undefined;
-	const [selectedItem, setSelectedItem] = createSignal("");
+	const id = getUniqueId();
+	const [r, sr] = createSignal<Element | undefined>(undefined);
+
+	const [stack, setStack] = createStore<string[]>([]);
+
+	let ignoreOn = false;
+	function on(id: string): void {
+		if (ignoreOn) return;
+		setStack(
+			produce((s) => {
+				if (s.length === 0) return void s.push(id);
+				if (stack[stack.length - 1] === id) return;
+				for (const i of s) {
+					if (i === id) return;
+				}
+				const parents = s.map((i) => parentMap.get(i));
+				const idx = parents.indexOf(parentMap.get(id));
+				if (idx === -1) return void s.push(id);
+				s.splice(idx, 1);
+				s.push(id);
+			}),
+		);
+	}
+	function off(id: string): void {
+		setStack(
+			produce((s) => {
+				if (s.length === 0) return;
+				if (stack[stack.length - 1] === id) return void s.pop();
+				for (let i = s.length - 1; i >= 0; i--) {
+					if (s[i] === id) {
+						s.splice(i, 1);
+						return;
+					}
+				}
+			}),
+		);
+	}
+	function get(): string {
+		if (stack.length === 0) return "";
+		return stack[stack.length - 1];
+	}
+	const is = createSelector(get);
 
 	function hide(): void {
 		if (layerId !== undefined) layerId = void removeLayer(layerId);
-		document.removeEventListener("mousedown", clickOutsideHandler as (e: Event) => void);
-		document.removeEventListener("contextmenu", clickOutsideHandler as (e: Event) => void);
-		document.removeEventListener("keydown", kbNavHandler as (e: Event) => void);
+		setStack([]);
 		window.removeEventListener("resize", hide);
+		document.removeEventListener("mousedown", clickOutsideHandler);
+		document.removeEventListener("contextmenu", clickOutsideHandler);
+		document.removeEventListener("keydown", kbNavHandler);
 	}
 
 	function contextmenuHandler(e: MouseEvent): void {
 		e.preventDefault();
 		e.stopImmediatePropagation();
 		window.addEventListener("resize", hide);
+		document.addEventListener("mousedown", clickOutsideHandler);
+		document.addEventListener("contextmenu", clickOutsideHandler);
+		document.addEventListener("keydown", kbNavHandler);
 
-		document.addEventListener("mousedown", clickOutsideHandler as (e: Event) => void);
-		document.addEventListener("contextmenu", clickOutsideHandler as (e: Event) => void);
-		document.addEventListener("keydown", kbNavHandler as (e: Event) => void);
+		const dr: parentRect = {
+			height: 1,
+			width: 1,
+			x: e.clientX,
+			y: e.clientY,
+		};
 
-		setSelectedItem("");
 		layerId = addLayer(() => (
-			<Menu
-				hide={hide}
-				selectedItem={[selectedItem, setSelectedItem]}
-				id="contextmenuid"
-				ref={(e): void => {
-					menu = e;
-				}}
-				menu={value().menu()}
-				searchable={value().searchable}
-				parentRect={
-					{
-						height: 1,
-						width: 1,
-						x: e.clientX,
-						y: e.clientY,
-					} as DOMRect
-				}
-				onmouseenter={(): void => void setSelectedItem("contextmenuid")}
-				onmouseleave={(): void => void setSelectedItem("")}
-			/>
+			<menuContext.Provider value={{ get, hide, is, off, on }}>
+				<Wrapper
+					children={
+						<>
+							<Show when={value().searchable}>
+								<Search for={id} />
+							</Show>
+							{value().menu()}
+						</>
+					}
+					for={id}
+					parentRect={dr}
+					ref={sr}
+					toplevel={true}
+				/>
+			</menuContext.Provider>
 		));
 	}
 
 	function clickOutsideHandler(e: MouseEvent): void {
-		if (selectedItem().length) return;
-
+		const menu = r();
 		if (layerId === undefined || !menu) return;
 		if (menu === e.target) return e.stopPropagation(), e.preventDefault();
 		if (!menu.contains(e.target as Node)) hide();
 	}
 
+	const movementKeys = new Set(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]);
 	function kbNavHandler(e: KeyboardEvent): void {
-		// @ts-expect-error nodeName does exist
-		if (e.target?.nodeName === "INPUT") {
-			if (e.key === " " || e.key === "Enter") {
-				return;
-			}
-		} else {
-			e.preventDefault();
-			e.stopImmediatePropagation();
-		}
-		if (e.key === "Escape") return hide();
+		if (e.key === "Escape") hide();
 
-		if (e.key === " " || e.key === "Enter") {
-			return document.getElementById(selectedItem())?.click();
+		// @ts-expect-error nodeName does exist.
+		if (e.target?.nodeName === "INPUT" && !movementKeys.has(e.key)) return;
+		else {
+			e.preventDefault();
+			e.stopPropagation();
 		}
+
+		const el = refMap.get(get());
+		if (e.key === "Enter" || e.key === " ") {
+			// @ts-expect-error bla
+			if (el) el.click?.();
+			return;
+		}
+		if (!movementKeys.has(e.key)) return;
+
+		function kbOn(el: Element): void {
+			ignoreOn = true;
+			el.scrollIntoView({ behavior: "instant", block: "nearest" });
+			requestAnimationFrame(() => {
+				ignoreOn = false;
+				on(el.id);
+			});
+			// @ts-expect-error bla
+			if (el.id.endsWith("-search")) el.focus?.();
+		}
+		function kbOff(el: Element): void {
+			off(el.id);
+			// @ts-expect-error bla
+			if (el.id.endsWith("-search")) el.blur?.();
+		}
+
+		function isValid(el: Element | null | undefined): boolean {
+			return el && el.id && el.id.startsWith("ctx-") && !el.classList.contains("disabled") ? true : false;
+		}
+
+		if (!el) {
+			switch (e.key) {
+				case "ArrowDown":
+				case "ArrowRight":
+				case "ArrowLeft": {
+					let child = r()?.firstElementChild?.firstElementChild;
+					if (!child) return;
+					while (child && !isValid(child)) child = child.nextElementSibling;
+					if (!child || !isValid(child)) return;
+					kbOn(child);
+					break;
+				}
+				case "ArrowUp": {
+					let child = r()?.firstElementChild?.lastElementChild;
+					if (!child) return;
+					while (child && !isValid(child)) child = child.previousElementSibling;
+					if (!child || !isValid(child)) return;
+					kbOn(child);
+					break;
+				}
+			}
+			return;
+		}
+
+		const parent = el.parentElement;
+		if (!parent) return;
 
 		switch (e.key) {
-			case "ArrowUp":
-				navPrev();
+			case "ArrowUp": {
+				let sib = el.previousElementSibling;
+				while (sib && !isValid(sib)) sib = sib.previousElementSibling;
+				if (!sib) {
+					sib = parent.lastElementChild;
+					while (sib && !isValid(sib)) sib = sib.previousElementSibling;
+					if (!sib || sib === el || !isValid(sib)) return;
+				}
+				kbOff(el);
+				kbOn(sib);
 				break;
-			case "ArrowDown":
-				navNext();
+			}
+			case "ArrowDown": {
+				let sib = el.nextElementSibling;
+				while (sib && !isValid(sib)) sib = sib.nextElementSibling;
+				if (!sib) {
+					sib = parent.firstElementChild;
+					while (sib && !isValid(sib)) sib = sib.nextElementSibling;
+					if (!sib || sib === el || !isValid(sib)) return;
+				}
+				kbOff(el);
+				kbOn(sib);
 				break;
-			case "ArrowLeft":
-				navUp();
+			}
+			case "ArrowLeft": {
+				const parent = parentMap.get(el.id);
+				if (!parent) return;
+				const parentEl = refMap.get(parent);
+				if (!parentEl) return;
+				kbOff(el);
+				kbOn(parentEl);
 				break;
-			case "ArrowRight":
-				navDown();
+			}
+			case "ArrowRight": {
+				if (!el.classList.contains("ctx-submenu") || el.classList.contains("disabled")) return;
+				let sub = el.lastElementChild?.firstElementChild?.firstElementChild;
+				if (!sub) return;
+				while (sub && !isValid(sub)) sub = sub.nextElementSibling;
+				if (!sub || !isValid(sub)) return;
+				kbOn(sub);
+			}
 		}
 	}
 
-	// TOOD: kb nav?
-
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	function navNext(): void {}
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	function navPrev(): void {}
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	function navUp(): void {}
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	function navDown(): void {}
-
 	createRenderEffect(() => {
-		element.addEventListener(untrack(() => value().showOn) ?? "contextmenu", contextmenuHandler as (e: Event) => void);
+		element.addEventListener(untrack(() => value().on) ?? "contextmenu", contextmenuHandler as (e: Event) => void);
 
 		onCleanup(() => {
 			hide();
-			element.removeEventListener(untrack(() => value().showOn) ?? "contextmenu", contextmenuHandler as (e: Event) => void);
+			element.removeEventListener(untrack(() => value().on) ?? "contextmenu", contextmenuHandler as (e: Event) => void);
 
 			window.removeEventListener("resize", hide);
-			document.removeEventListener("mousedown", clickOutsideHandler as (e: Event) => void);
-			document.removeEventListener("contextmenu", clickOutsideHandler as (e: Event) => void);
-			document.removeEventListener("keydown", kbNavHandler as (e: Event) => void);
+			document.removeEventListener("mousedown", clickOutsideHandler);
+			document.removeEventListener("contextmenu", clickOutsideHandler);
+			document.removeEventListener("keydown", kbNavHandler);
 		});
 	});
+}
+
+declare module "solid-js" {
+	namespace JSX {
+		interface Directives {
+			ContextmenuDirective: ReturnType<Parameters<typeof ContextmenuDirective>[1]>;
+		}
+	}
 }

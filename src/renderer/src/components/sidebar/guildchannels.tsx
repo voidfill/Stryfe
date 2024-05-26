@@ -3,12 +3,11 @@ import { Accessor, createEffect, createMemo, For, JSX, onCleanup, Show, untrack 
 
 import { ChannelTypes } from "@constants/channel";
 import permissions from "@constants/permissions";
-import { NotificationLevel } from "@constants/schemata/settings";
 
 import ChannelStore from "@stores/channels";
 import GuildStore from "@stores/guilds";
 import MemberStore from "@stores/members";
-import SettingsStore, { notificationLevelToText } from "@stores/settings";
+import SettingsStore from "@stores/settings";
 import UserStore from "@stores/users";
 import VoiceStateStore from "@stores/voicestates";
 
@@ -19,94 +18,14 @@ import { TbHeadphonesOff } from "solid-icons/tb";
 import { HoverAnimationDirective } from "../common/animationcontext";
 import Avatar, { ShowStatus } from "../common/avatar";
 import ChannelIcon from "../common/channelicon";
-import { ContextmenuDirective, Id, menuItem, Optional, Separator } from "../common/contextmenu";
 import { useLocationContext } from "../common/locationcontext";
 import OverflowTooltip from "../common/overflowtooltip";
 import { usePermissionsContext } from "../common/permissionscontext";
 
-ContextmenuDirective;
 HoverAnimationDirective;
 OverflowTooltip;
 
 const refMap = new Map<string, any>();
-
-function muteContextMenu(id: string, toMuteLabel: string): menuItem {
-	return SettingsStore.channelOverrides[id]?.muted
-		? {
-				action: () => SettingsStore.unmuteChannel(id),
-				label: `Unmute ${toMuteLabel}`,
-				subText: SettingsStore.channelOverrides[id]?.mute_config?.end_time
-					? "Muted Until" + SettingsStore.channelOverrides[id]?.mute_config?.end_time
-					: undefined, // TODO: format time
-			}
-		: {
-				action: () => SettingsStore.muteChannel(id),
-				label: `Mute ${toMuteLabel}`,
-				submenu: [
-					{
-						action: () => SettingsStore.muteChannel(id, 15 * 60),
-						label: "For 15 Minutes",
-					},
-					{
-						action: () => SettingsStore.muteChannel(id, 60 * 60),
-						label: "For 1 Hour",
-					},
-					{
-						action: () => SettingsStore.muteChannel(id, 3 * 60 * 60),
-						label: "For 3 Hours",
-					},
-					{
-						action: () => SettingsStore.muteChannel(id, 6 * 60 * 60),
-						label: "For 6 Hours",
-					},
-					{
-						action: () => SettingsStore.muteChannel(id, 24 * 60 * 60),
-						label: "For 24 Hours",
-					},
-					{
-						action: () => SettingsStore.muteChannel(id),
-						label: "Until I Turn It Back On",
-					},
-				],
-				type: "submenu",
-			};
-}
-
-function notificationContextMenu(id: string, parentId: string | undefined, guildId: string, notificationLevel: () => NotificationLevel): menuItem {
-	return {
-		action: () => void 0,
-		label: "Notification Settings",
-		subText: notificationLevelToText(SettingsStore.getChannelNotificationLevel(id)),
-		submenu: [
-			{
-				action: () => SettingsStore.setChannelNotificationLevel(id, NotificationLevel.PARENT_DEFAULT),
-				enabled: () => notificationLevel() === NotificationLevel.PARENT_DEFAULT,
-				label: notificationLevelToText(NotificationLevel.PARENT_DEFAULT),
-				subText: notificationLevelToText(SettingsStore.resolveChannelNotificationLevel(parentId!, guildId)),
-				type: "switch",
-			},
-			{
-				action: () => SettingsStore.setChannelNotificationLevel(id, NotificationLevel.ALL_MESSAGES),
-				enabled: () => notificationLevel() === NotificationLevel.ALL_MESSAGES,
-				label: notificationLevelToText(NotificationLevel.ALL_MESSAGES),
-				type: "switch",
-			},
-			{
-				action: () => SettingsStore.setChannelNotificationLevel(id, NotificationLevel.ONLY_MENTIONS),
-				enabled: () => notificationLevel() === NotificationLevel.ONLY_MENTIONS,
-				label: notificationLevelToText(NotificationLevel.ONLY_MENTIONS),
-				type: "switch",
-			},
-			{
-				action: () => SettingsStore.setChannelNotificationLevel(id, NotificationLevel.NOTHING),
-				enabled: () => notificationLevel() === NotificationLevel.NOTHING,
-				label: notificationLevelToText(NotificationLevel.NOTHING),
-				type: "switch",
-			},
-		],
-		type: "submenu",
-	};
-}
 
 function TextChannel(props: { id: string; isCollapsed: Accessor<boolean>; parentId?: string }): JSX.Element {
 	const params = useParams();
@@ -115,7 +34,6 @@ function TextChannel(props: { id: string; isCollapsed: Accessor<boolean>; parent
 	const mutedHide = createMemo(
 		() => (SettingsStore.userGuildSettings[params.guildId]?.hide_muted_channels && SettingsStore.channelOverrides[props.id]?.muted) ?? false,
 	);
-	const notificationLevel = createMemo(() => SettingsStore.getChannelNotificationLevel(props.id));
 
 	const currentPermissions = usePermissionsContext();
 	const canSee = createMemo(() => currentPermissions().can(permissions.VIEW_CHANNEL, props.id));
@@ -140,35 +58,6 @@ function TextChannel(props: { id: string; isCollapsed: Accessor<boolean>; parent
 							[`channel-type-${channel.type}`]: true,
 							[`channel-${props.id}`]: true,
 							selected: location().selectedChannel(props.id),
-						}}
-						use:ContextmenuDirective={{
-							menu: () => [
-								{
-									action: (): void => void 0,
-									disabled: true,
-									label: "Mark As Read",
-								},
-								Separator,
-								{
-									action: () => void 0,
-									label: "Invite People",
-								},
-								{
-									action: () => void navigator.clipboard.writeText(`https://discord.com/channels/${params.guildId}/${props.id}`),
-									label: "Copy Link",
-								},
-								Separator,
-								muteContextMenu(props.id, "Channel"),
-								notificationContextMenu(props.id, props.parentId!, params.guildId, notificationLevel),
-								...Optional(true, [
-									{
-										action: () => void 0,
-										label: "//TODO: Channel Settings Entries",
-									},
-									Separator,
-								]),
-								Id(props.id, "Copy Channel ID"),
-							],
 						}}
 					>
 						<div class="channel-icon">
@@ -246,43 +135,6 @@ function VoiceChannel(props: { id: string; isCollapsed: Accessor<boolean> }): JS
 								[`channel-${props.id}`]: true,
 								selected: location().selectedChannel(props.id),
 							}}
-							use:ContextmenuDirective={{
-								menu: () => [
-									{
-										action: () => void 0,
-										disabled: true,
-										label: "Mark As Read",
-									},
-									Separator,
-									{
-										action: () => void 0,
-										label: "Invite People",
-									},
-									{
-										action: () =>
-											void navigator.clipboard.writeText(`https://discord.com/channels/${params.guildId}/${props.id}`),
-										label: "Copy Link",
-									},
-									Separator,
-									{
-										action: () => void 0,
-										enabled: () => false,
-										label: "Hide Names",
-										type: "switch",
-									},
-									Separator,
-									muteContextMenu(props.id, "Channel"),
-									Separator,
-									...Optional(true, [
-										{
-											action: () => void 0,
-											label: "//TODO: Channel Settings Entries",
-										},
-										Separator,
-									]),
-									Id(props.id, "Copy Channel ID"),
-								],
-							}}
 						>
 							<div class="channel-icon">
 								<ChannelIcon guildId={params.guildId} id={props.id} size={20} />
@@ -302,10 +154,8 @@ function VoiceChannel(props: { id: string; isCollapsed: Accessor<boolean> }): JS
 }
 
 function Category(props: { id: string; other: string[]; voice: string[] }): JSX.Element {
-	const params = useParams();
 	const category = createMemo(() => ChannelStore.getGuildCategoryChannel(props.id));
 	const isCollapsed = createMemo(() => SettingsStore.channelOverrides[props.id]?.collapsed ?? false);
-	const notificationLevel = createMemo(() => SettingsStore.getChannelNotificationLevel(props.id));
 	const currentPermissions = usePermissionsContext();
 
 	const mapFn = (id: string): boolean => currentPermissions().can(permissions.VIEW_CHANNEL, id);
@@ -333,42 +183,6 @@ function Category(props: { id: string; other: string[]; voice: string[] }): JSX.
 						onClick={(): void => SettingsStore.toggleCollapsed(props.id)}
 						ref={(el): void => {
 							refMap.set(props.id, el);
-						}}
-						use:ContextmenuDirective={{
-							menu: () => [
-								{
-									action: () => void 0,
-									disabled: true,
-									label: "Mark As Read",
-								},
-								Separator,
-								{
-									action: () => SettingsStore.toggleCollapsed(props.id),
-									enabled: () => isCollapsed(),
-									label: "Collapse Category",
-									type: "switch",
-								},
-								{
-									action: (): void => {
-										for (const id of ChannelStore.getGuildChannels(params.guildId) ?? []) {
-											SettingsStore.collapse(id);
-										}
-									},
-									label: "Collapse All Categories",
-								},
-								Separator,
-								muteContextMenu(props.id, "Category"),
-								notificationContextMenu(props.id, undefined, params.guild_id, notificationLevel),
-								Separator,
-								...Optional(true, [
-									{
-										action: () => void 0,
-										label: "//TODO: Category Settings Entries",
-									},
-									Separator,
-								]),
-								Id(props.id, "Copy Category ID"),
-							],
 						}}
 					>
 						<div class="channel-icon">
@@ -428,27 +242,6 @@ export default function GuildChannels(): JSX.Element {
 						});
 						ticking = true;
 					}
-				}}
-				use:ContextmenuDirective={{
-					menu: () => [
-						{
-							action: () => SettingsStore.toggleHideMutedChannels(params.guildId),
-							enabled: () => SettingsStore.userGuildSettings[params.guildId]?.hide_muted_channels,
-							label: "Hide Muted Channels",
-							type: "switch",
-						},
-						Separator,
-						...Optional(true, [
-							{
-								action: () => void 0,
-								label: "//TODO: Channels Settings Entries",
-							},
-						]),
-						{
-							action: () => void 0,
-							label: "Invite People",
-						},
-					],
 				}}
 			>
 				<For each={channels()?.uncategorized.other}>
