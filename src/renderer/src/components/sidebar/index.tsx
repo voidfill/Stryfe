@@ -16,12 +16,10 @@ import PrivateChannels from "./privatechannels";
 import "./style.scss";
 
 function UserArea(): JSX.Element {
-	// TODO: fuck this, we should get uid over token and work from there
 	const self = createMemo(() => UserStore.getSelf());
 	const displayName = createMemo(() => self()?.display_name || self()?.username);
 	const hasCustomStatus = createMemo(() => {
-		const sid = self()?.id;
-		return !!sid && !!ActivityStore.getCustomStatus(sid);
+		return !!ActivityStore.getCustomStatus(UserStore.getSelfId());
 	});
 
 	return (

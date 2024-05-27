@@ -1,5 +1,6 @@
 :root {
 	--ctx-background: var(--background-quaternary);
+	--ctx-scrollbar-thumb: var(--background-tertiary);
 	--ctx-separator: #333;
 	--ctx-text: #fff;
 	--ctx-border-radius: 4px;
@@ -16,6 +17,7 @@
 	flex-direction: column;
 	color: var(--ctx-text);
 	fill: var(--ctx-text);
+	cursor: default;
 
 	&:not(.ctx-toplevel) {
 		padding: 0px 12px;
@@ -25,6 +27,8 @@
 		display: flex;
 		flex-direction: column;
 		padding: 8px;
+		padding-right: 0px;
+		scrollbar-gutter: stable;
 		background-color: var(--ctx-background);
 		border-radius: var(--ctx-border-radius);
 		min-width: 188px;
@@ -33,19 +37,43 @@
 		overflow: hidden;
 		overflow-y: auto;
 		gap: 2px;
+
+		&::-webkit-scrollbar {
+			width: 8px;
+			height: 8px;
+		}
+		&::-webkit-scrollbar-thumb {
+			background-color: var(--ctx-scrollbar-thumb);
+			background-clip: padding-box;
+			border-radius: 4px;
+			border: 2px solid transparent;
+			min-height: 40px;
+		}
+
+		> * {
+			flex: 0 0 auto;
+		}
 	}
 
 	.ctx-menu-item {
 		flex-shrink: 0;
 		background-color: transparent;
 		padding: 6px 8px;
+		min-height: 20px;
 		line-height: 18px;
-		font-size: 100%;
+		font-size: 16px;
 		display: flex;
 		flex-direction: row;
+		gap: 6px;
 		overflow: hidden;
 		border-radius: 4px;
 		align-items: center;
+		cursor: pointer;
+
+		&.disabled {
+			pointer-events: none;
+			cursor: not-allowed;
+		}
 
 		> .ctx-text {
 			display: flex;
@@ -54,12 +82,55 @@
 			flex-grow: 1;
 
 			> .ctx-sub-text {
-				line-height: 10px;
+				line-height: 16px;
+				font-size: 14px;
 				filter: opacity(0.8);
 			}
 		}
 		> .ctx-icon {
+			display: flex;
 			flex-shrink: 0;
+			pointer-events: none;
+		}
+
+		.ctx-check {
+			color: unset;
+			appearance: none;
+			background-color: transparent;
+			width: 1.15em;
+			height: 1.15em;
+			border: 0.15em solid currentColor;
+			display: grid;
+			place-content: center;
+			overflow: hidden;
+			margin: 0;
+
+			&[type="checkbox"] {
+				border-radius: 0.2em;
+
+				&:checked::before {
+					content: "✔";
+					font-size: 1.3em;
+					line-height: 1em;
+					width: 1em;
+					height: 1em;
+					background-color: var(--ctx-text);
+					color: #000;
+					mix-blend-mode: screen;
+				}
+			}
+
+			&[type="radio"] {
+				border-radius: 50%;
+
+				&:checked::before {
+					content: "";
+					background-color: currentColor;
+					width: 0.4em;
+					height: 0.4em;
+					border-radius: 50%;
+				}
+			}
 		}
 
 		&.color-primary {
@@ -85,7 +156,7 @@
 
 		&.selected,
 		&:has(.selected) {
-			&.color-primary, &.color-blue {
+			&.color-primary {
 				background-color: var(--ctx-primary);
 			}
 			&:not(.color-primary) {
@@ -109,5 +180,12 @@
 		height: 1px;
 		background-color: var(--ctx-separator);
 		margin: 1px 4px;
+	}
+
+	.ctx-search {
+		all: unset;
+		background-color: var(--background-tertiary);
+		border-radius: 4px;
+		padding: 6px 8px;
 	}
 }

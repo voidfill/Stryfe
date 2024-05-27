@@ -38,7 +38,7 @@ function ChannelOrMessage(props: d): JSX.Element {
 		return PermissionStore.can({
 			channelId: props.channelId,
 			guildId: gid,
-			memberId: UserStore.getSelfId()!,
+			memberId: UserStore.getSelfId(),
 			toCheck: Permissions.VIEW_CHANNEL,
 		});
 	});

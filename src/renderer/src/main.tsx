@@ -2,7 +2,7 @@ import { render } from "solid-js/web";
 
 import WebSocket from "@modules/gateway";
 import logger from "@modules/logger";
-import { getToken } from "@modules/token";
+import { getToken, getUserIdFromToken } from "@modules/token";
 
 import { cfChallenge, getSuper } from "./modules/discordversion";
 
@@ -15,6 +15,7 @@ import API from "@modules/api";
 
 import App from "./app";
 import { windowTitle } from "./signals";
+import { setSelfId } from "./stores/users";
 
 declare global {
 	interface Window {
@@ -27,7 +28,9 @@ declare global {
 	try {
 		const [token, superProps] = await Promise.all([getToken(), getSuper()]);
 		if (!token || !superProps) return;
-		await cfChallenge();
+		const [userId] = await Promise.all([getUserIdFromToken(), cfChallenge()]);
+		if (!userId) return;
+		setSelfId(userId);
 		API.init(
 			token!,
 			() => {

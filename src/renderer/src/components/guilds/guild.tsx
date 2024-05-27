@@ -1,10 +1,13 @@
 import { A } from "@solidjs/router";
 import { createMemo, JSX, Show } from "solid-js";
 
+import permissions from "@constants/permissions";
 import { HighlightLevel, NotificationLevel } from "@constants/schemata/settings";
 
 import GuildStore from "@stores/guilds";
+import PermissionsStore from "@stores/permissions";
 import SettingsStore, { notificationLevelToText } from "@stores/settings";
+import UserStore from "@stores/users";
 
 import { tippy } from "@components/common/tooltip";
 
@@ -13,6 +16,7 @@ import { Choice, Colors, ContextmenuDirective, Id, Item, Separator, SubMenu, Swi
 import { useLocationContext } from "../common/locationcontext";
 
 import { lastSelectedChannels } from "@renderer/signals";
+
 HoverAnimationDirective;
 ContextmenuDirective;
 tippy;
@@ -69,6 +73,24 @@ export function MuteMenu(props: {
 
 function GuildContextmenu(props: { guildId: string }): JSX.Element {
 	const notificationLevel = createMemo(() => SettingsStore.getGuildNotificationLevel(props.guildId));
+	const basePermissions = createMemo(() => PermissionsStore.computeBasePermissions(props.guildId, UserStore.getSelfId()));
+	const canCreateEvents = createMemo(() =>
+		PermissionsStore.can({
+			basePermissions: basePermissions(),
+			guildId: props.guildId,
+			memberId: UserStore.getSelfId(),
+			toCheck: permissions.CREATE_EVENTS,
+		}),
+	);
+	const canManageChannels = createMemo(() =>
+		PermissionsStore.can({
+			basePermissions: basePermissions(),
+			guildId: props.guildId,
+			memberId: UserStore.getSelfId(),
+			toCheck: permissions.MANAGE_CHANNELS,
+		}),
+	);
+	const isOwner = createMemo(() => GuildStore.isOwner(props.guildId, UserStore.getSelfId()));
 
 	return (
 		<>
@@ -141,15 +163,29 @@ function GuildContextmenu(props: { guildId: string }): JSX.Element {
 				set={() => SettingsStore.toggleHideMutedChannels(props.guildId)}
 			/>
 			<Separator />
-			// TODO: Server Settings // Privacy Settings
+			<Show when={false /* TODO: figure out when and what to show */}>
+				<SubMenu label="Server Settings">
+					<Item label="Overview" />
+				</SubMenu>
+			</Show>
+			<Item label="Privacy Settings" />
 			<Item label="Edit Server Profile" />
-			// Create Category, Channel, Event
 			<Separator />
-			<Show when={true}>
+			<Show when={canCreateEvents()}>
+				<Item label="Create Event" />
+			</Show>
+			<Show when={canManageChannels()}>
+				<Item label="Create Channel" />
+				<Item label="Create Category" />
+			</Show>
+			<Show when={canCreateEvents() || canManageChannels()}>
+				<Separator />
+			</Show>
+			<Show when={!isOwner()}>
 				<Item label="Leave Server" color={Colors.RED} />
 				<Separator />
 			</Show>
-			<Id id={props.guildId} of="Server" />
+			<Id id={props.guildId} resource="Server" />
 		</>
 	);
 }
@@ -167,15 +203,15 @@ export default function Guild(props: { id: string }): JSX.Element {
 					[`guild-${props.id}`]: true,
 					selected: location().selectedGuild(props.id),
 				}}
+				use:tippy={{
+					content: () => guild()?.name,
+					props: { placement: "right" },
+				}}
 			>
 				<Indicator id={props.id} />
 				<A href={`/channels/${props.id}/${lastSelectedChannels[props.id] ?? ""}`}>
 					<div
 						class="guild-icon-container"
-						use:tippy={{
-							content: () => guild()?.name,
-							props: { placement: "right" },
-						}}
 						use:HoverAnimationDirective
 						use:ContextmenuDirective={{
 							menu: () => <GuildContextmenu guildId={props.id} />,

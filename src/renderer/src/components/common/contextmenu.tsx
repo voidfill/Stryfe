@@ -128,17 +128,21 @@ function Search(props: { for: string }): JSX.Element {
 	});
 
 	return (
-		<input
-			classList={{ "ctx-search": true, selected: is(selfId()) }}
-			id={selfId()}
-			ref={(r) => {
-				sr(r);
-				refMap.set(selfId(), r);
-			}}
-			onInput={(e) => searchTerms.set(props.for, e.currentTarget.value.trim().toLowerCase())}
-			onMouseEnter={() => on(selfId())}
-			onMouseLeave={() => off(selfId())}
-		/>
+		<>
+			<input
+				classList={{ "ctx-search": true, selected: is(selfId()) }}
+				id={selfId()}
+				ref={(r) => {
+					sr(r);
+					refMap.set(selfId(), r);
+				}}
+				onInput={(e) => searchTerms.set(props.for, e.currentTarget.value.trim().toLowerCase())}
+				onMouseEnter={() => on(selfId())}
+				onMouseLeave={() => off(selfId())}
+				placeholder="Search"
+			/>
+			<div class="ctx-separator" />
+		</>
 	);
 }
 
@@ -162,7 +166,7 @@ function MenuItem(
 		return props.label.toLowerCase().includes(search);
 	});
 	const subMenuVisible = createMemo(() => {
-		if (!props.subMenu) return false;
+		if (!props.subMenu || props.disabled) return false;
 		if (is(props.id)) return true;
 		const el = refMap.get(get());
 		if (!el) return false;
@@ -267,16 +271,44 @@ export function Item(props: genericProps): JSX.Element {
 }
 
 export function Separator(): JSX.Element {
-	return <div class="ctx-separator" />;
+	const [r, sr] = createSignal<Element | undefined>(undefined);
+	const [parentId, setParentId] = createSignal<string | undefined>(undefined);
+	const isVisible = createMemo(() => {
+		const parent = parentId();
+		if (!parent) return true;
+		const search = searchTerms.get(parent);
+		if (!search?.length) return true;
+		return false;
+	});
+
+	createEffect(() => {
+		const parentId = r()?.parentElement?.getAttribute("data-wrapper-for");
+		if (!parentId) return;
+		setParentId(parentId);
+	});
+
+	return (
+		<Show when={isVisible()}>
+			<div class="ctx-separator" ref={sr} />
+		</Show>
+	);
 }
 
-export function Id(props: { id: string; of?: string }): JSX.Element {
-	return <Item label={`Copy ${props.of ? props.of + " " : ""}ID`} action={() => void navigator.clipboard.writeText(props.id)} />;
+export function Id(props: { id: string; resource?: string }): JSX.Element {
+	return <Item label={`Copy ${props.resource ? props.resource + " " : ""}ID`} action={() => void navigator.clipboard.writeText(props.id)} />;
 }
 
 function Check(props: { enabled: boolean; type: "radio" | "checkbox" }): JSX.Element {
-	// TODO: Implement checkbox, styling
-	return <input class="ctx-radio" type="radio" checked={props.enabled} />;
+	return (
+		<input
+			classList={{
+				"ctx-check": true,
+				[props.type]: true,
+			}}
+			type={props.type}
+			checked={props.enabled}
+		/>
+	);
 }
 
 export function Choice<T>(props: { choices: { label: string; value: T }[]; color?: Colors; get: Accessor<T>; set: (v: T) => void }): JSX.Element {
@@ -320,7 +352,7 @@ export function Switch(props: {
 
 export function ContextmenuDirective(
 	element: Element,
-	value: Accessor<{ menu: () => JSX.Element; on?: "click" | "contextmenu"; searchable?: boolean }>,
+	value: Accessor<{ menu: () => JSX.Element; on?: "click" | "contextmenu"; parentRect?: parentRect; searchable?: boolean }>,
 ): void {
 	let layerId: number | undefined;
 	const id = getUniqueId();
@@ -383,7 +415,7 @@ export function ContextmenuDirective(
 		document.addEventListener("contextmenu", clickOutsideHandler);
 		document.addEventListener("keydown", kbNavHandler);
 
-		const dr: parentRect = {
+		const mouseRect: parentRect = {
 			height: 1,
 			width: 1,
 			x: e.clientX,
@@ -402,7 +434,7 @@ export function ContextmenuDirective(
 						</>
 					}
 					for={id}
-					parentRect={dr}
+					parentRect={value().parentRect ?? mouseRect}
 					ref={sr}
 					toplevel={true}
 				/>
@@ -487,7 +519,7 @@ export function ContextmenuDirective(
 			case "ArrowUp": {
 				let sib = el.previousElementSibling;
 				while (sib && !isValid(sib)) sib = sib.previousElementSibling;
-				if (!sib) {
+				if (!sib || !isValid(sib)) {
 					sib = parent.lastElementChild;
 					while (sib && !isValid(sib)) sib = sib.previousElementSibling;
 					if (!sib || sib === el || !isValid(sib)) return;
@@ -499,7 +531,7 @@ export function ContextmenuDirective(
 			case "ArrowDown": {
 				let sib = el.nextElementSibling;
 				while (sib && !isValid(sib)) sib = sib.nextElementSibling;
-				if (!sib) {
+				if (!sib || !isValid(sib)) {
 					sib = parent.firstElementChild;
 					while (sib && !isValid(sib)) sib = sib.nextElementSibling;
 					if (!sib || sib === el || !isValid(sib)) return;

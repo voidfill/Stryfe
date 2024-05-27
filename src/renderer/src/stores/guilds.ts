@@ -133,4 +133,8 @@ export default new (class GuildStore extends Store {
 	hasFeature(guildId: string, feature: string): boolean {
 		return features.get(guildId)?.has(feature) ?? false;
 	}
+
+	isOwner(guildId: string, userId: string): boolean {
+		return this.getGuild(guildId)?.owner_id === userId;
+	}
 })();

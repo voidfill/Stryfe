@@ -19,14 +19,13 @@ export const usePermissionsContext = (): Accessor<t> => useContext(PermissionsCo
 
 export function CurrentPermissionProvider(props: ParentProps): JSX.Element {
 	const location = useLocationContext();
-	const selfId = createMemo(() => UserStore.getSelfId());
-	const basePermissions = createMemo(() => (selfId() ? PermissionsStore.computeBasePermissions(location().guildId, selfId()!) : Permissions.NONE));
+	const basePermissions = createMemo(() => PermissionsStore.computeBasePermissions(location().guildId, UserStore.getSelfId()));
 	const channelPermissions = createMemo(() =>
-		selfId() && location().channelId
-			? PermissionsStore.computeChannelOverwrites(basePermissions(), location().guildId, location().channelId, selfId()!)
+		location().channelId
+			? PermissionsStore.computeChannelOverwrites(basePermissions(), location().guildId, location().channelId, UserStore.getSelfId())
 			: Permissions.NONE,
 	);
-	const isOwner = createMemo<boolean>(() => (selfId() && GuildStore.getGuild(location().guildId)?.owner_id === selfId()) || false);
+	const isOwner = createMemo(() => GuildStore.isOwner(location().guildId, UserStore.getSelfId()));
 
 	const v = createMemo(() => ({
 		can: (check: bigint, channelId?: string): boolean => {
@@ -36,7 +35,7 @@ export function CurrentPermissionProvider(props: ParentProps): JSX.Element {
 					basePermissions: basePermissions(),
 					channelId,
 					guildId: location().guildId,
-					memberId: selfId()!,
+					memberId: UserStore.getSelfId(),
 					toCheck: check,
 				});
 			return hasBit(channelPermissions(), check);

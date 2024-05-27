@@ -1,4 +1,4 @@
-import { batch } from "solid-js";
+import { batch, createSignal } from "solid-js";
 import { createStore, produce } from "solid-js/store";
 import { Output } from "valibot";
 
@@ -20,6 +20,7 @@ type storedUser = {
 	username: string;
 };
 
+export const [selfId, setSelfId] = createSignal<string>("");
 const [users, setUsers] = createStore<{ [key: string]: storedUser }>({});
 const [self, setSelf] = createStore<user_self | object>({});
 
@@ -93,8 +94,8 @@ export default new (class UserStore extends Store {
 	}
 
 	// eslint-disable-next-line solid/reactivity
-	getSelfId(): string | undefined {
-		return "id" in self ? self.id : undefined;
+	getSelfId(): string {
+		return selfId();
 	}
 
 	getSelf(): user_self | undefined {

@@ -1,4 +1,4 @@
-import { A, useParams } from "@solidjs/router";
+import { A } from "@solidjs/router";
 import { Accessor, createEffect, createMemo, For, JSX, onCleanup, Show, untrack } from "solid-js";
 
 import { ChannelTypes } from "@constants/channel";
@@ -28,11 +28,10 @@ OverflowTooltip;
 const refMap = new Map<string, any>();
 
 function TextChannel(props: { id: string; isCollapsed: Accessor<boolean>; parentId?: string }): JSX.Element {
-	const params = useParams();
 	const location = useLocationContext();
 	const channel = createMemo(() => ChannelStore.getGuildTextChannel(props.id));
 	const mutedHide = createMemo(
-		() => (SettingsStore.userGuildSettings[params.guildId]?.hide_muted_channels && SettingsStore.channelOverrides[props.id]?.muted) ?? false,
+		() => (SettingsStore.userGuildSettings[location().guildId]?.hide_muted_channels && SettingsStore.channelOverrides[props.id]?.muted) ?? false,
 	);
 
 	const currentPermissions = usePermissionsContext();
@@ -42,12 +41,11 @@ function TextChannel(props: { id: string; isCollapsed: Accessor<boolean>; parent
 		refMap.delete(props.id);
 	});
 
-	// TODO: get rid of keyed
 	return (
-		<Show when={((!(props.isCollapsed() || mutedHide()) && canSee()) || location().selectedChannel(props.id)) && channel()} keyed>
-			{(channel): JSX.Element => (
+		<Show when={((!(props.isCollapsed() || mutedHide()) && canSee()) || location().selectedChannel(props.id)) && channel()}>
+			{(c): JSX.Element => (
 				<A
-					href={`/channels/${params.guildId}/${props.id}`}
+					href={`/channels/${location().guildId}/${props.id}`}
 					ref={(el): void => {
 						refMap.set(props.id, el);
 					}}
@@ -55,16 +53,16 @@ function TextChannel(props: { id: string; isCollapsed: Accessor<boolean>; parent
 					<div
 						classList={{
 							channel: true,
-							[`channel-type-${channel.type}`]: true,
+							[`channel-type-${c().type}`]: true,
 							[`channel-${props.id}`]: true,
 							selected: location().selectedChannel(props.id),
 						}}
 					>
 						<div class="channel-icon">
-							<ChannelIcon guildId={params.guildId} id={props.id} size={20} />
+							<ChannelIcon guildId={location().guildId} id={props.id} size={20} />
 						</div>
-						<span class="channel-name" use:OverflowTooltip={() => channel.name}>
-							{channel.name}
+						<span class="channel-name" use:OverflowTooltip={() => c().name}>
+							{c().name}
 						</span>
 					</div>
 				</A>
@@ -79,20 +77,20 @@ function VoiceCard(props: { sessionId: string }): JSX.Element {
 	const user = createMemo(() => UserStore.getUser(voiceState()?.user_id ?? ""));
 
 	return (
-		<Show when={voiceState()} keyed>
+		<Show when={voiceState()}>
 			{(vs): JSX.Element => (
-				<div classList={{ "voice-card": true, [`voice-user-id-${vs.user_id}`]: true }} use:HoverAnimationDirective>
-					<Avatar userId={vs.user_id} guildId={vs.guild_id ?? undefined} size={24} showStatus={ShowStatus.NEVER} />
+				<div classList={{ "voice-card": true, [`voice-user-id-${vs().user_id}`]: true }} use:HoverAnimationDirective>
+					<Avatar userId={vs().user_id} guildId={vs().guild_id ?? undefined} size={24} showStatus={ShowStatus.NEVER} />
 					<span class="username">
 						<Show when={member() && member()?.nick} fallback={user()?.display_name || user()?.username}>
 							{member()?.nick}
 						</Show>
 					</span>
-					<Show when={vs.mute || vs.self_mute}>
-						<TbMicrophoneOff style={vs.mute ? { color: "#ff372c" } : {}} />
+					<Show when={vs().mute || vs().self_mute}>
+						<TbMicrophoneOff style={vs().mute ? { color: "#ff372c" } : {}} />
 					</Show>
-					<Show when={vs.deaf || vs.self_deaf}>
-						<TbHeadphonesOff style={vs.deaf ? { color: "#ff372c" } : {}} />
+					<Show when={vs().deaf || vs().self_deaf}>
+						<TbHeadphonesOff style={vs().deaf ? { color: "#ff372c" } : {}} />
 					</Show>
 				</div>
 			)}
@@ -102,10 +100,9 @@ function VoiceCard(props: { sessionId: string }): JSX.Element {
 
 function VoiceChannel(props: { id: string; isCollapsed: Accessor<boolean> }): JSX.Element {
 	const channel = createMemo(() => ChannelStore.getGuildVoiceChannel(props.id));
-	const params = useParams();
 	const location = useLocationContext();
 	const mutedHide = createMemo(
-		() => (SettingsStore.userGuildSettings[params.guildId]?.hide_muted_channels && SettingsStore.channelOverrides[props.id]?.muted) ?? false,
+		() => (SettingsStore.userGuildSettings[location().guildId]?.hide_muted_channels && SettingsStore.channelOverrides[props.id]?.muted) ?? false,
 	);
 	const voiceStates = createMemo(() => VoiceStateStore.getSessionIdsForChannel(props.id));
 	// TODO: sort by name, streaming, camera etc
@@ -119,11 +116,11 @@ function VoiceChannel(props: { id: string; isCollapsed: Accessor<boolean> }): JS
 	});
 
 	return (
-		<Show when={((!(props.isCollapsed() || mutedHide()) && canSee()) || location().selectedChannel(props.id)) && channel()} keyed>
-			{(channel): JSX.Element => (
+		<Show when={((!(props.isCollapsed() || mutedHide()) && canSee()) || location().selectedChannel(props.id)) && channel()}>
+			{(c): JSX.Element => (
 				<>
 					<A
-						href={`/channels/${params.guildId}/${props.id}`}
+						href={`/channels/${location().guildId}/${props.id}`}
 						ref={(el): void => {
 							refMap.set(props.id, el);
 						}}
@@ -131,20 +128,20 @@ function VoiceChannel(props: { id: string; isCollapsed: Accessor<boolean> }): JS
 						<div
 							classList={{
 								channel: true,
-								[`channel-type-${channel.type}`]: true,
+								[`channel-type-${c().type}`]: true,
 								[`channel-${props.id}`]: true,
 								selected: location().selectedChannel(props.id),
 							}}
 						>
 							<div class="channel-icon">
-								<ChannelIcon guildId={params.guildId} id={props.id} size={20} />
+								<ChannelIcon guildId={location().guildId} id={props.id} size={20} />
 							</div>
-							<span class="channel-name" use:OverflowTooltip={() => channel.name}>
-								{channel.name}
+							<span class="channel-name" use:OverflowTooltip={() => c().name}>
+								{c().name}
 							</span>
 						</div>
 					</A>
-					<Show when={channel.type === ChannelTypes.GUILD_VOICE}>
+					<Show when={c().type === ChannelTypes.GUILD_VOICE}>
 						<For each={voiceStates()}>{(sessionId): JSX.Element => <VoiceCard sessionId={/*@once*/ sessionId} />}</For>
 					</Show>
 				</>
@@ -169,8 +166,8 @@ function Category(props: { id: string; other: string[]; voice: string[] }): JSX.
 	});
 
 	return (
-		<Show when={canSee() && category()} keyed>
-			{(category): JSX.Element => (
+		<Show when={canSee() && category()}>
+			{(c): JSX.Element => (
 				<>
 					<div
 						classList={{
@@ -188,8 +185,8 @@ function Category(props: { id: string; other: string[]; voice: string[] }): JSX.
 						<div class="channel-icon">
 							<FaSolidChevronDown size={12} />
 						</div>
-						<span class="channel-name" use:OverflowTooltip={() => category.name}>
-							{category.name}
+						<span class="channel-name" use:OverflowTooltip={() => c().name}>
+							{c().name}
 						</span>
 					</div>
 					<For each={props.other}>
@@ -205,16 +202,16 @@ function Category(props: { id: string; other: string[]; voice: string[] }): JSX.
 const scrollPositions = new Map<string, number>();
 
 export default function GuildChannels(): JSX.Element {
-	const params = useParams();
-	const channels = createMemo(() => ChannelStore.getSortedGuildChannels(params.guildId));
-	const guildName = createMemo(() => GuildStore.getGuild(params.guildId)?.name);
+	const location = useLocationContext();
+	const channels = createMemo(() => ChannelStore.getSortedGuildChannels(location().guildId));
+	const guildName = createMemo(() => GuildStore.getGuild(location().guildId)?.name);
 	let ref: HTMLDivElement;
 
 	createEffect(() => {
-		const pos = scrollPositions.get(params.guildId);
+		const pos = scrollPositions.get(location().guildId);
 		if (!ref) return;
 		if (pos || pos === 0) return void ref.scrollTo({ behavior: "instant", top: pos });
-		refMap.get(untrack(() => params.channelId))?.scrollIntoView({ behavior: "instant", block: "center" });
+		refMap.get(untrack(() => location().channelId))?.scrollIntoView({ behavior: "instant", block: "center" });
 	});
 
 	let lastKnownScrollPosition = 0;
@@ -237,7 +234,7 @@ export default function GuildChannels(): JSX.Element {
 					lastKnownScrollPosition = ref.scrollTop;
 					if (!ticking) {
 						window.requestAnimationFrame(() => {
-							scrollPositions.set(params.guildId, lastKnownScrollPosition);
+							scrollPositions.set(location().guildId, lastKnownScrollPosition);
 							ticking = false;
 						});
 						ticking = true;
