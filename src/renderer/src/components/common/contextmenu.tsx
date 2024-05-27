@@ -6,6 +6,7 @@ import {
 	createRenderEffect,
 	createSelector,
 	createSignal,
+	FlowProps,
 	For,
 	JSX,
 	onCleanup,
@@ -15,6 +16,7 @@ import {
 	useContext,
 } from "solid-js";
 import { createStore, produce } from "solid-js/store";
+import { createToken, createTokenizer, JSXTokenizer, resolveTokens } from "@solid-primitives/jsx-tokenizer";
 import { ReactiveMap } from "@solid-primitives/map";
 
 import { FaSolidChevronRight } from "solid-icons/fa";
@@ -311,23 +313,40 @@ function Check(props: { enabled: boolean; type: "radio" | "checkbox" }): JSX.Ele
 	);
 }
 
-export function Choice<T>(props: { choices: { label: string; value: T }[]; color?: Colors; get: Accessor<T>; set: (v: T) => void }): JSX.Element {
+type choiceData<T> = { value: T } & DistributiveOmit<genericProps, "action" | "icon">;
+const Tokenizer = createTokenizer<choiceData<any>>({
+	name: "Choice Tokenizer",
+});
+
+export function ChoiceGroup<T>(props: FlowProps<{ current: T; set: (v: T) => void }>): JSX.Element {
+	// eslint-disable-next-line solid/reactivity
+	const tokens = resolveTokens(Tokenizer as JSXTokenizer<choiceData<T>>, () => props.children);
+	const is = createSelector(() => props.current);
+
 	return (
-		<For each={props.choices}>
-			{({ label, value }) => (
+		<For each={tokens()}>
+			{(e) => (
 				<Item
-					label={label}
+					label={e.data.label}
+					subText={e.data.subText}
+					disabled={e.data.disabled}
+					color={e.data.color}
 					action={() => {
-						props.set(value);
+						props.set(e.data.value);
 						return true;
 					}}
-					color={props.color}
-					icon={<Check enabled={props.get() === value} type="radio" />}
+					icon={<Check enabled={is(e.data.value)} type="radio" />}
 				/>
 			)}
 		</For>
 	);
 }
+
+export const Choice = createToken(
+	Tokenizer,
+	(props: choiceData<any>) => props,
+	(props) => <span>{props.value}</span>,
+) as <T>(props: choiceData<T>) => JSX.Element;
 
 export function Switch(props: {
 	color?: Colors;

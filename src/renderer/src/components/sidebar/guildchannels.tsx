@@ -18,12 +18,14 @@ import { TbHeadphonesOff } from "solid-icons/tb";
 import { HoverAnimationDirective } from "../common/animationcontext";
 import Avatar, { ShowStatus } from "../common/avatar";
 import ChannelIcon from "../common/channelicon";
+import { Colors, ContextmenuDirective, Item, Separator, Switch } from "../common/contextmenu";
 import { useLocationContext } from "../common/locationcontext";
 import OverflowTooltip from "../common/overflowtooltip";
 import { usePermissionsContext } from "../common/permissionscontext";
 
 HoverAnimationDirective;
 OverflowTooltip;
+ContextmenuDirective;
 
 const refMap = new Map<string, any>();
 
@@ -121,7 +123,7 @@ function VoiceChannel(props: { id: string; isCollapsed: Accessor<boolean> }): JS
 				<>
 					<A
 						href={`/channels/${location().guildId}/${props.id}`}
-						ref={(el): void => {
+						ref={(el) => {
 							refMap.set(props.id, el);
 						}}
 					>
@@ -203,9 +205,11 @@ const scrollPositions = new Map<string, number>();
 
 export default function GuildChannels(): JSX.Element {
 	const location = useLocationContext();
+	const currentPermissions = usePermissionsContext();
+	const canManageChannels = createMemo(() => currentPermissions().can(permissions.MANAGE_CHANNELS));
 	const channels = createMemo(() => ChannelStore.getSortedGuildChannels(location().guildId));
 	const guildName = createMemo(() => GuildStore.getGuild(location().guildId)?.name);
-	let ref: HTMLDivElement;
+	let ref: HTMLDivElement | undefined;
 
 	createEffect(() => {
 		const pos = scrollPositions.get(location().guildId);
@@ -226,12 +230,9 @@ export default function GuildChannels(): JSX.Element {
 			</button>
 			<div
 				class="channels guild-channels scroller scroller-thin scroller-hover-thumb"
-				ref={
-					// @ts-expect-error ref
-					ref
-				}
+				ref={ref}
 				onScroll={(): void => {
-					lastKnownScrollPosition = ref.scrollTop;
+					lastKnownScrollPosition = ref!.scrollTop;
 					if (!ticking) {
 						window.requestAnimationFrame(() => {
 							scrollPositions.set(location().guildId, lastKnownScrollPosition);
@@ -239,6 +240,23 @@ export default function GuildChannels(): JSX.Element {
 						});
 						ticking = true;
 					}
+				}}
+				use:ContextmenuDirective={{
+					menu: () => (
+						<>
+							<Switch
+								label="Hide Muted Channels"
+								enabled={() => SettingsStore.userGuildSettings[location().guildId]?.hide_muted_channels || false}
+								set={() => SettingsStore.toggleHideMutedChannels(location().guildId)}
+							/>
+							<Separator />
+							<Show when={canManageChannels()}>
+								<Item label="Create Channel" />
+								<Item label="Create Category" />
+							</Show>
+							<Item label="Invite People" color={Colors.GREEN} />
+						</>
+					),
 				}}
 			>
 				<For each={channels()?.uncategorized.other}>

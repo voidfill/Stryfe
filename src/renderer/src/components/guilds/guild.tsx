@@ -12,7 +12,7 @@ import UserStore from "@stores/users";
 import { tippy } from "@components/common/tooltip";
 
 import { HoverAnimationDirective, useAnimationContext } from "../common/animationcontext";
-import { Choice, Colors, ContextmenuDirective, Id, Item, Separator, SubMenu, Switch } from "../common/contextmenu";
+import { Choice, ChoiceGroup, Colors, ContextmenuDirective, Id, Item, Separator, SubMenu, Switch } from "../common/contextmenu";
 import { useLocationContext } from "../common/locationcontext";
 
 import { lastSelectedChannels } from "@renderer/signals";
@@ -109,24 +109,11 @@ function GuildContextmenu(props: { guildId: string }): JSX.Element {
 				}}
 			/>
 			<SubMenu label="Notification Settings" subText={notificationLevelToText(notificationLevel())}>
-				<Choice
-					get={notificationLevel}
-					set={(next) => SettingsStore.setGuildNotificationLevel(props.guildId, next)}
-					choices={[
-						{
-							label: notificationLevelToText(NotificationLevel.ALL_MESSAGES),
-							value: NotificationLevel.ALL_MESSAGES,
-						},
-						{
-							label: notificationLevelToText(NotificationLevel.ONLY_MENTIONS),
-							value: NotificationLevel.ONLY_MENTIONS,
-						},
-						{
-							label: notificationLevelToText(NotificationLevel.NOTHING),
-							value: NotificationLevel.NOTHING,
-						},
-					]}
-				/>
+				<ChoiceGroup current={notificationLevel()} set={(next) => SettingsStore.setGuildNotificationLevel(props.guildId, next)}>
+					<Choice label={notificationLevelToText(NotificationLevel.ALL_MESSAGES)} value={NotificationLevel.ALL_MESSAGES} />
+					<Choice label={notificationLevelToText(NotificationLevel.ONLY_MENTIONS)} value={NotificationLevel.ONLY_MENTIONS} />
+					<Choice label={notificationLevelToText(NotificationLevel.NOTHING)} value={NotificationLevel.NOTHING} />
+				</ChoiceGroup>
 				<Separator />
 				<Switch
 					label="Suppress @everyone and @here"
