@@ -7,6 +7,7 @@ import ChannelStore from "@stores/channels";
 import ConnectionStore from "@stores/connection";
 import GuildStore from "@stores/guilds";
 
+import { Timeline, TimelineItem } from "@components/common/timeline";
 import GuildsList from "@components/guilds";
 
 import Chat from "../chat";
@@ -19,9 +20,57 @@ import HeaderBar from "./headerbar";
 
 import "./style.scss";
 
-import shiggy from "@resources/shiggy.gif";
+import shiggy from "@resources/highres_shiggy.png";
 
 import { lastSelectedChannels, setLastSelectedChannels, setWindowTitle, showDMUserProfile, showMembers } from "@renderer/signals";
+
+function NotConnected(): JSX.Element {
+	const traceData = createMemo(() => {
+		const t = ConnectionStore.trace();
+		if (!t) return null;
+		try {
+			const d = JSON.parse(t[0]);
+			return { micros: d[1].micros, via: d[0] };
+		} catch {
+			return null;
+		}
+	});
+
+	return (
+		<div class="not-connected">
+			<div class="icon-container">
+				<img class="shiggy" src={shiggy} alt="shiggy" />
+				<h2>Stryfe</h2>
+			</div>
+			<Show
+				when={ConnectionStore.firstConnect()}
+				fallback={
+					<span>Connecting...</span>
+					// TODO: display out of retries etc
+				}
+			>
+				<Timeline state={ConnectionStore.tlState()}>
+					<TimelineItem title="Connection Open" />
+					<TimelineItem title="Hello Received" />
+					<TimelineItem
+						title="Ready"
+						description={
+							<Show when={traceData()}>
+								{(t) => (
+									<>
+										<div>via {t().via}</div>
+										<div>in {t().micros / 1000}ms</div>
+									</>
+								)}
+							</Show>
+						}
+					/>
+					<TimelineItem title="Ready Supplemental" />
+				</Timeline>
+			</Show>
+		</div>
+	);
+}
 
 export default function MainView(): JSX.Element {
 	const params = useParams(),
@@ -67,20 +116,7 @@ export default function MainView(): JSX.Element {
 	});
 
 	return (
-		<Show
-			when={ConnectionStore.uiVisible()}
-			fallback={
-				<div class="not-connected">
-					<img class="shiggy" src={shiggy} alt="shiggy" />
-					<div class="not-connected-text">
-						{ConnectionStore.outOfRetries() ? "Couldnt establish a connection to Discord servers." : "Connecting..."}
-					</div>
-					<Show when={ConnectionStore.outOfRetries()}>
-						<button onClick={(): void => {} /* add socket retry */}>Retry</button>
-					</Show>
-				</div>
-			}
-		>
+		<Show when={ConnectionStore.uiVisible()} fallback={<NotConnected />}>
 			<LocationContext.Provider
 				value={() => ({
 					channelId: params.channelId,

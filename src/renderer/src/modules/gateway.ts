@@ -15,9 +15,11 @@ type activity = Output<typeof _activity>;
 
 declare global {
 	interface customDispatches {
+		GATEWAY_CONN_OPEN: undefined;
 		GATEWAY_CONNECT: undefined;
 		GATEWAY_DISCONNECT: undefined;
 		GATEWAY_GIVE_UP: undefined;
+		GATEWAY_HELLO_RECEIVED: undefined;
 	}
 }
 
@@ -141,6 +143,7 @@ export default class GatewaySocket {
 
 	#onOpen(): void {
 		if (this.#state === ConnectionState.Resuming) return;
+		Dispatcher.emit("GATEWAY_CONN_OPEN");
 		this.canResume ? this.#resume() : this.#identify();
 	}
 
@@ -255,6 +258,7 @@ export default class GatewaySocket {
 				break;
 
 			case OPCodes.HELLO:
+				Dispatcher.emit("GATEWAY_HELLO_RECEIVED");
 				this.#helloTimeout &&= clearTimeout(this.#helloTimeout) as undefined;
 				this.#startHeartbeat(data.d.heartbeat_interval);
 				this.#trace = data.d._trace;

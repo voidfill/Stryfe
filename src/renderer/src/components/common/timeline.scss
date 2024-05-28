@@ -1,0 +1,48 @@
+:root {
+	--timeline-inactive: #464646;
+	--timeline-active: #f0f0f0;
+}
+
+@property --tl-grad-at {
+	syntax: "<length>";
+	initial-value: 0px;
+	inherits: true;
+}
+
+.timeline {
+	display: flex;
+	flex-direction: row;
+
+	.timeline-content {
+		display: flex;
+		flex-direction: column;
+
+		.timeline-item {
+			display: flex;
+			flex-direction: column;
+			padding: 4px;
+			padding-left: var(--tl-bullet-size);
+
+			.timeline-title {
+				font-size: 1.1em;
+				font-weight: bold;
+			}
+
+			.timeline-description {
+				font-size: 0.9em;
+			}
+		}
+	}
+
+	.timeline-line {
+		height: 100%;
+		width: var(--tl-bullet-size);
+
+		.timeline-background {
+			height: 100%;
+			width: var(--tl-bullet-size);
+			background: linear-gradient(to bottom, var(--timeline-active) var(--tl-grad-at), var(--timeline-inactive) var(--tl-grad-at));
+			transition: --tl-grad-at 0.2s ease-in-out;
+		}
+	}
+}
