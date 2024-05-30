@@ -14,7 +14,7 @@ import { parse } from "@components/common/md";
 import tippy from "@components/common/tooltip";
 import UserName from "@components/common/username";
 
-import { Attachment } from "./attachment";
+import Attachment from "./attachment";
 import Divider from "./divider";
 import Embed from "./embed";
 import Reply from "./reply";

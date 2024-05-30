@@ -18,7 +18,7 @@ const [overwrites, setOverwrites] = createStore<{
 	};
 }>({});
 
-export function hasBit(bits: bigint, bit: bigint): boolean {
+export function hasBit<T extends bigint | number>(bits: T, bit: T): boolean {
 	return (bits & bit) === bit;
 }
 

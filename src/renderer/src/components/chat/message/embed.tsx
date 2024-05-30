@@ -1,25 +1,23 @@
 import { createMemo, For, JSX, Match, Show, Switch } from "solid-js";
-import { Dynamic } from "solid-js/web";
 import { Output } from "valibot";
 
 import _embed from "@constants/schemata/message/embed";
 
-import { maxDims, Spoiler } from "./attachment";
-
 import "./embed.scss";
 
 import { parse } from "@renderer/components/common/md";
+import { MaybeSpoiler } from "@renderer/components/common/media";
 
 type embed = Output<typeof _embed>;
 
 export default function Embed(props: { embed: embed; spoilers: { [key: string]: boolean } }): JSX.Element {
-	const isSpoilered = createMemo(() => (props.embed.url && props.spoilers[props.embed.url]) ?? false);
+	const isSpoilered = createMemo(() => (props.embed.url && props.spoilers[props.embed.url]) || false);
 	const color = createMemo(() => (props.embed.color ? `#${props.embed.color.toString(16).padStart(6, "0")}` : ""));
 
 	// TODO: appropriate image sizes
 
 	return (
-		<Dynamic component={isSpoilered() ? Spoiler : "div"} class="message-embed-container">
+		<MaybeSpoiler is_spoiler={isSpoilered()}>
 			<Switch
 				fallback={
 					<div class="message-embed" style={props.embed.color ? { "border-color": color() } : {}}>
@@ -81,15 +79,10 @@ export default function Embed(props: { embed: embed; spoilers: { [key: string]: 
 					</div>
 				}
 			>
-				<Match when={props.embed.type === "image" && props.embed.thumbnail}>
-					{(t) => {
-						const md = createMemo(() => maxDims({ height: t().height, width: t().width }));
-						return <img src={t().proxy_url} width={md().width} height={md().height} alt={props.embed.title} />;
-					}}
-				</Match>
+				<Match when={props.embed.type === "image" && props.embed.thumbnail}>image</Match>
 				<Match when={props.embed.type === "gifv" && props.embed.video}>gifv</Match>
 				<Match when={props.embed.type === "video" && props.embed.video}>video</Match>
 			</Switch>
-		</Dynamic>
+		</MaybeSpoiler>
 	);
 }

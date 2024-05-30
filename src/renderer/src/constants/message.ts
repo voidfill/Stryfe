@@ -88,4 +88,5 @@ export const attachmentFlags = Object.freeze({
 	IS_THUMBNAIL: 1 << 1,
 	IS_REMIX: 1 << 2,
 	IS_SPOILER: 1 << 3,
+	CONTAINS_EXPLICIT_MEDIA: 1 << 4,
 });
