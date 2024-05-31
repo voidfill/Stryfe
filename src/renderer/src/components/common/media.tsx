@@ -1,9 +1,11 @@
-import { createEffect, createMemo, createSignal, FlowProps, JSX, Match, onCleanup, Show, Switch } from "solid-js";
+import { Accessor, createEffect, createMemo, createSignal, FlowProps, JSX, Match, onCleanup, onMount, Show, Switch } from "solid-js";
 
 import { base64ToUint8Array } from "@stores/settings";
 
+import { FaRegularStar, FaSolidStar } from "solid-icons/fa";
 import { FiSlash } from "solid-icons/fi";
 
+import { useAnimationContext } from "./animationcontext";
 import tippy from "./tooltip";
 
 import "./media.scss";
@@ -41,9 +43,14 @@ export function Media(props: props): JSX.Element {
 	return (
 		<MaybeSpoiler is_spoiler={props.is_spoiler ?? false}>
 			<Switch fallback={<div>Media fallback: {JSON.stringify(props)}</div>}>
-				<Match when={props.is_clip}>{Clip(props)}</Match>
-				<Match when={props.content_type?.startsWith("image/") && props.width && props.height && props.size && props.proxy_url}>
-					{Image(props as Parameters<typeof Image>[0])}
+				<Match when={props.content_type === "gifv" && props.width && props.height && props.proxy_url}>
+					{GifV(props as Parameters<typeof GifV>[0])}
+				</Match>
+				<Match when={props.content_type?.startsWith("video") && props.width && props.height && props.proxy_url}>
+					{Video(props as Parameters<typeof Video>[0])}
+				</Match>
+				<Match when={props.content_type?.startsWith("image") && props.width && props.height && props.proxy_url}>
+					{MediaImage(props as Parameters<typeof MediaImage>[0])}
 				</Match>
 			</Switch>
 		</MaybeSpoiler>
@@ -86,6 +93,32 @@ function urlWithDimensions(url: string, height: number, width: number): string {
 	u.searchParams.set("height", height.toString());
 	u.searchParams.set("width", width.toString());
 	return u.toString();
+}
+
+function urlAsWebp(url: string): string {
+	const u = new URL(url);
+	u.searchParams.set("format", "webp");
+	return u.toString();
+}
+
+function isValidBase64(str: string): Promise<boolean> {
+	return new Promise((resolve) => {
+		const i = new Image();
+		i.onload = (): void => resolve(i.width > 0 && i.height > 0);
+		i.onerror = (): void => resolve(false);
+		i.src = str;
+	});
+}
+
+function validBase64(str: Accessor<string>): Accessor<string | undefined> {
+	const [valid, setValid] = createSignal<string | undefined>(undefined);
+
+	createEffect(() => {
+		const s = str();
+		isValidBase64(s).then((v) => setValid(v ? s : undefined));
+	});
+
+	return valid;
 }
 
 export function Spoiler(props: FlowProps): JSX.Element {
@@ -165,7 +198,22 @@ function AltText(props: { description: string }): JSX.Element {
 	);
 }
 
-function Image(props: props & { height: number; proxy_url: string; size: number; width: number }): JSX.Element {
+function FavoriteStar(props: { url: string }): JSX.Element {
+	const [isFavorite, setIsFavorite] = createSignal(false); // TODO: wire up to store / api
+
+	return (
+		<div class="media-favorite-star">
+			<div classList={{ "is-favorite": isFavorite(), "media-favorite-star-container": true }} onClick={() => setIsFavorite(!isFavorite())}>
+				<Show when={isFavorite()}>
+					<FaSolidStar size={24} class="star" />
+				</Show>
+				<FaRegularStar size={28} class="star" />
+			</div>
+		</div>
+	);
+}
+
+function MediaImage(props: props & { height: number; proxy_url: string; width: number }): JSX.Element {
 	const [loaded, setLoaded] = createSignal(false);
 	const [error, setError] = createSignal(false);
 	const ns = createMemo(
@@ -175,12 +223,23 @@ function Image(props: props & { height: number; proxy_url: string; size: number;
 			equals: (a, b) => a.height === b.height && a.width === b.width,
 		},
 	);
+	const doAnimate = useAnimationContext();
+	const isGif = createMemo(() => props.content_type === "image/gif");
 	const u = createMemo(() => urlWithDimensions(props.proxy_url, ns().height, ns().width));
 
 	return (
 		<div class="media media-image" style={{ height: `${ns().height}px`, width: `${ns().width}px` }}>
-			<img src={u()} alt={props.description ?? ""} onLoad={() => setLoaded(true)} onError={() => setError(true)} />
+			<img
+				class="media-image-image"
+				src={isGif() && !doAnimate() ? urlAsWebp(u()) : u()}
+				alt={props.filename}
+				onLoad={() => setLoaded(true)}
+				onError={() => setError(true)}
+			/>
 			<Placeholder hidden={loaded()} placeholder={props.placeholder ?? ""} placeholder_version={props.placeholder_version ?? 0} />
+			<Show when={isGif()}>
+				<FavoriteStar url={props.url} />
+			</Show>
 			<Spinner hidden={loaded()} />
 			<Show when={props.description}>
 				<AltText description={props.description!} />
@@ -195,6 +254,97 @@ function Image(props: props & { height: number; proxy_url: string; size: number;
 	);
 }
 
-function Clip(props: props): JSX.Element {
-	return <span>this is a clip.</span>;
+function Video(props: props & { content_type: string; height: number; proxy_url: string; width: number }): JSX.Element {
+	let ref: HTMLVideoElement | undefined;
+	const thumbhashDataUrl = createMemo(() => thumbHashToDataURL(base64ToUint8Array(props.placeholder ?? "")));
+	const maybeValidThumb = validBase64(thumbhashDataUrl);
+	const [error, setError] = createSignal(false);
+	const [loadedPoster, setLoadedPoster] = createSignal(false);
+	const ns = createMemo(
+		() => fit(props.height, props.width, maxHeight, maxWidth, error() ? minHeightOnError : 0, error() ? minWidthOnError : 0),
+		undefined,
+		{
+			equals: (a, b) => a.height === b.height && a.width === b.width,
+		},
+	);
+	const posterUrl = createMemo(() => urlAsWebp(urlWithDimensions(props.proxy_url, ns().height, ns().width)));
+
+	return (
+		<div class="media media-video" style={{ height: `${ns().height}px`, width: `${ns().width}px` }}>
+			<Show
+				when={true}
+				fallback={
+					<>
+						<FiSlash size={32} />
+						<span>Could not load video</span>
+					</>
+				}
+			>
+				<video
+					ref={ref}
+					// we use a dummy image element to load the poster into cache, then switch out the thumb placeholder with the real poster
+					poster={loadedPoster() ? posterUrl() : maybeValidThumb() || posterUrl()}
+					src={props.proxy_url}
+					style={{ height: `${ns().height}px`, width: `${ns().width}px` }}
+					onError={() => setError(true)}
+					preload="metadata"
+					controls
+					playsinline
+					// @ts-expect-error this works
+					disablepictureinpicture
+				/>
+				<img class="media-video-poster" src={posterUrl()} style={{ display: "none" }} onLoad={() => setLoadedPoster(true)} />
+			</Show>
+		</div>
+	);
+}
+
+// apparently placeholders for these do exist but not render anything so we wont be using them
+function GifV(props: props & { height: number; proxy_url: string; width: number }): JSX.Element {
+	const doAnimate = useAnimationContext();
+	const [error, setError] = createSignal(false);
+	let ref: HTMLVideoElement | undefined;
+
+	const ns = createMemo(
+		() => fit(props.height, props.width, maxHeight, maxWidth, error() ? minHeightOnError : 0, error() ? minWidthOnError : 0),
+		undefined,
+		{
+			equals: (a, b) => a.height === b.height && a.width === b.width,
+		},
+	);
+
+	const posterUrl = createMemo(() => urlAsWebp(urlWithDimensions(props.proxy_url, ns().height, ns().width)));
+
+	let playPromise = Promise.resolve();
+	onMount(() => {
+		createEffect(() => {
+			doAnimate();
+			playPromise.then(() => {
+				if (doAnimate()) playPromise = ref!.play();
+				else ref?.pause();
+			});
+		});
+	});
+
+	return (
+		<div class="media media-gifv" style={{ height: `${ns().height}px`, width: `${ns().width}px` }}>
+			<video
+				ref={ref}
+				style={{ height: `${ns().height}px`, width: `${ns().width}px` }}
+				poster={posterUrl()}
+				src={props.proxy_url}
+				onError={() => setError(true)}
+				preload="auto"
+				playsinline
+				loop
+			/>
+			<FavoriteStar url={props.url} />
+			<Show when={error()}>
+				<div class="media-image-error">
+					<FiSlash size={32} />
+					<span>Could not load GIF</span>
+				</div>
+			</Show>
+		</div>
+	);
 }

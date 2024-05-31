@@ -1,5 +1,6 @@
 :root {
 	--media-transition-duration: 0.3s;
+	--media-favorite-star-color: #ffcc00;
 }
 
 .media {
@@ -8,6 +9,7 @@
 	grid-template-columns: 1fr;
 	border-radius: 4px;
 	overflow: hidden;
+	user-select: none;
 
 	> * {
 		grid-row: 1;
@@ -33,6 +35,14 @@
 .media-image > img {
 	width: inherit;
 	height: inherit;
+
+	&.media-image-image {
+		user-select: text;
+	}
+}
+
+.media-video {
+	width: fit-content;
 }
 
 .media-image-error {
@@ -105,6 +115,7 @@
 
 .media-alt-text {
 	position: relative;
+	pointer-events: none;
 
 	.media-alt-text-container {
 		position: absolute;
@@ -112,6 +123,7 @@
 		left: 5px;
 
 		> strong {
+			pointer-events: all;
 			padding: 4px 8px;
 			background-color: #000000bb;
 			border-radius: 4px;
@@ -141,10 +153,41 @@
 	}
 }
 
+.media-favorite-star {
+	position: relative;
+
+	.media-favorite-star-container {
+		position: absolute;
+		top: 5px;
+		left: 5px;
+		display: grid;
+		grid-template-columns: 1fr;
+		grid-template-rows: 1fr;
+		cursor: pointer;
+
+		.star {
+			fill: #fff;
+			transition: fill var(--media-transition-duration);
+			cursor: pointer;
+			grid-row: 1;
+			grid-column: 1;
+			align-self: center;
+			justify-self: center;
+		}
+
+		&:hover, &.is-favorite {
+			.star {
+				fill: var(--media-favorite-star-color);
+			}
+		}
+	}
+}
+
 .loading-spinner {
 	position: relative;
 	opacity: 1;
 	transition: opacity var(--media-transition-duration);
+	pointer-events: none;
 
 	&.hidden {
 		opacity: 0;

@@ -3,10 +3,11 @@ import { Output } from "valibot";
 
 import _embed from "@constants/schemata/message/embed";
 
+import { MaybeSpoiler, Media } from "@components/common/media";
+
 import "./embed.scss";
 
 import { parse } from "@renderer/components/common/md";
-import { MaybeSpoiler } from "@renderer/components/common/media";
 
 type embed = Output<typeof _embed>;
 
@@ -79,9 +80,11 @@ export default function Embed(props: { embed: embed; spoilers: { [key: string]: 
 					</div>
 				}
 			>
-				<Match when={props.embed.type === "image" && props.embed.thumbnail}>image</Match>
-				<Match when={props.embed.type === "gifv" && props.embed.video}>gifv</Match>
-				<Match when={props.embed.type === "video" && props.embed.video}>video</Match>
+				<Match when={props.embed.type === "image" && props.embed.thumbnail}>
+					{(i) => <Media content_type="image" filename="" {...i()} />}
+				</Match>
+				<Match when={props.embed.type === "gifv" && props.embed.video}>{(v) => <Media content_type="gifv" filename="" {...v()} />}</Match>
+				<Match when={props.embed.type === "video" && props.embed.video}>{(v) => <Media content_type="video" filename="" {...v()} />}</Match>
 			</Switch>
 		</MaybeSpoiler>
 	);
