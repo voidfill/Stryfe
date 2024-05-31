@@ -173,7 +173,11 @@ function removeEntry(channelId: string, messageId: string): void {
 // Should probably prompt to reload when disabling this
 export const [messageLoggerEnabled, setMessageLoggerEnabled] = Persistent.registerSignal("messageLoggerEnabled", fallback(boolean(), false));
 
-type message = DistributiveOmit<Output<typeof _genericMessage>, "id" | "channel_id" | "author" | "member" | "mentions" | "message_reference"> & {
+// it might happen that we accidentally store some of the omitted values in here since spread operator is funny but its important that we mark them as not accessible
+type message = DistributiveOmit<
+	Output<typeof _genericMessage>,
+	"id" | "channel_id" | "author" | "member" | "mentions" | "message_reference" | "embeds"
+> & {
 	author_id: string;
 	mention_ids?: string[];
 	message_reference?: string; // can only be in the same channel so might as well omit the rest

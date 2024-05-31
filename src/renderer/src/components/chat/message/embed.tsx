@@ -1,20 +1,22 @@
 import { createMemo, For, JSX, Match, Show, Switch } from "solid-js";
-import { Output } from "valibot";
 
-import _embed from "@constants/schemata/message/embed";
+import { storedEmbed } from "@stores/embeds";
 
-import { MaybeSpoiler, Media } from "@components/common/media";
+import { parse } from "@components/common/md";
+import { MaybeSpoiler, Media, Youtube } from "@components/common/media";
 
 import "./embed.scss";
 
-import { parse } from "@renderer/components/common/md";
+function isYoutubeEmbedUrl(url: string): boolean {
+	const u = new URL(url);
+	if (u.hostname !== "www.youtube.com") return false;
+	if (!u.pathname.startsWith("/embed/")) return false;
+	return true;
+}
 
-type embed = Output<typeof _embed>;
-
-export default function Embed(props: { embed: embed; spoilers: { [key: string]: boolean } }): JSX.Element {
+export default function Embed(props: { embed: storedEmbed; spoilers: { [key: string]: boolean } }): JSX.Element {
 	const isSpoilered = createMemo(() => (props.embed.url && props.spoilers[props.embed.url]) || false);
 	const color = createMemo(() => (props.embed.color ? `#${props.embed.color.toString(16).padStart(6, "0")}` : ""));
-
 	// TODO: appropriate image sizes
 
 	return (
@@ -66,7 +68,30 @@ export default function Embed(props: { embed: embed; spoilers: { [key: string]: 
 								</div>
 							)}
 						</For>
-						{/* TODO: embed media stuff */}
+						<Show when={props.embed.images?.length || props.embed.video}>
+							<div class="embed-media">
+								<Show when={props.embed.video}>
+									{(v) => (
+										<Show
+											when={
+												isYoutubeEmbedUrl(v().url) &&
+												props.embed.thumbnail?.proxy_url &&
+												props.embed.thumbnail?.height &&
+												props.embed.thumbnail?.width
+											}
+											fallback={<Media content_type="video" {...v()} />}
+										>
+											<Youtube
+												// blehhh basically typechecked anyways, im lazy
+												video={v() as any}
+												thumbnail={props.embed.thumbnail as any}
+											/>
+										</Show>
+									)}
+								</Show>
+								<For each={props.embed.images ?? []}>{(image) => <Media content_type="image" {...image} />}</For>
+							</div>
+						</Show>
 						<Show when={props.embed.footer}>
 							{(f) => (
 								<div class="embed-footer">
@@ -80,11 +105,26 @@ export default function Embed(props: { embed: embed; spoilers: { [key: string]: 
 					</div>
 				}
 			>
-				<Match when={props.embed.type === "image" && props.embed.thumbnail}>
-					{(i) => <Media content_type="image" filename="" {...i()} />}
+				<Match when={props.embed.type === "image" && props.embed.thumbnail}>{(i) => <Media content_type="image" {...i()} />}</Match>
+				<Match when={props.embed.type === "gifv" && props.embed.video}>{(v) => <Media content_type="gifv" {...v()} />}</Match>
+				<Match
+					when={
+						props.embed.type === "video" &&
+						props.embed.video &&
+						!props.embed.author &&
+						!props.embed.description &&
+						!props.embed.fields?.length &&
+						!props.embed.footer &&
+						!props.embed.images?.length &&
+						!props.embed.provider &&
+						!props.embed.thumbnail &&
+						!props.embed.timestamp &&
+						!props.embed.title &&
+						props.embed.video
+					}
+				>
+					{(v) => <Media content_type="video" {...v()} />}
 				</Match>
-				<Match when={props.embed.type === "gifv" && props.embed.video}>{(v) => <Media content_type="gifv" filename="" {...v()} />}</Match>
-				<Match when={props.embed.type === "video" && props.embed.video}>{(v) => <Media content_type="video" filename="" {...v()} />}</Match>
 			</Switch>
 		</MaybeSpoiler>
 	);

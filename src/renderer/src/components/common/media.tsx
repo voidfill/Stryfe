@@ -24,13 +24,15 @@ type props = {
 	content_type?: string;
 	description?: string;
 	duration_secs?: number;
-	filename: string;
+	filename?: string;
 	height?: number | null;
 	is_clip?: boolean;
 	is_explicit?: boolean;
 	is_remix?: boolean;
 	is_spoiler?: boolean;
 	is_thumbnail?: boolean;
+	maxHeight?: number;
+	maxWidth?: number;
 	placeholder?: string;
 	placeholder_version?: number;
 	proxy_url?: string;
@@ -217,14 +219,22 @@ function MediaImage(props: props & { height: number; proxy_url: string; width: n
 	const [loaded, setLoaded] = createSignal(false);
 	const [error, setError] = createSignal(false);
 	const ns = createMemo(
-		() => fit(props.height, props.width, maxHeight, maxWidth, error() ? minHeightOnError : 0, error() ? minWidthOnError : 0),
+		() =>
+			fit(
+				props.height,
+				props.width,
+				props.maxHeight || maxHeight,
+				props.maxWidth || maxWidth,
+				error() ? minHeightOnError : 0,
+				error() ? minWidthOnError : 0,
+			),
 		undefined,
 		{
 			equals: (a, b) => a.height === b.height && a.width === b.width,
 		},
 	);
 	const doAnimate = useAnimationContext();
-	const isGif = createMemo(() => props.content_type === "image/gif");
+	const isGif = createMemo(() => new URL(props.proxy_url).pathname.endsWith(".gif"));
 	const u = createMemo(() => urlWithDimensions(props.proxy_url, ns().height, ns().width));
 
 	return (
@@ -257,11 +267,20 @@ function MediaImage(props: props & { height: number; proxy_url: string; width: n
 function Video(props: props & { content_type: string; height: number; proxy_url: string; width: number }): JSX.Element {
 	let ref: HTMLVideoElement | undefined;
 	const thumbhashDataUrl = createMemo(() => thumbHashToDataURL(base64ToUint8Array(props.placeholder ?? "")));
-	const maybeValidThumb = validBase64(thumbhashDataUrl);
+	// eslint-disable-next-line solid/reactivity
+	const maybeValidThumb = validBase64(() => thumbhashDataUrl());
 	const [error, setError] = createSignal(false);
 	const [loadedPoster, setLoadedPoster] = createSignal(false);
 	const ns = createMemo(
-		() => fit(props.height, props.width, maxHeight, maxWidth, error() ? minHeightOnError : 0, error() ? minWidthOnError : 0),
+		() =>
+			fit(
+				props.height,
+				props.width,
+				props.maxHeight || maxHeight,
+				props.maxWidth || maxWidth,
+				error() ? minHeightOnError : 0,
+				error() ? minWidthOnError : 0,
+			),
 		undefined,
 		{
 			equals: (a, b) => a.height === b.height && a.width === b.width,
@@ -344,6 +363,68 @@ function GifV(props: props & { height: number; proxy_url: string; width: number 
 					<FiSlash size={32} />
 					<span>Could not load GIF</span>
 				</div>
+			</Show>
+		</div>
+	);
+}
+
+export function Youtube(props: {
+	maxHeight?: number;
+	maxWidth?: number;
+	thumbnail: { height: number; proxy_url: string; url: string; width: number };
+	video: { height: number; url: string; width: number };
+}): JSX.Element {
+	const [show, setShow] = createSignal(false);
+	const ns = createMemo(
+		() =>
+			fit(
+				show() ? props.video.height : props.thumbnail.height,
+				show() ? props.video.width : props.thumbnail.width,
+				props.maxHeight || maxHeight,
+				props.maxWidth || maxWidth,
+				minHeightOnError,
+				minWidthOnError,
+			),
+		undefined,
+		{
+			equals: (a, b) => a.height === b.height && a.width === b.width,
+		},
+	);
+
+	const u = createMemo(() => {
+		const u = new URL(props.video.url);
+		u.searchParams.set("autoplay", "1");
+		u.searchParams.set("auto_play", "1");
+		return u.toString();
+	});
+
+	return (
+		<div
+			class="youtube-embed"
+			style={{
+				height: `${ns().height}px`,
+				width: `${ns().width}px`,
+			}}
+		>
+			<Show
+				when={show()}
+				fallback={
+					<div class="thumbnail-container" onClick={() => setShow(true)}>
+						<img class="thumbnail" src={urlWithDimensions(props.thumbnail.proxy_url, ns().height, ns().width)} alt="thumbnail" />
+						<div class="buttons-container">
+							<div class="play-button"></div>
+							<div class="open-external-button"></div>
+						</div>
+					</div>
+				}
+			>
+				<iframe
+					src={u()}
+					// @ts-expect-error this works
+					frameborder="0"
+					allow="autoplay; encrypted-media"
+					allowfullscreen
+				/>
 			</Show>
 		</div>
 	);

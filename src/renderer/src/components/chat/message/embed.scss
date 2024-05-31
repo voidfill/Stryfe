@@ -16,4 +16,10 @@
 			margin-right: 0.5rem;
 		}
 	}
+
+	.embed-media {
+		display: flex;
+		flex-direction: column;
+		gap: 5px;
+	}
 }

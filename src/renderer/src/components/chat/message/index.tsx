@@ -4,6 +4,7 @@ import { MessageType } from "@constants/message";
 
 import { extractTimeStamp } from "@modules/unix";
 
+import EmbedStore from "@stores/embeds";
 import MessageStore from "@stores/messages";
 import SettingsStore from "@stores/settings";
 
@@ -52,6 +53,7 @@ export default function Message(props: { id: string; prevId?: string }): JSX.Ele
 	});
 
 	const content = createMemo(() => msg()?.content ?? "");
+	const embeds = createMemo(() => EmbedStore.getEmbeds(props.id));
 
 	return (
 		<Show when={msg()}>
@@ -123,7 +125,7 @@ export default function Message(props: { id: string; prevId?: string }): JSX.Ele
 												<span class="message-content">{md().element}</span>
 												<div classList={{ "message-accessories": true, [`message-accesories-${props.id}`]: true }}>
 													<For each={msg().attachments ?? []}>{Attachment}</For>
-													<For each={msg().embeds ?? []}>
+													<For each={embeds() ?? []}>
 														{(e): JSX.Element => <Embed embed={e} spoilers={md().outputData.spoilers ?? {}} />}
 													</For>
 													<For each={msg().sticker_items ?? []}>{Sticker}</For>
