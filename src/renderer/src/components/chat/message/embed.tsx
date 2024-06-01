@@ -1,6 +1,8 @@
 import { createMemo, For, JSX, Match, Show, Switch } from "solid-js";
+import { boolean, fallback } from "valibot";
 
 import { storedEmbed } from "@stores/embeds";
+import Persistent from "@stores/persistent";
 
 import { parse } from "@components/common/md";
 import { MaybeSpoiler, Media, Youtube } from "@components/common/media";
@@ -14,9 +16,22 @@ function isYoutubeEmbedUrl(url: string): boolean {
 	return true;
 }
 
+export const [allowYoutubeEmbedDescription, setAllowYoutubeEmbedDescription] = Persistent.registerSignal(
+	"allowYoutubeEmbedDescription",
+	fallback(boolean(), false),
+);
+
 export default function Embed(props: { embed: storedEmbed; spoilers: { [key: string]: boolean } }): JSX.Element {
 	const isSpoilered = createMemo(() => (props.embed.url && props.spoilers[props.embed.url]) || false);
 	const color = createMemo(() => (props.embed.color ? `#${props.embed.color.toString(16).padStart(6, "0")}` : ""));
+	const isYoutubeEmbed = createMemo(() => {
+		const v = props.embed.video;
+		if (!v || !v.url || !v.height || !v.width) return false;
+		const t = props.embed.thumbnail;
+		if (!t || !t.proxy_url || !t.height || !t.width) return false;
+		return isYoutubeEmbedUrl(v.url);
+	});
+
 	// TODO: appropriate image sizes
 
 	return (
@@ -54,7 +69,7 @@ export default function Embed(props: { embed: storedEmbed; spoilers: { [key: str
 								</div>
 							)}
 						</Show>
-						<Show when={props.embed.description}>
+						<Show when={(allowYoutubeEmbedDescription() || !isYoutubeEmbed()) && props.embed.description}>
 							{(d) => {
 								const md = createMemo(() => parse(d(), { allowHeading: true, inline: true, outputData: {} }));
 
@@ -72,19 +87,12 @@ export default function Embed(props: { embed: storedEmbed; spoilers: { [key: str
 							<div class="embed-media">
 								<Show when={props.embed.video}>
 									{(v) => (
-										<Show
-											when={
-												isYoutubeEmbedUrl(v().url) &&
-												props.embed.thumbnail?.proxy_url &&
-												props.embed.thumbnail?.height &&
-												props.embed.thumbnail?.width
-											}
-											fallback={<Media content_type="video" {...v()} />}
-										>
+										<Show when={isYoutubeEmbed()} fallback={<Media content_type="video" {...v()} />}>
 											<Youtube
 												// blehhh basically typechecked anyways, im lazy
 												video={v() as any}
 												thumbnail={props.embed.thumbnail as any}
+												originalURL={props.embed.url!}
 											/>
 										</Show>
 									)}
@@ -101,12 +109,15 @@ export default function Embed(props: { embed: storedEmbed; spoilers: { [key: str
 								</div>
 							)}
 						</Show>
-						<div>raw: {JSON.stringify(props.embed)}</div>
 					</div>
 				}
 			>
-				<Match when={props.embed.type === "image" && props.embed.thumbnail}>{(i) => <Media content_type="image" {...i()} />}</Match>
-				<Match when={props.embed.type === "gifv" && props.embed.video}>{(v) => <Media content_type="gifv" {...v()} />}</Match>
+				<Match when={props.embed.type === "image" && props.embed.thumbnail}>
+					{(i) => <Media content_type="image" embedURL={props.embed.url} {...i()} />}
+				</Match>
+				<Match when={props.embed.type === "gifv" && props.embed.video}>
+					{(v) => <Media content_type="gifv" embedURL={props.embed.url} {...v()} />}
+				</Match>
 				<Match
 					when={
 						props.embed.type === "video" &&
@@ -123,7 +134,7 @@ export default function Embed(props: { embed: storedEmbed; spoilers: { [key: str
 						props.embed.video
 					}
 				>
-					{(v) => <Media content_type="video" {...v()} />}
+					{(v) => <Media content_type="video" embedURL={props.embed.url} {...v()} />}
 				</Match>
 			</Switch>
 		</MaybeSpoiler>

@@ -1,6 +1,7 @@
 import { bytecodePlugin, defineConfig, externalizeDepsPlugin } from "electron-vite";
 import { resolve } from "path";
 
+import { visualizer } from "rollup-plugin-visualizer";
 import compileTime from "vite-plugin-compile-time";
 import solid from "vite-plugin-solid";
 
@@ -14,8 +15,16 @@ export default defineConfig({
 	renderer: {
 		build: {
 			minify: "esbuild",
+			rollupOptions: {
+				output: {
+					manualChunks: {
+						highlight: ["./src/renderer/src/modules/highlight.ts"],
+						protos: ["./node_modules/discord-protos"],
+					},
+				},
+			},
 		},
-		plugins: [solid(), compileTime()],
+		plugins: [solid(), compileTime(), visualizer({ brotliSize: true, filename: "module-stats.html", gzipSize: true, template: "sunburst" })],
 		publicDir: resolve("src/renderer/public"),
 		resolve: {
 			alias: {

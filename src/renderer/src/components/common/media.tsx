@@ -1,9 +1,10 @@
 import { Accessor, createEffect, createMemo, createSignal, FlowProps, JSX, Match, onCleanup, onMount, Show, Switch } from "solid-js";
 
 import { base64ToUint8Array } from "@stores/settings";
+import SettingsStore from "@stores/settings";
 
-import { FaRegularStar, FaSolidStar } from "solid-icons/fa";
-import { FiSlash } from "solid-icons/fi";
+import { FaRegularStar, FaSolidPlay, FaSolidStar } from "solid-icons/fa";
+import { FiExternalLink, FiSlash } from "solid-icons/fi";
 
 import { useAnimationContext } from "./animationcontext";
 import tippy from "./tooltip";
@@ -24,6 +25,7 @@ type props = {
 	content_type?: string;
 	description?: string;
 	duration_secs?: number;
+	embedURL?: string;
 	filename?: string;
 	height?: number | null;
 	is_clip?: boolean;
@@ -201,11 +203,15 @@ function AltText(props: { description: string }): JSX.Element {
 }
 
 function FavoriteStar(props: { url: string }): JSX.Element {
-	const [isFavorite, setIsFavorite] = createSignal(false); // TODO: wire up to store / api
+	const isFavorite = createMemo(() => props.url in (SettingsStore.frecencySettings.favoriteGifs?.gifs ?? {}));
+
+	function toggleFavorite(): void {
+		// TODO: toggle favorite
+	}
 
 	return (
 		<div class="media-favorite-star">
-			<div classList={{ "is-favorite": isFavorite(), "media-favorite-star-container": true }} onClick={() => setIsFavorite(!isFavorite())}>
+			<div classList={{ "is-favorite": isFavorite(), "media-favorite-star-container": true }} onClick={toggleFavorite}>
 				<Show when={isFavorite()}>
 					<FaSolidStar size={24} class="star" />
 				</Show>
@@ -247,8 +253,8 @@ function MediaImage(props: props & { height: number; proxy_url: string; width: n
 				onError={() => setError(true)}
 			/>
 			<Placeholder hidden={loaded()} placeholder={props.placeholder ?? ""} placeholder_version={props.placeholder_version ?? 0} />
-			<Show when={isGif()}>
-				<FavoriteStar url={props.url} />
+			<Show when={isGif() && props.embedURL}>
+				<FavoriteStar url={props.embedURL!} />
 			</Show>
 			<Spinner hidden={loaded()} />
 			<Show when={props.description}>
@@ -357,7 +363,9 @@ function GifV(props: props & { height: number; proxy_url: string; width: number 
 				playsinline
 				loop
 			/>
-			<FavoriteStar url={props.url} />
+			<Show when={props.embedURL}>
+				<FavoriteStar url={props.embedURL!} />
+			</Show>
 			<Show when={error()}>
 				<div class="media-image-error">
 					<FiSlash size={32} />
@@ -371,49 +379,41 @@ function GifV(props: props & { height: number; proxy_url: string; width: number 
 export function Youtube(props: {
 	maxHeight?: number;
 	maxWidth?: number;
+	originalURL: string;
 	thumbnail: { height: number; proxy_url: string; url: string; width: number };
 	video: { height: number; url: string; width: number };
 }): JSX.Element {
 	const [show, setShow] = createSignal(false);
-	const ns = createMemo(
-		() =>
-			fit(
-				show() ? props.video.height : props.thumbnail.height,
-				show() ? props.video.width : props.thumbnail.width,
-				props.maxHeight || maxHeight,
-				props.maxWidth || maxWidth,
-				minHeightOnError,
-				minWidthOnError,
-			),
-		undefined,
-		{
-			equals: (a, b) => a.height === b.height && a.width === b.width,
-		},
-	);
+	const width = 400,
+		height = 225;
 
 	const u = createMemo(() => {
 		const u = new URL(props.video.url);
 		u.searchParams.set("autoplay", "1");
 		u.searchParams.set("auto_play", "1");
+		u.searchParams.set("enablejsapi", "1");
+		u.searchParams.set("origin", "https://discord.com");
 		return u.toString();
 	});
 
 	return (
-		<div
-			class="youtube-embed"
-			style={{
-				height: `${ns().height}px`,
-				width: `${ns().width}px`,
-			}}
-		>
+		<div class="youtube-embed" style={{ "max-height": `${height}px`, "max-width": `${width}px` }}>
 			<Show
 				when={show()}
 				fallback={
 					<div class="thumbnail-container" onClick={() => setShow(true)}>
-						<img class="thumbnail" src={urlWithDimensions(props.thumbnail.proxy_url, ns().height, ns().width)} alt="thumbnail" />
+						<img class="thumbnail" src={urlWithDimensions(props.thumbnail.proxy_url, height, width)} alt="thumbnail" />
 						<div class="buttons-container">
-							<div class="play-button"></div>
-							<div class="open-external-button"></div>
+							<div class="container-inner">
+								<FaSolidPlay size={24} />
+								<FiExternalLink
+									size={24}
+									onClick={(e) => {
+										e.stopPropagation();
+										window.open(props.originalURL, "_blank");
+									}}
+								/>
+							</div>
 						</div>
 					</div>
 				}
@@ -421,9 +421,13 @@ export function Youtube(props: {
 				<iframe
 					src={u()}
 					// @ts-expect-error this works
+					credentialless
 					frameborder="0"
-					allow="autoplay; encrypted-media"
+					scrolling="no"
+					allow="autoplay"
+					sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-presentation"
 					allowfullscreen
+					style={{ height: `${height}px`, width: `${width}px` }}
 				/>
 			</Show>
 		</div>

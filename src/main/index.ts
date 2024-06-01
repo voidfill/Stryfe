@@ -16,6 +16,7 @@ osType =
 
 const allowOriginList = ["https://discord.com", "https://cordapi.dolfi.es"];
 const toDelete = new Set(["access-control-allow-origin", "content-security-policy-report-only", "content-security-policy", "x-frame-options"]);
+const skipIFrameOrigins = new Set(["https://www.youtube.com"]);
 
 let newUserAgent = "";
 
@@ -40,7 +41,7 @@ function createWindow(): BrowserWindow {
 	mainWindow.setMenuBarVisibility(false);
 
 	mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
-		if (!details.responseHeaders) return callback({ cancel: false });
+		if (!details.responseHeaders || skipIFrameOrigins.has(details.frame?.origin ?? "")) return callback({ cancel: false });
 
 		let didSetCredentials = false;
 
@@ -83,10 +84,10 @@ function createWindow(): BrowserWindow {
 			urls: ["*://*/*", "wss://*/*"],
 		},
 		(details, callback) => {
+			if (skipIFrameOrigins.has(details.frame?.origin ?? "")) return callback({ cancel: false, requestHeaders: details.requestHeaders });
+
 			details.requestHeaders["Origin"] = details.requestHeaders["Referer"] = "https://discord.com";
-			if (newUserAgent) {
-				details.requestHeaders["User-Agent"] = newUserAgent;
-			}
+			if (newUserAgent) details.requestHeaders["User-Agent"] = newUserAgent;
 
 			callback({ cancel: false, requestHeaders: details.requestHeaders });
 		},
