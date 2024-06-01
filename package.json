@@ -71,5 +71,10 @@
 	},
 	"engines": {
 		"pnpm": ">=9"
+	},
+	"pnpm": {
+		"patchedDependencies": {
+			"tippy.js@6.3.7": "patches/tippy.js@6.3.7.patch"
+		}
 	}
 }

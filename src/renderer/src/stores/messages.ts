@@ -294,6 +294,7 @@ export default new (class MessageStore extends Store {
 				});
 			},
 			MESSAGES_FETCH_SUCCESS: ({ messages, channelId, after, around, before, limit }) => {
+				if (!messages.length) return;
 				const messageIds = messages.map((m) => m.id).reverse();
 
 				batch(() => {

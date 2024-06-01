@@ -187,12 +187,12 @@ function AltText(props: { description: string }): JSX.Element {
 				<strong
 					use:tippy={{
 						content: () => (
-							<div class="tippy-alt-text">
+							<div class="tippy-alt-text" style={{ "user-select": "text" }}>
 								<strong class="alt-text-header">image description (alt text)</strong>
 								<span class="alt-text-content">{props.description}</span>
 							</div>
 						),
-						props: { arrow: false, placement: "right", trigger: "click" },
+						props: { appendTo: () => document.body, arrow: false, interactive: true, placement: "right", trigger: "click" },
 					}}
 				>
 					ALT
@@ -253,9 +253,7 @@ function MediaImage(props: props & { height: number; proxy_url: string; width: n
 				onError={() => setError(true)}
 			/>
 			<Placeholder hidden={loaded()} placeholder={props.placeholder ?? ""} placeholder_version={props.placeholder_version ?? 0} />
-			<Show when={isGif() && props.embedURL}>
-				<FavoriteStar url={props.embedURL!} />
-			</Show>
+			<Show when={isGif() && (props.embedURL || props.url)}>{(u) => <FavoriteStar url={u()} />}</Show>
 			<Spinner hidden={loaded()} />
 			<Show when={props.description}>
 				<AltText description={props.description!} />

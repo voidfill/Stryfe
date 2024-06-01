@@ -1,0 +1,24 @@
+diff --git a/dist/tippy.esm.js b/dist/tippy.esm.js
+index 55346f57874b0af79fec3b6f9f0253f9d55bfee2..a2b7269f1db7e66ce3831712c2ac48d99d6beaf5 100644
+--- a/dist/tippy.esm.js
++++ b/dist/tippy.esm.js
+@@ -439,6 +439,7 @@ function evaluateProps(reference, props) {
+   return out;
+ }
+ function validateProps(partialProps, plugins) {
++	return;
+   if (partialProps === void 0) {
+     partialProps = {};
+   }
+diff --git a/headless/dist/tippy-headless.esm.js b/headless/dist/tippy-headless.esm.js
+index b37f6ec366efd6c8424467c0b1a248be31b2dbc0..b7cf02cc5c0c887be181673a88b34d38c425a001 100644
+--- a/headless/dist/tippy-headless.esm.js
++++ b/headless/dist/tippy-headless.esm.js
+@@ -438,6 +438,7 @@ function evaluateProps(reference, props) {
+   return out;
+ }
+ function validateProps(partialProps, plugins) {
++	return;
+   if (partialProps === void 0) {
+     partialProps = {};
+   }

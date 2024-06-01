@@ -1,4 +1,4 @@
-import { array, boolean, merge, nullable, number, object, optional, string } from "valibot";
+import { array, boolean, merge, nullable, number, object, optional, string, union } from "valibot";
 
 import { user } from "../common";
 import { PRESENCE_UPDATE } from "../presence";
@@ -30,7 +30,7 @@ export const GUILD_MEMBER_UPDATE = GUILD_MEMBER_ADD;
 
 export const GUILD_MEMBER_REMOVE = object({
 	guild_id: string(),
-	user: user,
+	user: union([user, object({ id: string() })]),
 });
 
 export const GUILD_MEMBERS_CHUNK = object({

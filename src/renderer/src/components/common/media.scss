@@ -45,6 +45,10 @@
 	width: fit-content;
 }
 
+.youtube-embed {
+	border-radius: 4px;
+	overflow: hidden;
+}
 .youtube-embed .thumbnail-container {
 	display: grid;
 	place-content: center;

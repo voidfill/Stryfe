@@ -40,6 +40,13 @@
 		.message-main {
 			padding-left: 4px;
 		}
+
+	}
+	.message-header {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		gap: 2px;
 	}
 
 	.message-container {
@@ -126,6 +133,12 @@
 		text-overflow: ellipsis;
 		overflow: hidden;
 		flex-shrink: 1;
+		cursor: pointer;
+		filter: brightness(0.8);
+
+		&:hover {
+			filter: brightness(1)
+		}
 	}
 }
 

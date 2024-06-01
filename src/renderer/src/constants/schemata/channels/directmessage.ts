@@ -7,7 +7,7 @@ import { equal } from "../common";
 export default object({
 	flags: number(),
 	id: string(),
-	is_spam: boolean(),
+	is_spam: optional(boolean()),
 	last_message_id: nullable(string()),
 	last_pin_timestamp: optional(nullable(string())),
 	recipient_ids: tuple([string()]),

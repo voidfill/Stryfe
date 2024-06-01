@@ -9,6 +9,9 @@ import { MaybeSpoiler, Media, Youtube } from "@components/common/media";
 
 import "./embed.scss";
 
+const maxHeight = 225;
+const maxWidth = 400;
+
 function isYoutubeEmbedUrl(url: string): boolean {
 	const u = new URL(url);
 	if (u.hostname !== "www.youtube.com") return false;
@@ -39,10 +42,10 @@ export default function Embed(props: { embed: storedEmbed; spoilers: { [key: str
 			<Switch
 				fallback={
 					<div class="message-embed" style={props.embed.color ? { "border-color": color() } : {}}>
-						<Show when={Object.values(props.embed.provider || {}).length >= 0 && props.embed.provider}>
+						<Show when={!!(props.embed.provider?.name || props.embed.provider?.url) && props.embed.provider}>
 							{(p) => (
 								<div class="embed-provider">
-									<Show when={p().url} fallback={<span>{p.name}</span>}>
+									<Show when={p().url} fallback={<span>{p().name}</span>}>
 										<span>{p().name || p().url /* TODO: hook up maybe outgoing link */}</span>
 									</Show>
 								</div>
@@ -83,7 +86,7 @@ export default function Embed(props: { embed: storedEmbed; spoilers: { [key: str
 								</div>
 							)}
 						</For>
-						<Show when={props.embed.images?.length || props.embed.video}>
+						<Show when={props.embed.images?.length || props.embed.video || props.embed.thumbnail}>
 							<div class="embed-media">
 								<Show when={props.embed.video}>
 									{(v) => (
@@ -97,7 +100,12 @@ export default function Embed(props: { embed: storedEmbed; spoilers: { [key: str
 										</Show>
 									)}
 								</Show>
-								<For each={props.embed.images ?? []}>{(image) => <Media content_type="image" {...image} />}</For>
+								<For each={props.embed.images ?? []}>
+									{(image) => <Media maxHeight={maxHeight} maxWidth={maxWidth} content_type="image" {...image} />}
+								</For>
+								<Show when={!props.embed.video && !props.embed.images?.length && props.embed.thumbnail}>
+									{(t) => <Media maxHeight={maxHeight} maxWidth={maxWidth} content_type="image" {...t()} />}
+								</Show>
 							</div>
 						</Show>
 						<Show when={props.embed.footer}>

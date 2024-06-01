@@ -1,0 +1,39 @@
+.typing {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	height: 22px;
+	gap: 4px;
+	padding-bottom: 2px;
+
+	.text {
+		display: inline;
+	}
+
+	> .typing-indicators {
+		> circle {
+			fill: #eee;
+			opacity: 0.1;
+			animation: t-opacity 2s linear infinite;
+		}
+
+		&.animation-paused > circle {
+			animation-play-state: paused;
+		}
+	}
+}
+
+@keyframes t-opacity {
+	0% {
+		opacity: 0.1;
+	}
+	40% {
+		opacity: 0.8;
+	}
+	80% {
+		opacity: 0.1;
+	}
+	100% {
+		opacity: 0.1;
+	}
+}

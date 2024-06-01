@@ -5,6 +5,7 @@ import { RelationshipTypes } from "@constants/user";
 
 import Store from ".";
 import RelationshipStore from "./relationships";
+import { selfId } from "./users";
 
 const [typing, setTyping] = createStore<{
 	[channelId: string]: {
@@ -29,7 +30,7 @@ export default new (class TypingStore extends Store {
 				);
 			},
 			TYPING_START: ({ channel_id, user_id, timestamp }) => {
-				if (RelationshipStore.getRelationship(user_id)?.type === RelationshipTypes.BLOCKED) return;
+				if (user_id === selfId() || RelationshipStore.getRelationship(user_id)?.type === RelationshipTypes.BLOCKED) return;
 
 				batch(() => {
 					if (!typing[channel_id]) setTyping(channel_id, {});

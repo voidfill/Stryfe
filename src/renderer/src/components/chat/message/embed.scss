@@ -1,6 +1,7 @@
 .message-embed {
-	display: flex;
-	flex-direction: column;
+	display: grid;
+	grid-template-columns: auto;
+	grid-template-rows: auto;
 	overflow: hidden;
 	max-width: 488px;
 	padding: 10px 10px 10px 14px;
@@ -20,6 +21,30 @@
 	.embed-media {
 		display: flex;
 		flex-direction: column;
+		margin-top: 16px;
 		gap: 5px;
+		grid-column: 1/1;
+		contain: paint;
+	}
+
+	> .embed-provider {
+		margin-top: 8px;
+		font-size: .75rem;
+		line-height: 1rem;
+		font-weight: 400;
+		color: var(--text-muted);
+	}
+
+	> .embed-author {
+		margin-top: 8px;
+		line-height: 20px;
+		font-size: 16px;
+	}
+
+	> .embed-title {
+		margin-top: 8px;
+		line-height: 20px;
+		font-size: 16px;
+		font-weight: 600;
 	}
 }

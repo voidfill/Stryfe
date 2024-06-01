@@ -123,6 +123,13 @@ export default new (class MemberStore extends Store {
 					}
 				});
 			},
+			TYPING_START: ({ guild_id, member }) => {
+				if (!guild_id || !member) return;
+				if (!members[guild_id]) setMembers(guild_id, {});
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
+				const { roles, ...rest } = member;
+				setMembers(guild_id, rest.user.id, rest);
+			},
 			VOICE_STATE_UPDATE: (vs) => {
 				if ("member" in vs && vs.member && vs.guild_id) {
 					if (!members[vs.guild_id]) setMembers(vs.guild_id, {});

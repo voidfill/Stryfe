@@ -40,6 +40,19 @@ function intoStored<T extends { [key: string]: unknown } & { discriminator: stri
 export default new (class UserStore extends Store {
 	constructor() {
 		super({
+			CHANNEL_CREATE: (channel) => {
+				if (!("recipients" in channel)) return;
+				setUsers(
+					produce((s) => {
+						for (const user of channel.recipients) {
+							s[user.id] ??= intoStored(user);
+						}
+					}),
+				);
+			},
+			CHANNEL_RECIPIENT_ADD: ({ user }) => {
+				setUsers(user.id, intoStored(user));
+			},
 			GUILD_MEMBER_ADD: ({ user }) => {
 				if (users[user.id]) return;
 				setUsers(user.id, intoStored(user));

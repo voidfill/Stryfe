@@ -8,6 +8,8 @@ import UserStore from "@stores/users";
 
 import tippy from "./tooltip";
 
+import "./username.scss";
+
 tippy;
 
 export default function UserName(props: { color?: boolean; guildId?: string; id: string; roleIcon?: boolean }): JSX.Element {
@@ -36,7 +38,7 @@ export default function UserName(props: { color?: boolean; guildId?: string; id:
 	return (
 		<span class="username" style={{ color: color() }}>
 			<Show when={name()} fallback={"unknown"} keyed>
-				{(n) => n}
+				{(n) => <span class="username-name">{n}</span>}
 			</Show>
 			<Show when={props.roleIcon && iconRole()}>
 				{(r) => (

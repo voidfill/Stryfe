@@ -14,6 +14,7 @@ import { usePermissionsContext } from "@components/common/permissionscontext";
 import { useLocationContext } from "../common/locationcontext";
 import Message from "./message";
 import TextArea from "./textarea";
+import Typing from "./typing";
 
 export default function Chat(): JSX.Element {
 	const location = useLocationContext();
@@ -22,6 +23,7 @@ export default function Chat(): JSX.Element {
 		<div class="chat" style={{ display: "flex", "flex-direction": "column", "flex-grow": 1, height: "100%" }}>
 			<LazyScroller around={location().messageId} channelId={location().channelId} guildId={location().guildId} />
 			<TextArea />
+			<Typing channelId={location().channelId} guildId={location().guildId} />
 		</div>
 	);
 }

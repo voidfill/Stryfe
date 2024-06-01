@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  tippy.js@6.3.7:
+    hash: xv6rez4ehb5p3truip64q3mxau
+    path: patches/tippy.js@6.3.7.patch
+
 importers:
 
   .:
@@ -34,7 +39,7 @@ importers:
         version: 11.9.0
       tippy.js:
         specifier: ^6.3.7
-        version: 6.3.7
+        version: 6.3.7(patch_hash=xv6rez4ehb5p3truip64q3mxau)
       zlib-sync:
         specifier: ^0.1.9
         version: 0.1.9
@@ -5937,7 +5942,7 @@ snapshots:
 
   tiny-typed-emitter@2.1.0: {}
 
-  tippy.js@6.3.7:
+  tippy.js@6.3.7(patch_hash=xv6rez4ehb5p3truip64q3mxau):
     dependencies:
       '@popperjs/core': 2.11.8
 
