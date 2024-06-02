@@ -131,6 +131,9 @@ importers:
       solid-js:
         specifier: ^1.8.17
         version: 1.8.17
+      solid-transition-group:
+        specifier: ^0.2.3
+        version: 0.2.3(solid-js@1.8.17)
       thumbhash:
         specifier: ^0.1.1
         version: 0.1.1
@@ -921,6 +924,11 @@ packages:
 
   '@solid-primitives/timer@1.3.8':
     resolution: {integrity: sha512-NTOoKAYXDkNkrpZvu7svCzIlAGy/XCbz4rToJaMtqf3BOK0YOJ8t2l2JwikFOTZW3MLH553VjEGFZjJwVHOzHg==}
+    peerDependencies:
+      solid-js: ^1.6.12
+
+  '@solid-primitives/transition-group@1.0.5':
+    resolution: {integrity: sha512-G3FuqvL13kQ55WzWPX2ewiXdZ/1iboiX53195sq7bbkDbXqP6TYKiadwEdsaDogW5rPnPYAym3+xnsNplQJRKQ==}
     peerDependencies:
       solid-js: ^1.6.12
 
@@ -2701,6 +2709,12 @@ packages:
     peerDependencies:
       solid-js: ^1.3
 
+  solid-transition-group@0.2.3:
+    resolution: {integrity: sha512-iB72c9N5Kz9ykRqIXl0lQohOau4t0dhel9kjwFvx81UZJbVwaChMuBuyhiZmK24b8aKEK0w3uFM96ZxzcyZGdg==}
+    engines: {node: '>=18.0.0', pnpm: '>=8.6.0'}
+    peerDependencies:
+      solid-js: ^1.6.12
+
   solid-use@0.6.2:
     resolution: {integrity: sha512-0ShJ5s+4PIN0pJB/BtsQucsZB+xnUeeTGaxErQDu6USn5jygZWXicAtOEvFbI8gv40xE751uY1Tz7Aib9lxL/Q==}
     engines: {node: '>=10'}
@@ -3766,6 +3780,10 @@ snapshots:
       solid-js: 1.8.17
 
   '@solid-primitives/timer@1.3.8(solid-js@1.8.17)':
+    dependencies:
+      solid-js: 1.8.17
+
+  '@solid-primitives/transition-group@1.0.5(solid-js@1.8.17)':
     dependencies:
       solid-js: 1.8.17
 
@@ -5819,6 +5837,12 @@ snapshots:
       '@babel/generator': 7.23.6
       '@babel/helper-module-imports': 7.22.15
       '@babel/types': 7.23.9
+      solid-js: 1.8.17
+
+  solid-transition-group@0.2.3(solid-js@1.8.17):
+    dependencies:
+      '@solid-primitives/refs': 1.0.6(solid-js@1.8.17)
+      '@solid-primitives/transition-group': 1.0.5(solid-js@1.8.17)
       solid-js: 1.8.17
 
   solid-use@0.6.2(solid-js@1.8.17):
