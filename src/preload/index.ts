@@ -2,6 +2,8 @@ import { electronAPI } from "@electron-toolkit/preload";
 import { contextBridge, ipcRenderer } from "electron";
 import os from "os";
 
+import { inspect } from "util";
+
 const canEncrypt = ipcRenderer.invoke("encryption:available");
 const isDev = ipcRenderer.invoke("is:dev");
 const osType = ipcRenderer.invoke("os:type");
@@ -26,6 +28,7 @@ export const ipc = {
 
 		contextBridge.exposeInMainWorld("isDev", await isDev);
 		contextBridge.exposeInMainWorld("os_type", await osType);
+		contextBridge.exposeInMainWorld("nodeInspect", inspect);
 	} catch (error) {
 		console.error(error);
 	}

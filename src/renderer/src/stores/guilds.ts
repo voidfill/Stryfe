@@ -76,14 +76,15 @@ export default new (class GuildStore extends Store {
 							continue;
 						}
 						unavailableGuilds.delete(guild.id);
-						features.set(guild.id, new ReactiveSet(guild.properties.features));
+						const { features: f, ...rest } = guild.properties;
+						features.set(guild.id, new ReactiveSet(f));
 						setGuilds(
 							guild.id,
 							reconcile({
 								joined_at: guild.joined_at,
 								large: guild.large,
 								lazy: guild.lazy,
-								...guild.properties,
+								...rest,
 							}),
 						);
 

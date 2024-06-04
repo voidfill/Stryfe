@@ -71,6 +71,10 @@
 			max-width: 90%;
 		}
 	}
+
+	&:hover {
+		background-color: var(--background-primary);
+	}
 }
 
 .message-attachments {

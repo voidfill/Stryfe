@@ -23,11 +23,13 @@ import Sticker from "./sticker";
 
 import "./style.scss";
 
+import { ContextmenuDirective, ViewRaw } from "@renderer/components/common/contextmenu";
 import { showAvatarsInCompact } from "@renderer/signals";
 
 NoAnimationDirective;
 HoverAnimationDirective;
 tippy;
+ContextmenuDirective;
 
 const isCompact = createMemo(() => SettingsStore.preloadedSettings.textAndImages?.messageDisplayCompact?.value ?? false);
 
@@ -72,6 +74,13 @@ export default function Message(props: { id: string; prevId?: string }): JSX.Ele
 							[`message-state-${state()}`]: true,
 						}}
 						use:HoverAnimationDirective
+						use:ContextmenuDirective={{
+							menu: () => (
+								<>
+									<ViewRaw Content={() => msg().content} Message={msg} />
+								</>
+							),
+						}}
 					>
 						{((): JSX.Element => {
 							// this is an iife because we need the context of hoveranimationdirective for md parsing

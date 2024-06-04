@@ -53,6 +53,9 @@ importers:
       '@electron/notarize':
         specifier: ^2.3.0
         version: 2.3.0
+      '@solid-primitives/deep':
+        specifier: ^0.2.8
+        version: 0.2.8(solid-js@1.8.17)
       '@solid-primitives/jsx-tokenizer':
         specifier: ^1.0.10
         version: 1.0.10(solid-js@1.8.17)
@@ -77,6 +80,9 @@ importers:
       '@typescript-eslint/parser':
         specifier: ^7.8.0
         version: 7.8.0(eslint@8.57.0)(typescript@5.4.5)
+      ansi_up:
+        specifier: ^6.0.2
+        version: 6.0.2
       electron:
         specifier: ^30.0.2
         version: 30.0.2
@@ -817,6 +823,11 @@ packages:
     peerDependencies:
       solid-js: ^1.6.12
 
+  '@solid-primitives/deep@0.2.8':
+    resolution: {integrity: sha512-r+enqrL2oiDkJt7lYUYMVvKzcqVDAd4G/1OkLnXEibk5nIA635qNIuOxIAaCCP3GDAHKznaW3yc/vMG68lo8bQ==}
+    peerDependencies:
+      solid-js: ^1.6.12
+
   '@solid-primitives/event-bus@1.0.9':
     resolution: {integrity: sha512-BI9dla3GQzINsufEzr/CV3B/9e0D1pyk7Ig6kPI6s4geUkiVgFadY5V8R95PEeHH1NagOny7AHpw+RaRIuBpkA==}
     peerDependencies:
@@ -857,6 +868,11 @@ packages:
     peerDependencies:
       solid-js: ^1.6.12
 
+  '@solid-primitives/memo@1.3.8':
+    resolution: {integrity: sha512-U75pfLFSxFmM2xbx1+2XPPyWbaXrnUFF10spbFuOUgJ7azrC+4y+FnrVi4RKqHw9gftd8aKQuTiyMQq468YLQw==}
+    peerDependencies:
+      solid-js: ^1.6.12
+
   '@solid-primitives/mouse@2.0.17':
     resolution: {integrity: sha512-gE038V4raWMnjzhnfdzUAmzji/55AXzcN7U3SbjH1erK+zr6UGRc+GstAZRLBLdksTAZ3m/5HSUaKQ+IE/noBw==}
     peerDependencies:
@@ -894,6 +910,11 @@ packages:
 
   '@solid-primitives/scheduled@1.4.2':
     resolution: {integrity: sha512-duKaugDQtPk0v6MnkBuEalWk66/vA2G7zzoimQEvmUdh2+K2o8t908HIfI2NdBfwakQMQBV4epE3TFeN2Vsveg==}
+    peerDependencies:
+      solid-js: ^1.6.12
+
+  '@solid-primitives/scheduled@1.4.3':
+    resolution: {integrity: sha512-HfWN5w7b7FEc6VPLBKnnE302h90jsLMuR28Fcf7neRGGf8jBj6wm6/UFQ00VlKexHFMR6KQ2u4VBh5a1ZcqM8g==}
     peerDependencies:
       solid-js: ^1.6.12
 
@@ -1156,6 +1177,9 @@ packages:
   ansi-styles@6.2.1:
     resolution: {integrity: sha512-bN798gFfQX+viw3R7yrGWRqnrN2oRkEkUjjl4JNn4E8GxxbjtG3FbrEIIY3l8/hrwUwIeCZvi4QuOTP4MErVug==}
     engines: {node: '>=12'}
+
+  ansi_up@6.0.2:
+    resolution: {integrity: sha512-3G3vKvl1ilEp7J1u6BmULpMA0xVoW/f4Ekqhl8RTrJrhEBkonKn5k3bUc5Xt+qDayA6iDX0jyUh3AbZjB/l0tw==}
 
   any-promise@1.3.0:
     resolution: {integrity: sha512-7UvmKalWRt1wgjL1RrGxoSJW/0QZFIegpeGvZG9kjp8vrRu55XTHbwnqq2GpXm9uLbcuhxm3IqX9OB4MZR1b2A==}
@@ -3664,6 +3688,11 @@ snapshots:
       '@solid-primitives/utils': 6.2.2(solid-js@1.8.17)
       solid-js: 1.8.17
 
+  '@solid-primitives/deep@0.2.8(solid-js@1.8.17)':
+    dependencies:
+      '@solid-primitives/memo': 1.3.8(solid-js@1.8.17)
+      solid-js: 1.8.17
+
   '@solid-primitives/event-bus@1.0.9(solid-js@1.8.17)':
     dependencies:
       '@solid-primitives/utils': 6.2.2(solid-js@1.8.17)
@@ -3709,6 +3738,12 @@ snapshots:
       '@solid-primitives/utils': 6.2.2(solid-js@1.8.17)
       solid-js: 1.8.17
 
+  '@solid-primitives/memo@1.3.8(solid-js@1.8.17)':
+    dependencies:
+      '@solid-primitives/scheduled': 1.4.3(solid-js@1.8.17)
+      '@solid-primitives/utils': 6.2.3(solid-js@1.8.17)
+      solid-js: 1.8.17
+
   '@solid-primitives/mouse@2.0.17(solid-js@1.8.17)':
     dependencies:
       '@solid-primitives/event-listener': 2.3.1(solid-js@1.8.17)
@@ -3750,6 +3785,10 @@ snapshots:
       solid-js: 1.8.17
 
   '@solid-primitives/scheduled@1.4.2(solid-js@1.8.17)':
+    dependencies:
+      solid-js: 1.8.17
+
+  '@solid-primitives/scheduled@1.4.3(solid-js@1.8.17)':
     dependencies:
       solid-js: 1.8.17
 
@@ -4059,6 +4098,8 @@ snapshots:
       color-convert: 2.0.1
 
   ansi-styles@6.2.1: {}
+
+  ansi_up@6.0.2: {}
 
   any-promise@1.3.0: {}
 
