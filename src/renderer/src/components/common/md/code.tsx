@@ -1,7 +1,6 @@
-import { onCleanup, onMount, Show } from "solid-js";
+import { Show } from "solid-js";
 
-import highlight, { unRegister } from "@modules/highlight";
-
+import HighlightCodeBlock from "../highlightcode";
 import { ruleTypeGuard } from "./lib";
 
 export const codeblock = ruleTypeGuard({
@@ -14,32 +13,10 @@ export const codeblock = ruleTypeGuard({
 		};
 	},
 	element: (data, _, state) => {
-		let ref: HTMLElement;
-		let id: string | null = null;
-		if (data.lang && !state.formatInline) {
-			onMount(() => {
-				if (!data.lang) return;
-				id = highlight(data.content, data.lang, (r) => {
-					if (ref) ref.innerHTML = r;
-				});
-			});
-
-			onCleanup(() => id && unRegister(id)); // just in case.
-		}
-
 		return (
-			<Show when={!state.formatInline} fallback={<code class="md-inlinecode">{data.content}</code>}>
+			<Show when={data.lang && !state.formatInline} fallback={<code class="md-inlinecode">{data.content}</code>}>
 				<span class="md-codeblock">
-					<pre>
-						<code
-							ref={
-								// @ts-expect-error ref
-								ref
-							}
-						>
-							{data.content}
-						</code>
-					</pre>
+					<HighlightCodeBlock content={data.content} lang={data.lang!} />
 				</span>
 			</Show>
 		);

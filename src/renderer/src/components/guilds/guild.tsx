@@ -12,7 +12,7 @@ import UserStore from "@stores/users";
 import { tippy } from "@components/common/tooltip";
 
 import { HoverAnimationDirective, useAnimationContext } from "../common/animationcontext";
-import { Choice, ChoiceGroup, Colors, ContextmenuDirective, Id, Item, Separator, SubMenu, Switch } from "../common/contextmenu";
+import { Choice, ChoiceGroup, Colors, ContextmenuDirective, Id, Item, Separator, SubMenu, Switch, ViewRaw } from "../common/contextmenu";
 import { useLocationContext } from "../common/locationcontext";
 
 import { lastSelectedChannels } from "@renderer/signals";
@@ -173,6 +173,7 @@ function GuildContextmenu(props: { guildId: string }): JSX.Element {
 				<Separator />
 			</Show>
 			<Id id={props.guildId} resource="Server" />
+			<ViewRaw Guild={() => GuildStore.getGuild(props.guildId)} Features={() => GuildStore.getFeatures(props.guildId)} />
 		</>
 	);
 }

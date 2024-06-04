@@ -20,6 +20,10 @@ import { createToken, createTokenizer, JSXTokenizer, resolveTokens } from "@soli
 import { ReactiveMap } from "@solid-primitives/map";
 
 import { FaSolidChevronRight } from "solid-icons/fa";
+import { FiCode } from "solid-icons/fi";
+
+import { createModal } from "./modals";
+import ViewRawModal from "./modals/viewraw";
 
 import "./contextmenu.scss";
 
@@ -49,6 +53,7 @@ type context = {
 	is: (id: string) => boolean;
 	off: (id: string) => void;
 	on: (id: string) => void;
+	parentCleanup: (toCleanup: () => void) => void;
 };
 
 type genericProps = {
@@ -67,7 +72,7 @@ type parentRect = {
 	y: number;
 };
 
-const menuContext = createContext<context>({ get: () => "", hide: () => {}, is: () => false, off: () => {}, on: () => {} });
+const menuContext = createContext<context>({ get: () => "", hide: () => {}, is: () => false, off: () => {}, on: () => {}, parentCleanup: () => {} });
 
 function clamp(num: number, min: number, max: number): number {
 	return num <= min ? min : num >= max ? max : num;
@@ -300,6 +305,23 @@ export function Id(props: { id: string; resource?: string }): JSX.Element {
 	return <Item label={`Copy ${props.resource ? props.resource + " " : ""}ID`} action={() => void navigator.clipboard.writeText(props.id)} />;
 }
 
+export function ViewRaw(props: { [key: string]: Accessor<unknown> }): JSX.Element {
+	const { parentCleanup } = useContext(menuContext);
+	let close: undefined | (() => void);
+
+	parentCleanup(() => close?.());
+
+	return (
+		<Item
+			label="View Raw"
+			action={() => {
+				close = createModal({ content: () => ViewRawModal(props) });
+			}}
+			icon={FiCode}
+		/>
+	);
+}
+
 function Check(props: { enabled: boolean; type: "radio" | "checkbox" }): JSX.Element {
 	return (
 		<input
@@ -374,6 +396,7 @@ export function ContextmenuDirective(
 	value: Accessor<{ menu: () => JSX.Element; on?: "click" | "contextmenu"; parentRect?: parentRect; searchable?: boolean }>,
 ): void {
 	let layerId: number | undefined;
+	const toCleanup: (() => void)[] = [];
 	const id = getUniqueId();
 	const [r, sr] = createSignal<Element | undefined>(undefined);
 
@@ -442,7 +465,16 @@ export function ContextmenuDirective(
 		};
 
 		layerId = addLayer(() => (
-			<menuContext.Provider value={{ get, hide, is, off, on }}>
+			<menuContext.Provider
+				value={{
+					get,
+					hide,
+					is,
+					off,
+					on,
+					parentCleanup: (to) => void toCleanup.push(to),
+				}}
+			>
 				<Wrapper
 					children={
 						<>
@@ -583,6 +615,8 @@ export function ContextmenuDirective(
 		element.addEventListener(untrack(() => value().on) ?? "contextmenu", contextmenuHandler as (e: Event) => void);
 
 		onCleanup(() => {
+			for (const to of toCleanup) to();
+
 			hide();
 			element.removeEventListener(untrack(() => value().on) ?? "contextmenu", contextmenuHandler as (e: Event) => void);
 
