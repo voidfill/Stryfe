@@ -12,15 +12,11 @@ export const codeblock = ruleTypeGuard({
 			data: { content: match[2], lang: match[1] || undefined },
 		};
 	},
-	element: (data, _, state) => {
-		return (
-			<Show when={data.lang && !state.formatInline} fallback={<code class="md-inlinecode">{data.content}</code>}>
-				<span class="md-codeblock">
-					<HighlightCodeBlock content={data.content} lang={data.lang!} />
-				</span>
-			</Show>
-		);
-	},
+	element: (data, _, state) => (
+		<Show when={!state.formatInline} fallback={<code class="md-inlinecode">{data.content}</code>}>
+			<HighlightCodeBlock content={data.content} lang={data.lang} copy />
+		</Show>
+	),
 	order: 4,
 	requiredFirstCharacters: "```",
 });

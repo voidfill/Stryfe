@@ -1,8 +1,10 @@
-import { createEffect, JSX, onCleanup, onMount } from "solid-js";
+import { createEffect, JSX, onCleanup, onMount, Show } from "solid-js";
 
 import highlight, { unRegister } from "@modules/highlight";
 
-export default function HighlightCodeBlock(props: { content: string; lang?: string; ref?: (r: HTMLElement) => void }): JSX.Element {
+import { FaRegularCopy } from "solid-icons/fa";
+
+export default function HighlightCodeBlock(props: { content: string; copy?: boolean; lang?: string; ref?: (r: HTMLElement) => void }): JSX.Element {
 	let ref: HTMLElement | undefined;
 	let id: string | null = null;
 
@@ -18,7 +20,7 @@ export default function HighlightCodeBlock(props: { content: string; lang?: stri
 	});
 
 	return (
-		<pre>
+		<pre style={{ position: "relative" }}>
 			<code
 				ref={(r) => {
 					ref = r;
@@ -36,6 +38,17 @@ export default function HighlightCodeBlock(props: { content: string; lang?: stri
 			>
 				{props.content}
 			</code>
+			<Show when={props.copy}>
+				<FaRegularCopy
+					style={{
+						cursor: "pointer",
+						position: "absolute",
+						right: "0.5em",
+						top: "0.5em",
+					}}
+					onClick={() => navigator.clipboard.writeText(props.content)}
+				/>
+			</Show>
 		</pre>
 	);
 }

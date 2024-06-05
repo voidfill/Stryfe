@@ -19,6 +19,8 @@ import { createStore, produce } from "solid-js/store";
 import { createToken, createTokenizer, JSXTokenizer, resolveTokens } from "@solid-primitives/jsx-tokenizer";
 import { ReactiveMap } from "@solid-primitives/map";
 
+import { addLayer, removeLayer } from "@modules/layers";
+
 import { FaSolidChevronRight } from "solid-icons/fa";
 import { FiCode } from "solid-icons/fi";
 
@@ -26,8 +28,6 @@ import { createModal } from "./modals";
 import ViewRawModal from "./modals/viewraw";
 
 import "./contextmenu.scss";
-
-import { addLayer, removeLayer } from "@renderer/modules/layers";
 
 export enum Colors {
 	PRIMARY = "primary",

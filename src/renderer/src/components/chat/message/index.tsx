@@ -10,6 +10,7 @@ import SettingsStore from "@stores/settings";
 
 import { HoverAnimationDirective, NoAnimationDirective } from "@components/common/animationcontext";
 import Avatar, { ShowStatus } from "@components/common/avatar";
+import { ContextmenuDirective, ViewRaw } from "@components/common/contextmenu";
 import { useLocationContext } from "@components/common/locationcontext";
 import { parse } from "@components/common/md";
 import tippy from "@components/common/tooltip";
@@ -23,7 +24,6 @@ import Sticker from "./sticker";
 
 import "./style.scss";
 
-import { ContextmenuDirective, ViewRaw } from "@renderer/components/common/contextmenu";
 import { showAvatarsInCompact } from "@renderer/signals";
 
 NoAnimationDirective;
@@ -120,13 +120,27 @@ export default function Message(props: { id: string; prevId?: string }): JSX.Ele
 																	showStatus={ShowStatus.NEVER}
 																/>
 															</Show>
-															<UserName guildId={location().guildId} id={msg().author_id} color roleIcon />
+															<UserName
+																guildId={location().guildId}
+																id={msg().author_id}
+																color
+																roleIcon
+																clan
+																clanClickable
+															/>
 														</>
 													}
 												>
 													<Show when={isGroupStart()}>
 														<div class="message-header">
-															<UserName guildId={location().guildId} id={msg().author_id} color roleIcon />
+															<UserName
+																guildId={location().guildId}
+																id={msg().author_id}
+																color
+																roleIcon
+																clan
+																clanClickable
+															/>
 															{date().toLocaleTimeString()}
 														</div>
 													</Show>

@@ -1,11 +1,12 @@
 import { createMemo, JSX } from "solid-js";
 import { Output } from "valibot";
 
+import { attachmentFlags } from "@constants/message";
 import _attachment from "@constants/schemata/message/attachment";
 
-import { Media } from "@renderer/components/common/media";
-import { attachmentFlags } from "@renderer/constants/message";
-import { hasBit } from "@renderer/stores/permissions";
+import { hasBit } from "@stores/permissions";
+
+import { Media } from "@components/common/media";
 
 type attachment = Output<typeof _attachment>;
 

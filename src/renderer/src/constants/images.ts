@@ -61,3 +61,7 @@ export function stickerURL(id: string, format: StickerFormatType, size: number, 
 export function roleIconURL(id: string, hash: string, size: number): string {
 	return `${cdnBaseURL}/role-icons/${id}/${hash}.webp?size=${validSize(size)}&quality=lossless`;
 }
+
+export function clanIconURL(guildId: string, hash: string, size: number): string {
+	return `${cdnBaseURL}/clan-badges/${guildId}/${hash}.png?size=${validSize(size)}`;
+}

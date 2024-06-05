@@ -6,13 +6,21 @@ import MemberStore from "@stores/members";
 import RoleStore from "@stores/roles";
 import UserStore from "@stores/users";
 
+import ClanBadge from "./clanbadge";
 import tippy from "./tooltip";
 
 import "./username.scss";
 
 tippy;
 
-export default function UserName(props: { color?: boolean; guildId?: string; id: string; roleIcon?: boolean }): JSX.Element {
+export default function UserName(props: {
+	clan?: boolean;
+	clanClickable?: boolean;
+	color?: boolean;
+	guildId?: string;
+	id: string;
+	roleIcon?: boolean;
+}): JSX.Element {
 	const user = createMemo(() => UserStore.getUser(props.id));
 	const color = createMemo<string>(() => {
 		if (!props.color || !props.guildId || !MemberStore.hasMember(props.guildId, props.id) || !user()) return "#fff";
@@ -48,6 +56,9 @@ export default function UserName(props: { color?: boolean; guildId?: string; id:
 						</Show>
 					</span>
 				)}
+			</Show>
+			<Show when={props.clan}>
+				<ClanBadge userId={props.id} clickable={props.clanClickable} />
 			</Show>
 		</span>
 	);

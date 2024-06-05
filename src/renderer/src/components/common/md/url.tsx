@@ -1,10 +1,11 @@
 import { JSX } from "solid-js";
 
+import { openOutgoingLink } from "../modals/outgoinglink";
 import { ruleTypeGuard } from "./lib";
 
 function El(url: string): JSX.Element {
 	return (
-		<span class="md-url" onClick={() => console.log("clicked", url)}>
+		<span class="md-url" onClick={() => openOutgoingLink(url)}>
 			{url}
 		</span>
 	);

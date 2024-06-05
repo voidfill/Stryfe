@@ -30,7 +30,7 @@ import {
 } from "./message";
 import { PRESENCE_UPDATE } from "./presence";
 import { CHANNEL_PINS_ACK, GUILD_FEATURE_ACK, MESSAGE_ACK, RECENT_MENTION_DELETE, USER_NON_CHANNEL_ACK } from "./readstate";
-import { PASSIVE_UPDATE_V1, READY, READY_SUPPLEMENTAL, RESUMED } from "./ready";
+import { PASSIVE_UPDATE_V1, READY, READY_SUPPLEMENTAL, RESUMED, USER_UPDATE } from "./ready";
 import connectedAccount from "./ready/connectedaccount";
 import { SESSIONS_REPLACE } from "./ready/session";
 import { RELATIONSHIP_ADD, RELATIONSHIP_REMOVE } from "./relationship";
@@ -102,6 +102,7 @@ export const dispatches = {
 	USER_GUILD_SETTINGS_UPDATE,
 	USER_NON_CHANNEL_ACK,
 	USER_SETTINGS_PROTO_UPDATE,
+	USER_UPDATE,
 	VOICE_CHANNEL_STATUS_UPDATE,
 	VOICE_STATE_UPDATE,
 };

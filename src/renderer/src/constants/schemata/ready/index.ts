@@ -124,3 +124,5 @@ export const PASSIVE_UPDATE_V1 = object({
 export const RESUMED = object({
 	_trace: array(string()),
 });
+
+export const USER_UPDATE = user_self;
