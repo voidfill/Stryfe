@@ -1,4 +1,4 @@
-import { Accessor, createContext, createMemo, createSelector, FlowProps, JSX, onCleanup, Show, useContext } from "solid-js";
+import { Accessor, createContext, createSelector, FlowProps, JSX, onCleanup, Show, useContext } from "solid-js";
 import { createStore, produce } from "solid-js/store";
 
 import { addLayer, removeLayer } from "@modules/layers";
@@ -117,8 +117,8 @@ document.addEventListener("keydown", (e) => {
 	setStack(produce((p) => p.pop()));
 });
 
-export function GenericModal(props: FlowProps): JSX.Element {
-	return <div class="modal-generic">{props.children}</div>;
+export function GenericModal(props: FlowProps<{ class?: string }>): JSX.Element {
+	return <div classList={{ "modal-generic": true, [props.class!]: !!props.class }}>{props.children}</div>;
 }
 
 export function ModalFooter(props: FlowProps): JSX.Element {

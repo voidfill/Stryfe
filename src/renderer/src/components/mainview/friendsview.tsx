@@ -61,13 +61,11 @@ function FriendItem(props: { id: string }): JSX.Element {
 				return (
 					<div
 						use:HoverAnimationDirective
-						use:ContextmenuDirective={{
-							menu: () => (
-								<>
-									<Item label="TODO: menu" />
-								</>
-							),
-						}}
+						use:ContextmenuDirective={() => (
+							<>
+								<Item label="TODO: menu" />
+							</>
+						)}
 						class="friend-item"
 						onClick={(): void => {
 							const id = untrack((): string | undefined => ChannelStore.getDMForUser(props.id));

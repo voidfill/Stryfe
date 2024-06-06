@@ -241,23 +241,21 @@ export default function GuildChannels(): JSX.Element {
 						ticking = true;
 					}
 				}}
-				use:ContextmenuDirective={{
-					menu: () => (
-						<>
-							<Switch
-								label="Hide Muted Channels"
-								enabled={() => SettingsStore.userGuildSettings[location().guildId]?.hide_muted_channels || false}
-								set={() => SettingsStore.toggleHideMutedChannels(location().guildId)}
-							/>
-							<Separator />
-							<Show when={canManageChannels()}>
-								<Item label="Create Channel" />
-								<Item label="Create Category" />
-							</Show>
-							<Item label="Invite People" color={Colors.GREEN} />
-						</>
-					),
-				}}
+				use:ContextmenuDirective={() => (
+					<>
+						<Switch
+							label="Hide Muted Channels"
+							enabled={() => SettingsStore.userGuildSettings[location().guildId]?.hide_muted_channels || false}
+							set={() => SettingsStore.toggleHideMutedChannels(location().guildId)}
+						/>
+						<Separator />
+						<Show when={canManageChannels()}>
+							<Item label="Create Channel" />
+							<Item label="Create Category" />
+						</Show>
+						<Item label="Invite People" color={Colors.GREEN} />
+					</>
+				)}
 			>
 				<For each={channels()?.uncategorized.other}>
 					{(id): JSX.Element => <TextChannel id={/*@once*/ id} isCollapsed={(): boolean => false} />}

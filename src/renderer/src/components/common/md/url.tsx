@@ -1,15 +1,5 @@
-import { JSX } from "solid-js";
-
-import { openOutgoingLink } from "../modals/outgoinglink";
+import { OutgoingLink as El } from "../modals/outgoinglink";
 import { ruleTypeGuard } from "./lib";
-
-function El(url: string): JSX.Element {
-	return (
-		<span class="md-url" onClick={() => openOutgoingLink(url)}>
-			{url}
-		</span>
-	);
-}
 
 export const url = ruleTypeGuard({
 	doesMatch: (source, state) => {
@@ -27,7 +17,7 @@ export const url = ruleTypeGuard({
 			state.outputData.spoilers[data] = true;
 		}
 
-		return El(data);
+		return <El url={data} />;
 	},
 	order: 16,
 	requiredFirstCharacters: "http",
@@ -43,7 +33,7 @@ export const autolink = ruleTypeGuard({
 			data: match[1],
 		};
 	},
-	element: (data) => El(data),
+	element: (data) => <El url={data} />,
 	order: 16,
 	requiredFirstCharacters: "<",
 });

@@ -94,7 +94,7 @@ const [directMessages, setDirectMessages] = createStore<{
 		recipient_ids: string[];
 	} & (
 		| {
-				is_spam: boolean;
+				is_spam?: boolean;
 				type: ChannelTypes.DM;
 		  }
 		| {

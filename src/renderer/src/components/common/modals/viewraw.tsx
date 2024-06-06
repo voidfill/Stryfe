@@ -24,7 +24,7 @@ export default function ViewRawModal(props: { [key: string]: Accessor<unknown> }
 	return (
 		<GenericModal>
 			<ModalHeader title="View Raw" closeButton />
-			<div class="scroller scroller-auto scroller-thin">
+			<div class="scroller scroller-auto scroller-thin" style={{ padding: "16px" }}>
 				<For each={Object.entries(props).filter(([k]) => k !== "children")}>
 					{([key, value]) => {
 						let ref: HTMLElement | undefined;

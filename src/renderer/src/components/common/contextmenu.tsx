@@ -393,12 +393,17 @@ export function Switch(props: {
 
 export function ContextmenuDirective(
 	element: Element,
-	value: Accessor<{ menu: () => JSX.Element; on?: "click" | "contextmenu"; parentRect?: parentRect; searchable?: boolean }>,
+	_value: Accessor<{ menu: () => JSX.Element; on?: "click" | "contextmenu"; parentRect?: parentRect; searchable?: boolean } | (() => JSX.Element)>,
 ): void {
 	let layerId: number | undefined;
 	const toCleanup: (() => void)[] = [];
 	const id = getUniqueId();
 	const [r, sr] = createSignal<Element | undefined>(undefined);
+	const value = createMemo(() => {
+		const v = _value();
+		if (typeof v === "function") return { menu: v };
+		return v;
+	});
 
 	const [stack, setStack] = createStore<string[]>([]);
 

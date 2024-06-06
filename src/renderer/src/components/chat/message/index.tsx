@@ -74,13 +74,11 @@ export default function Message(props: { id: string; prevId?: string }): JSX.Ele
 							[`message-state-${state()}`]: true,
 						}}
 						use:HoverAnimationDirective
-						use:ContextmenuDirective={{
-							menu: () => (
-								<>
-									<ViewRaw Content={() => msg().content} Message={msg} />
-								</>
-							),
-						}}
+						use:ContextmenuDirective={() => (
+							<>
+								<ViewRaw Content={() => msg().content} Message={msg} />
+							</>
+						)}
 					>
 						{((): JSX.Element => {
 							// this is an iife because we need the context of hoveranimationdirective for md parsing

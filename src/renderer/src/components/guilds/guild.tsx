@@ -201,9 +201,7 @@ export default function Guild(props: { id: string }): JSX.Element {
 					<div
 						class="guild-icon-container"
 						use:HoverAnimationDirective
-						use:ContextmenuDirective={{
-							menu: () => <GuildContextmenu guildId={props.id} />,
-						}}
+						use:ContextmenuDirective={() => <GuildContextmenu guildId={props.id} />}
 					>
 						<ImageOrAcronym id={props.id} />
 					</div>
