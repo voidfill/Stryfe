@@ -1,4 +1,10 @@
+import { safeParse } from "valibot";
+
+import { dispatches as __allDispatches } from "@constants/schemata";
+
 import { Logger } from "./logger";
+
+import { OPCodes } from "@renderer/constants/gateway";
 
 const erl = require("erl");
 const Zlibsync = require("zlib-sync");
@@ -17,9 +23,10 @@ function setupInflator(): void {
 
 setupInflator();
 
-onmessage = ({ data }: MessageEvent<"reset" | ArrayBuffer>): void => {
-	if (data === "reset") return setupInflator();
-	if (!(data instanceof ArrayBuffer)) return logger.warn("Invalid message:", data);
+onmessage = ({ data: message }: MessageEvent<"reset" | { data: ArrayBuffer; typecheck?: boolean }>): void => {
+	if (message === "reset") return setupInflator();
+	const { typecheck, data } = message;
+	if (!(data instanceof ArrayBuffer)) return logger.warn("Invalid message:", message);
 
 	const len = data.byteLength,
 		doFlush = len >= 4 && new DataView(data).getUint32(len - 4, false) === 65535;
@@ -48,6 +55,23 @@ onmessage = ({ data }: MessageEvent<"reset" | ArrayBuffer>): void => {
 
 		inflatedChunks = [];
 
-		postMessage(erl.unpack(buf));
+		const out = erl.unpack(buf);
+
+		if (!typecheck || out.op !== OPCodes.DISPATCH) return void postMessage(out);
+
+		if (!(out.t in __allDispatches)) {
+			logger.error("Unknown dispatch:", out.t);
+			return;
+		}
+
+		const res = safeParse(__allDispatches[out.t as keyof typeof __allDispatches], out.d);
+		if (!res.success) {
+			logger.error("Failed to parse dispatch:", out.t, res.issues, out.d);
+			return;
+		}
+
+		out.d = res.output;
+
+		postMessage(out);
 	}
 };

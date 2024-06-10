@@ -1,7 +1,6 @@
-import { Output, safeParse } from "valibot";
+import { Output } from "valibot";
 
 import { GatewayPayload, OPCodes, recoverableCloseCodes, SocketGatewayCloseCodes } from "@constants/gateway";
-import { dispatches as __allDispatches } from "@constants/schemata";
 import { activity as _activity } from "@constants/schemata/presence";
 
 import { clientProperties } from "./discordversion";
@@ -108,8 +107,8 @@ export default class GatewaySocket {
 		this.#clientProperties = clientProperties;
 		this.#gatewayVersion = gatewayVersion;
 
-		upw.onmessage = ({ data }): void => void this.#onData(data);
-		pw.onmessage = ({ data }): void => void this.#__send(data);
+		upw.onmessage = this.#onData.bind(this);
+		pw.onmessage = this.#__send.bind(this);
 		this.#createSocket();
 	}
 
@@ -135,7 +134,7 @@ export default class GatewaySocket {
 		this.#socket = new WebSocket(`${this.#gatewayURL}/?v=${this.#gatewayVersion}&compress=zlib-stream&encoding=etf`);
 		this.#socket.binaryType = "arraybuffer";
 
-		this.#socket.onmessage = ({ data }): void => upw.postMessage(data, [data]);
+		this.#socket.onmessage = ({ data }): void => upw.postMessage({ data, typecheck: window.isDev }, [data]);
 		this.#socket.onopen = (): void => this.#onOpen();
 		this.#socket.onclose = (event): void => this.handleClose(event);
 		this.#socket.onerror = (event): void => this.#handleError(event);
@@ -213,22 +212,10 @@ export default class GatewaySocket {
 		});
 	}
 
-	#onData(data: GatewayPayload): void {
+	#onData({ data }: { data: GatewayPayload }): void {
 		switch (data.op) {
 			case OPCodes.DISPATCH:
 				this.#seq = data.s;
-				if (window.isDev) {
-					if (data.t in __allDispatches) {
-						const res = safeParse(__allDispatches[data.t], data.d);
-						if (!res.success) {
-							logger.error("Failed to typecheck Dispatch:", data.t, res.issues, data.d);
-							throw "Failed to typecheck Dispatch";
-						}
-						data.d = res.output;
-					} else {
-						logger.warn("Dispatch unaccounted for:", data.t, data.d);
-					}
-				}
 
 				switch (data.t) {
 					case "READY":
@@ -304,7 +291,7 @@ export default class GatewaySocket {
 		pw.postMessage({ d: data, op: opcode });
 	}
 
-	#__send(data: Uint8Array): void {
+	#__send({ data }: { data: Uint8Array }): void {
 		try {
 			this.#socket?.send(data);
 		} catch (error) {
