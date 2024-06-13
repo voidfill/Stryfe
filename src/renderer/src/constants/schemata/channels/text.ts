@@ -1,10 +1,12 @@
-import { array, boolean, nullable, number, object, optional, string } from "valibot";
+import { array, boolean, literal, nullable, number, object, optional, string } from "valibot";
 
 import { ChannelTypes } from "@constants/channel";
 
-import { equal, permission_overwrite } from "../common";
+import { permission_overwrite } from "../common";
 
 export default object({
+	default_auto_archive_duration: optional(number()),
+	default_thread_rate_limit_per_user: optional(number()),
 	flags: number(),
 	icon_emoji: optional(
 		nullable(
@@ -25,5 +27,5 @@ export default object({
 	rate_limit_per_user: number(),
 	theme_color: optional(nullable(number())),
 	topic: nullable(string()),
-	type: equal(ChannelTypes.GUILD_TEXT),
+	type: literal(ChannelTypes.GUILD_TEXT),
 });

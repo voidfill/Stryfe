@@ -67,7 +67,7 @@
 		"solid-transition-group": "^0.2.3",
 		"thumbhash": "^0.1.1",
 		"typescript": "^5.4.5",
-		"valibot": "^0.30",
+		"valibot": "^0.31.1",
 		"vite": "^5.2.11",
 		"vite-plugin-compile-time": "^0.2.1",
 		"vite-plugin-solid": "^2.10.1"

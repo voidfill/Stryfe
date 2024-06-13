@@ -1,11 +1,11 @@
-import { object, Output, string } from "valibot";
+import { InferOutput, object, string } from "valibot";
 
 const superProps = object({
 	encoded: string(),
 	properties: object({}),
 });
 
-export type clientProperties = Output<typeof superProps>["properties"];
+export type clientProperties = InferOutput<typeof superProps>["properties"];
 
 // TODO: Dolfies please i need your api :sob:
 

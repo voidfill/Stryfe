@@ -1,8 +1,8 @@
-import { array, nullable, number, object, optional, string } from "valibot";
+import { array, literal, null_, nullable, number, object, optional, string } from "valibot";
 
 import { ChannelTypes } from "@constants/channel";
 
-import { equal, permission_overwrite } from "../common";
+import { permission_overwrite } from "../common";
 
 export default object({
 	flags: number(),
@@ -16,8 +16,9 @@ export default object({
 	),
 	id: string(),
 	name: string(),
+	parent_id: optional(null_()),
 	permission_overwrites: nullable(array(permission_overwrite)),
 	position: number(),
 	theme_color: optional(nullable(number())),
-	type: equal(ChannelTypes.GUILD_CATEGORY),
+	type: literal(ChannelTypes.GUILD_CATEGORY),
 });

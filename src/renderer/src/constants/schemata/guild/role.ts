@@ -1,4 +1,4 @@
-import { boolean, nullable, number, object, optional, string } from "valibot";
+import { boolean, nullable, number, object, optional, string, unknown } from "valibot";
 
 const role = object({
 	color: number(),
@@ -13,7 +13,13 @@ const role = object({
 	position: number(),
 	tags: optional(
 		object({
+			available_for_purchase: optional(nullable(unknown())),
 			bot_id: optional(string()),
+			guild_connections: optional(nullable(unknown())),
+			integration_id: optional(string()),
+			is_guild_product_role: optional(boolean()),
+			premium_subscriber: optional(nullable(unknown())),
+			subscription_listing_id: optional(nullable(string())),
 		}),
 	),
 	unicode_emoji: nullable(string()),

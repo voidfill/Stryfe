@@ -1,12 +1,12 @@
 import { batch } from "solid-js";
 import { createStore } from "solid-js/store";
-import { Output } from "valibot";
+import { InferOutput } from "valibot";
 
 import { client_status as _client_status } from "@constants/schemata/presence";
 
 import Store from ".";
 
-type client_status = Output<typeof _client_status>;
+type client_status = InferOutput<typeof _client_status>;
 
 export const enum Status {
 	OFFLINE,

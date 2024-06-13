@@ -1,6 +1,4 @@
-import { array, boolean, nullable, number, object, string } from "valibot";
-
-import { equalArray } from "./common";
+import { array, boolean, nullable, number, object, optional, picklist, string } from "valibot";
 
 export const enum UserSettingsType {
 	PRELOADED_USER_SETTINGS = 1,
@@ -20,12 +18,7 @@ export const enum HighlightLevel {
 	DISABLED = 1,
 	ENABLED = 2,
 }
-const nl = equalArray([
-	NotificationLevel.ALL_MESSAGES,
-	NotificationLevel.ONLY_MENTIONS,
-	NotificationLevel.NOTHING,
-	NotificationLevel.PARENT_DEFAULT,
-] as const);
+const nl = picklist([NotificationLevel.ALL_MESSAGES, NotificationLevel.ONLY_MENTIONS, NotificationLevel.NOTHING, NotificationLevel.PARENT_DEFAULT]);
 
 export const mute_config = object({
 	end_time: nullable(string()),
@@ -35,6 +28,7 @@ export const mute_config = object({
 export const channel_override = object({
 	channel_id: string(),
 	collapsed: boolean(),
+	flags: optional(number()),
 	message_notifications: nl,
 	mute_config: nullable(mute_config),
 	muted: boolean(),
@@ -50,7 +44,7 @@ export const guild_settings_entry = object({
 	mute_config: nullable(mute_config),
 	mute_scheduled_events: boolean(),
 	muted: boolean(),
-	notify_highlights: equalArray([HighlightLevel.DEFAULT, HighlightLevel.DISABLED, HighlightLevel.ENABLED] as const),
+	notify_highlights: picklist([HighlightLevel.DEFAULT, HighlightLevel.DISABLED, HighlightLevel.ENABLED]),
 	suppress_everyone: boolean(),
 	suppress_roles: boolean(),
 	version: number(),
@@ -60,11 +54,7 @@ export const USER_SETTINGS_PROTO_UPDATE = object({
 	partial: boolean(),
 	settings: object({
 		proto: string(),
-		type: equalArray([
-			UserSettingsType.FRECENCY_AND_FAVORITES_SETTINGS,
-			UserSettingsType.PRELOADED_USER_SETTINGS,
-			UserSettingsType.TEST_SETTINGS,
-		] as const),
+		type: picklist([UserSettingsType.FRECENCY_AND_FAVORITES_SETTINGS, UserSettingsType.PRELOADED_USER_SETTINGS, UserSettingsType.TEST_SETTINGS]),
 	}),
 });
 

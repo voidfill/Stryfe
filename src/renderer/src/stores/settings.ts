@@ -1,6 +1,6 @@
 import { batch, createSignal, untrack } from "solid-js";
 import { createStore, produce } from "solid-js/store";
-import { Output } from "valibot";
+import { InferOutput } from "valibot";
 
 import { channel_override, guild_settings_entry } from "@constants/schemata/settings";
 import { HighlightLevel, NotificationLevel, UserSettingsType } from "@constants/schemata/settings";
@@ -30,13 +30,13 @@ export function notificationLevelToText(level: NotificationLevel, isTopLevel?: b
 const [frecencySettings, setFrecencySettings] = createStore<FrecencyUserSettings>({});
 const [preloadedSettings, setPreloadedSettings] = createStore<PreloadedUserSettings>({});
 const [userGuildSettings, setUserGuildSettings] = createStore<{
-	[guild_id: string]: DistributiveOmit<Output<typeof guild_settings_entry>, "guild_id" | "channel_overrides"> & {
+	[guild_id: string]: DistributiveOmit<InferOutput<typeof guild_settings_entry>, "guild_id" | "channel_overrides"> & {
 		overridden_channel_ids?: string[];
 	};
 }>({});
 // this also belongs to the userGuildSettings, just pulled it out for easier access
 const [channelOverrides, setChannelOverrides] = createStore<{
-	[channel_id: string]: DistributiveOmit<Output<typeof channel_override>, "channel_id">;
+	[channel_id: string]: DistributiveOmit<InferOutput<typeof channel_override>, "channel_id">;
 }>({});
 const [userGuildSettingsVersion, setUserGuildSettingsVersion] = createSignal<number>(0);
 
@@ -68,14 +68,14 @@ function registerTimedGuildMute(guildId: string, config: { end_time: string | nu
 	muteTimers.set(guildId, timer);
 }
 
-const channelOverrideDefaults: DistributiveOmit<Output<typeof channel_override>, "channel_id"> = Object.freeze({
+const channelOverrideDefaults: DistributiveOmit<InferOutput<typeof channel_override>, "channel_id"> = Object.freeze({
 	collapsed: false,
 	message_notifications: NotificationLevel.PARENT_DEFAULT,
 	mute_config: null,
 	muted: false,
 });
 
-const guildSettingsDefaults: DistributiveOmit<Output<typeof guild_settings_entry>, "guild_id" | "channel_overrides"> = Object.freeze({
+const guildSettingsDefaults: DistributiveOmit<InferOutput<typeof guild_settings_entry>, "guild_id" | "channel_overrides"> = Object.freeze({
 	flags: 0,
 	hide_muted_channels: false,
 	message_notifications: NotificationLevel.ONLY_MENTIONS,

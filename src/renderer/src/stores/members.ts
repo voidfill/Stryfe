@@ -1,6 +1,6 @@
 import { batch, untrack } from "solid-js";
 import { createStore, produce } from "solid-js/store";
-import { Output } from "valibot";
+import { InferOutput } from "valibot";
 
 import { guildMemberAvatarURL } from "@constants/images";
 import member from "@constants/schemata/guild/member";
@@ -10,7 +10,7 @@ import Store from ".";
 import ChannelStore from "./channels";
 import UserStore from "./users";
 
-type storedMember = DistributiveOmit<Output<typeof member>, "user" | "roles">;
+type storedMember = DistributiveOmit<InferOutput<typeof member>, "user" | "roles">;
 
 const [members, setMembers] = createStore<{
 	[guildId: string]: {
@@ -18,7 +18,7 @@ const [members, setMembers] = createStore<{
 	};
 }>({});
 
-function intoStored(m: Output<typeof merged_member> | Output<typeof member>): storedMember {
+function intoStored(m: InferOutput<typeof merged_member> | InferOutput<typeof member>): storedMember {
 	if ("user" in m) {
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		const { user, roles, ...rest } = m;

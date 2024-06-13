@@ -1,10 +1,11 @@
-import { array, boolean, merge, nullable, number, object, optional, string, union } from "valibot";
+import { array, boolean, nullable, number, object, optional, string, union } from "valibot";
 
-import { user } from "../common";
+import { avatar_decoration_data, user } from "../common";
 import { PRESENCE_UPDATE } from "../presence";
 
 const member = object({
 	avatar: nullable(string()),
+	avatar_decoration_data: optional(nullable(avatar_decoration_data)),
 	communication_disabled_until: nullable(string()),
 	deaf: optional(boolean()),
 	flags: number(),
@@ -14,17 +15,13 @@ const member = object({
 	pending: boolean(),
 	premium_since: nullable(string()),
 	roles: nullable(array(string())),
+	unusual_dm_activity_until: optional(nullable(string())),
 	user: user,
 });
 
 export default member;
 
-export const GUILD_MEMBER_ADD = merge([
-	member,
-	object({
-		guild_id: string(),
-	}),
-]);
+export const GUILD_MEMBER_ADD = object({ ...member.entries, guild_id: string() });
 
 export const GUILD_MEMBER_UPDATE = GUILD_MEMBER_ADD;
 

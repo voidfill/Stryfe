@@ -1,6 +1,6 @@
 import { batch, createSignal } from "solid-js";
 import { createStore, produce } from "solid-js/store";
-import { Output } from "valibot";
+import { InferOutput } from "valibot";
 
 import assets from "@constants/assets";
 import { userAvatarURL } from "@constants/images";
@@ -8,7 +8,7 @@ import { clan as _clan, user_self as _user_self } from "@constants/schemata/comm
 
 import Store from ".";
 
-type user_self = Output<typeof _user_self>;
+type user_self = InferOutput<typeof _user_self>;
 
 // maybe decoration? i dont plan on rendering it though
 type storedUser = {
@@ -31,7 +31,7 @@ const [clans, setClans] = createStore<{
 	};
 }>({});
 
-function intoStoredClan(clan: Output<typeof _clan> & { identity_enabled: true }): { badge: string; guild_id: string; tag: string } {
+function intoStoredClan(clan: InferOutput<typeof _clan> & { identity_enabled: true }): { badge: string; guild_id: string; tag: string } {
 	return {
 		badge: clan.badge,
 		guild_id: clan.identity_guild_id,

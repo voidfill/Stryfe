@@ -1,8 +1,6 @@
-import { array, nullable, number, object, optional, string } from "valibot";
+import { array, literal, nullable, number, object, optional, string } from "valibot";
 
 import { ChannelTypes } from "@constants/channel";
-
-import { equal } from "../common";
 
 export default object({
 	flags: number(),
@@ -13,5 +11,5 @@ export default object({
 	name: nullable(string()),
 	owner_id: string(),
 	recipient_ids: array(string()),
-	type: equal(ChannelTypes.GROUP_DM),
+	type: literal(ChannelTypes.GROUP_DM),
 });

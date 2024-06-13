@@ -1,11 +1,6 @@
-import { boolean, number, object, optional, special, string } from "valibot";
+import { boolean, enum_, number, object, optional, string } from "valibot";
 
 import { PlatformTypes } from "@constants/user";
-
-const platformType = special<PlatformTypes>((v) => {
-	if (typeof v !== "string") return false;
-	return Object.values(PlatformTypes).includes(v as PlatformTypes);
-});
 
 export default object({
 	access_token: optional(string()),
@@ -16,7 +11,7 @@ export default object({
 	revoked: boolean(),
 	show_activity: boolean(),
 	two_way_link: boolean(),
-	type: platformType,
+	type: enum_(PlatformTypes),
 	verified: boolean(),
 	visibility: number(),
 });

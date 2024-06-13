@@ -2,7 +2,7 @@ import { batch, untrack } from "solid-js";
 import { createStore, produce } from "solid-js/store";
 import { ReactiveMap } from "@solid-primitives/map";
 import { ReactiveSet } from "@solid-primitives/set";
-import { Output } from "valibot";
+import { InferOutput } from "valibot";
 
 import role from "@constants/schemata/guild/role";
 
@@ -11,7 +11,7 @@ import logger from "@modules/logger";
 import Store from ".";
 
 const [roles, setRoles] = createStore<{
-	[id: string]: DistributiveOmit<Output<typeof role>, "id" | "permissions"> & {
+	[id: string]: DistributiveOmit<InferOutput<typeof role>, "id" | "permissions"> & {
 		permissions: bigint;
 	};
 }>({});

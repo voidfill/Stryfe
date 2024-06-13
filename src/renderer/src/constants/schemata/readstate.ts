@@ -1,6 +1,4 @@
-import { boolean, nullable, number, object, optional, string, union } from "valibot";
-
-import { equal, equalArray } from "./common";
+import { boolean, literal, nullable, number, object, optional, picklist, string, union } from "valibot";
 
 export const enum ReadStateType {
 	CHANNEL = 0,
@@ -14,7 +12,7 @@ export const read_state_entry = union([
 	object({
 		flags: number(),
 		id: string(),
-		last_message_id: union([equal(0), string()]),
+		last_message_id: union([literal(0), string()]),
 		last_pin_timestamp: string(),
 		last_viewed: optional(number()),
 		mention_count: number(),
@@ -23,24 +21,24 @@ export const read_state_entry = union([
 		badge_count: number(),
 		id: string(),
 		last_acked_id: string(),
-		read_state_type: equalArray([
+		read_state_type: picklist([
 			ReadStateType.GUILD_EVENT,
 			ReadStateType.NOTIFICATION_CENTER,
 			ReadStateType.GUILD_HOME,
 			ReadStateType.GUILD_ONBOARDING_QUESTION,
-		] as const),
+		]),
 	}),
 ]);
 
 export const GUILD_FEATURE_ACK = object({
-	ack_type: equalArray([ReadStateType.GUILD_EVENT, ReadStateType.GUILD_HOME, ReadStateType.GUILD_ONBOARDING_QUESTION] as const),
+	ack_type: picklist([ReadStateType.GUILD_EVENT, ReadStateType.GUILD_HOME, ReadStateType.GUILD_ONBOARDING_QUESTION]),
 	entity_id: string(),
 	resource_id: string(),
 	version: number(),
 });
 
 export const USER_NON_CHANNEL_ACK = object({
-	ack_type: equal(ReadStateType.NOTIFICATION_CENTER),
+	ack_type: literal(ReadStateType.NOTIFICATION_CENTER),
 	entity_id: string(),
 	resource_id: string(),
 	version: number(),

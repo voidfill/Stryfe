@@ -2,7 +2,7 @@ import { batch, createSignal, untrack } from "solid-js";
 import { createStore, produce, reconcile } from "solid-js/store";
 import { ReactiveMap } from "@solid-primitives/map";
 import { ReactiveSet } from "@solid-primitives/set";
-import { Output } from "valibot";
+import { InferOutput } from "valibot";
 
 import assets from "@constants/assets";
 import { ChannelTypes } from "@constants/channel";
@@ -17,7 +17,10 @@ const lastMessageIds = new ReactiveMap<string, string | undefined>();
 const lastPinTimestamps = new ReactiveMap<string, string | undefined>();
 
 const [guildChannels, setGuildChannels] = createStore<{
-	[channelId: string]: DistributiveOmit<Output<typeof guild_channel>, "id" | "last_message_id" | "last_pin_timestamp" | "permission_overwrites"> & {
+	[channelId: string]: DistributiveOmit<
+		InferOutput<typeof guild_channel>,
+		"id" | "last_message_id" | "last_pin_timestamp" | "permission_overwrites"
+	> & {
 		guild_id: string;
 		parent_id?: string | null;
 	};
@@ -124,7 +127,7 @@ const [dmForUser, setDMForUser] = createStore<{
 }>({});
 
 const [threads, setThreads] = createStore<{
-	[channelId: string]: DistributiveOmit<Output<typeof thread>, "id">;
+	[channelId: string]: DistributiveOmit<InferOutput<typeof thread>, "id">;
 }>({});
 const threadsPerChannel = new ReactiveMap<string, ReactiveSet<string>>();
 

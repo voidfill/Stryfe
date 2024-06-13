@@ -1,13 +1,13 @@
 import { batch } from "solid-js";
 import { createStore, reconcile } from "solid-js/store";
-import { Output } from "valibot";
+import { InferOutput } from "valibot";
 
 import { activity as _activity } from "@constants/schemata/presence";
 import { ActivityTypes } from "@constants/user";
 
 import Store from ".";
 
-type _activity = Output<typeof _activity>;
+type _activity = InferOutput<typeof _activity>;
 
 const [activities, setActivities] = createStore<{
 	[userId: string]: _activity[] | undefined;

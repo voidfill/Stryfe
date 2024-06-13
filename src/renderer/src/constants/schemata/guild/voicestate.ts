@@ -1,4 +1,4 @@
-import { array, boolean, merge, nullable, object, omit, optional, string } from "valibot";
+import { array, boolean, nullable, object, omit, optional, string } from "valibot";
 
 import member from "./member";
 
@@ -20,7 +20,7 @@ const voice_state = object({
 
 export default voice_state;
 
-export const VOICE_STATE_UPDATE = merge([omit(voice_state, ["channel_id"]), object({ channel_id: nullable(string()) })]);
+export const VOICE_STATE_UPDATE = object({ ...omit(voice_state, ["channel_id"]).entries, channel_id: nullable(string()) });
 
 export const CALL_CREATE = object({
 	channel_id: string(),

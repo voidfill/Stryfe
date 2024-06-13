@@ -1,4 +1,4 @@
-import { array, boolean, nullable, number, object, optional, special, string, union, unknown } from "valibot";
+import { array, boolean, enum_, nullable, number, object, optional, string, union, unknown } from "valibot";
 
 import { ActivityTypes } from "../user";
 import { status, user } from "./common";
@@ -9,7 +9,7 @@ export const client_status = object({
 	web: optional(status),
 });
 
-export const activity_type = special<ActivityTypes>((v) => typeof v === "number" && v >= 0 && v <= 6);
+export const activity_type = enum_(ActivityTypes);
 export const activity = object({
 	application_id: optional(union([string(), number()])),
 	assets: optional(

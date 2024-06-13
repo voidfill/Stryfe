@@ -2,7 +2,7 @@ import { batch, createMemo } from "solid-js";
 import { createStore, produce, reconcile } from "solid-js/store";
 import { ReactiveMap } from "@solid-primitives/map";
 import { ReactiveSet } from "@solid-primitives/set";
-import { Output } from "valibot";
+import { InferOutput } from "valibot";
 
 import { guildIconURL } from "@constants/images";
 import { ready_guild_properties as _ready_guild_properties } from "@constants/schemata/guild";
@@ -11,7 +11,7 @@ import logger from "@modules/logger";
 
 import Store from ".";
 
-type ready_guild_properties = Output<typeof _ready_guild_properties>;
+type ready_guild_properties = InferOutput<typeof _ready_guild_properties>;
 
 type stored_guild = DistributiveOmit<ready_guild_properties, "features" | "id"> & {
 	joined_at: string;

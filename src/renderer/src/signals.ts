@@ -7,7 +7,7 @@ export const [windowTitle, setWindowTitle] = createSignal("Stryfe");
 
 export const [lastSelectedChannels, setLastSelectedChannels] = Persistent.registerStore(
 	"lastSelectedChannels",
-	fallback(record(optional(string())), {}),
+	fallback(record(string(), optional(string())), {}),
 	(v) => {
 		v["@me"] = undefined;
 		return v;

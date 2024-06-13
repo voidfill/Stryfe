@@ -1,4 +1,4 @@
-import { Output } from "valibot";
+import { InferOutput } from "valibot";
 
 import { CHANNEL_CREATE, CHANNEL_DELETE, CHANNEL_PINS_UPDATE, CHANNEL_RECIPIENT_ADD, CHANNEL_RECIPIENT_REMOVE, CHANNEL_UPDATE } from "./channels";
 import {
@@ -108,5 +108,5 @@ export const dispatches = {
 };
 
 export type _dispatches = {
-	[key in keyof typeof dispatches]: Output<(typeof dispatches)[key]>;
+	[key in keyof typeof dispatches]: InferOutput<(typeof dispatches)[key]>;
 };

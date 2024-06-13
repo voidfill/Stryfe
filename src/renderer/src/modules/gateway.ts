@@ -1,4 +1,4 @@
-import { Output } from "valibot";
+import { InferOutput } from "valibot";
 
 import { GatewayPayload, OPCodes, recoverableCloseCodes, SocketGatewayCloseCodes } from "@constants/gateway";
 import { activity as _activity } from "@constants/schemata/presence";
@@ -10,7 +10,7 @@ import packworker from "./packworker?worker&inline";
 import { clearToken } from "./token";
 import unpackworker from "./unpackworker?worker&inline";
 
-type activity = Output<typeof _activity>;
+type activity = InferOutput<typeof _activity>;
 
 declare global {
 	interface customDispatches {

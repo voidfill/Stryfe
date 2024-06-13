@@ -1,4 +1,4 @@
-import { any, array, boolean, merge, nullable, number, object, omit, optional, string, tuple, union, unknown } from "valibot";
+import { any, array, boolean, nullable, number, object, omit, optional, string, tuple, union, unknown } from "valibot";
 
 import { private_channel } from "../channels";
 import { status, user, user_self } from "../common";
@@ -12,28 +12,30 @@ import { guild_settings_entry } from "../settings";
 import connected_account from "./connectedaccount";
 import { session } from "./session";
 
-export const merged_member = merge([
-	omit(guild_member, ["user"]),
-	object({
-		user_id: string(),
-	}),
-]);
+export const merged_member = object({
+	...omit(guild_member, ["user"]).entries,
+	unusual_dm_activity_until: optional(nullable(string())),
+	user_id: string(),
+});
 
 export const READY = object({
 	_trace: array(string()),
 	analytics_token: string(),
 	api_code_version: number(),
+	auth: unknown(),
 	auth_session_id_hash: string(),
 	connected_accounts: nullable(array(connected_account)),
 	consents: any(),
 	country_code: string(),
 	experiments: any(),
+	explicit_content_scan_version: number(),
 	friend_suggestion_count: number(),
 	geo_ordered_rtc_regions: array(string()),
 	guild_experiments: any(),
 	guild_join_requests: nullable(array(unknown())),
 	guilds: nullable(array(union([unavailable_guild, ready_guild]))),
 	merged_members: nullable(array(nullable(tuple([merged_member])))),
+	notification_settings: unknown(),
 	private_channels: nullable(array(private_channel)),
 	read_state: object({
 		entries: nullable(array(read_state_entry)),
@@ -45,6 +47,7 @@ export const READY = object({
 	session_id: string(),
 	session_type: string(),
 	sessions: array(session),
+	static_client_session_id: string(),
 	tutorial: any(),
 	user: user_self,
 	user_guild_settings: nullable(

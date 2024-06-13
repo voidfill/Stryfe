@@ -1,4 +1,4 @@
-import { array, merge, nullable, object, omit, optional, string, variant } from "valibot";
+import { array, nullable, object, omit, optional, string, variant } from "valibot";
 
 import { user } from "../common";
 import announcement from "./announcement";
@@ -16,20 +16,20 @@ export const private_channel = variant("type", [directMessage, groupDirectMessag
 
 export const guild_channel = variant("type", [text, voice, stage_voice, category, announcement, directory, forum, media]);
 
-const guildIdObject = object({ guild_id: string() });
+const extras = object({ guild_id: string(), version: string() });
 
 export const CHANNEL_CREATE = variant("type", [
-	merge([omit(directMessage, ["recipient_ids"]), object({ recipients: array(user) })]),
-	merge([omit(groupDirectMessage, ["recipient_ids"]), object({ recipients: array(user) })]),
+	object({ ...directMessage.entries, recipients: array(user) }),
+	object({ ...groupDirectMessage.entries, recipients: array(user) }),
 	//
-	merge([text, guildIdObject]),
-	merge([voice, guildIdObject]),
-	merge([stage_voice, guildIdObject]),
-	merge([category, guildIdObject]),
-	merge([announcement, guildIdObject]),
-	merge([directory, guildIdObject]),
-	merge([forum, guildIdObject]),
-	merge([media, guildIdObject]),
+	object({ ...text.entries, ...extras.entries }),
+	object({ ...voice.entries, ...extras.entries }),
+	object({ ...stage_voice.entries, ...extras.entries }),
+	object({ ...category.entries, ...extras.entries }),
+	object({ ...announcement.entries, ...extras.entries }),
+	object({ ...directory.entries, ...extras.entries }),
+	object({ ...forum.entries, ...extras.entries }),
+	object({ ...media.entries, ...extras.entries }),
 ]);
 
 export const CHANNEL_UPDATE = CHANNEL_CREATE;
@@ -38,14 +38,14 @@ export const CHANNEL_DELETE = variant("type", [
 	omit(directMessage, ["is_spam", "recipient_ids"]),
 	omit(groupDirectMessage, ["recipient_ids"]),
 	//
-	merge([text, guildIdObject]),
-	merge([voice, guildIdObject]),
-	merge([stage_voice, guildIdObject]),
-	merge([category, guildIdObject]),
-	merge([announcement, guildIdObject]),
-	merge([directory, guildIdObject]),
-	merge([forum, guildIdObject]),
-	merge([media, guildIdObject]),
+	object({ ...text.entries, ...extras.entries }),
+	object({ ...voice.entries, ...extras.entries }),
+	object({ ...stage_voice.entries, ...extras.entries }),
+	object({ ...category.entries, ...extras.entries }),
+	object({ ...announcement.entries, ...extras.entries }),
+	object({ ...directory.entries, ...extras.entries }),
+	object({ ...forum.entries, ...extras.entries }),
+	object({ ...media.entries, ...extras.entries }),
 ]);
 
 export const CHANNEL_PINS_UPDATE = object({

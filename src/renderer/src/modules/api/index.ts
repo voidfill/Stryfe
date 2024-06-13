@@ -1,4 +1,4 @@
-import { array, merge, nullable, object, optional, Output, parse, string } from "valibot";
+import { array, InferOutput, nullable, object, optional, parse, string } from "valibot";
 
 import { genericMessage } from "@constants/schemata/message";
 import { UserSettingsType } from "@constants/schemata/settings";
@@ -20,12 +20,10 @@ type RequestOptions = {
 };
 
 const messageArraySchema = array(
-	merge([
-		genericMessage,
-		object({
-			referenced_message: optional(nullable(genericMessage)),
-		}),
-	]),
+	object({
+		...genericMessage.entries,
+		referenced_message: optional(nullable(genericMessage)),
+	}),
 );
 
 const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -129,7 +127,7 @@ class API {
 		before?: string;
 		channelId: string;
 		limit?: number;
-	}): Promise<Output<typeof messageArraySchema>> {
+	}): Promise<InferOutput<typeof messageArraySchema>> {
 		options.limit ??= 50;
 		if (options.limit < 1 || options.limit > 50) throw new Error("Limit must be between 1 and 50");
 
@@ -169,7 +167,7 @@ declare global {
 	}
 
 	interface customDispatches {
-		MESSAGES_FETCH_SUCCESS: Parameters<API["getMessages"]>[0] & { messages: Output<typeof messageArraySchema> };
+		MESSAGES_FETCH_SUCCESS: Parameters<API["getMessages"]>[0] & { messages: InferOutput<typeof messageArraySchema> };
 	}
 }
 

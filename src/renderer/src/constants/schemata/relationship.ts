@@ -7,6 +7,7 @@ export const relationship = object({
 	nickname: nullable(string()),
 	since: optional(string()),
 	type: number(),
+	user_id: string(),
 });
 
 export const RELATIONSHIP_ADD = object({

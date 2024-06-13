@@ -1,18 +1,13 @@
-import { array, boolean, merge, nullable, number, object, omit, optional, partial, special, string } from "valibot";
+import { array, boolean, enum_, nullable, number, object, omit, optional, picklist, string } from "valibot";
 
 import { MessageType } from "@constants/message";
 
-import { equalArray, user } from "../common";
+import { user } from "../common";
 import guild_member from "../guild/member";
 import { StickerFormatType } from "../guild/sticker";
 import attachment from "./attachment";
 import component from "./component";
 import embed from "./embed";
-
-export const MessageTypeSchema = special<MessageType>((value) => {
-	if (typeof value !== "number") return false;
-	return Object.values(MessageType).includes(value);
-});
 
 export const genericMessage = object({
 	attachments: nullable(array(attachment)),
@@ -39,7 +34,7 @@ export const genericMessage = object({
 	sticker_items: optional(
 		array(
 			object({
-				format_type: equalArray([StickerFormatType.PNG, StickerFormatType.APNG, StickerFormatType.LOTTIE, StickerFormatType.GIF]),
+				format_type: picklist([StickerFormatType.PNG, StickerFormatType.APNG, StickerFormatType.LOTTIE, StickerFormatType.GIF]),
 				id: string(),
 				name: string(),
 			}),
@@ -47,27 +42,21 @@ export const genericMessage = object({
 	),
 	timestamp: string(),
 	tts: boolean(),
-	type: MessageTypeSchema,
+	type: enum_(MessageType),
 	webhook_id: optional(string()),
 });
 
-export const MESSAGE_CREATE = merge([
-	genericMessage,
-	object({
-		guild_id: optional(string()),
-		member: optional(omit(guild_member, ["user"])),
-		referenced_message: optional(nullable(genericMessage)),
-	}),
-]);
+export const MESSAGE_CREATE = object({
+	...genericMessage.entries,
+	guild_id: optional(string()),
+	member: optional(omit(guild_member, ["user"])),
+	referenced_message: optional(nullable(genericMessage)),
+});
 
-export const MESSAGE_UPDATE = merge([
-	partial(omit(MESSAGE_CREATE, ["id", "channel_id"])),
-	object({
-		channel_id: string(),
-		guild_id: optional(string()),
-		id: string(),
-	}),
-]);
+export const MESSAGE_UPDATE = object({
+	...MESSAGE_CREATE.entries,
+	guild_id: optional(string()),
+});
 
 export const MESSAGE_DELETE = object({
 	channel_id: string(),

@@ -1,6 +1,6 @@
 import { batch } from "solid-js";
 import { createStore, produce } from "solid-js/store";
-import { Output } from "valibot";
+import { InferOutput } from "valibot";
 
 import __voice_state from "@constants/schemata/guild/voicestate";
 
@@ -8,8 +8,8 @@ import logger from "@modules/logger";
 
 import Store from ".";
 
-type storedVoiceState = DistributiveOmit<Output<typeof __voice_state>, "member" | "guild_id"> & { guild_id: string | null };
-function intoStored(voice_state: Output<typeof __voice_state>): storedVoiceState {
+type storedVoiceState = DistributiveOmit<InferOutput<typeof __voice_state>, "member" | "guild_id"> & { guild_id: string | null };
+function intoStored(voice_state: InferOutput<typeof __voice_state>): storedVoiceState {
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const { member, guild_id, ...rest } = voice_state;
 	return { ...rest, guild_id: guild_id ?? null };

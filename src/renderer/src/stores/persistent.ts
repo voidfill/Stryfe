@@ -1,11 +1,16 @@
 import { Accessor, batch, createSignal, Setter, untrack } from "solid-js";
-import { createStore, SetStoreFunction, Store, unwrap } from "solid-js/store";
-import { Output, safeParse, SchemaWithFallback } from "valibot";
+import { createStore, SetStoreFunction, Store, StoreSetter, unwrap } from "solid-js/store";
+import { BaseIssue, BaseSchema, Fallback, InferOutput, safeParse, SchemaWithFallback } from "valibot";
 
 import { clear, entries, get, set } from "idb-keyval";
 
+type unknownFallbackSchema = SchemaWithFallback<
+	BaseSchema<unknown, unknown, BaseIssue<unknown>>,
+	Fallback<BaseSchema<unknown, unknown, BaseIssue<unknown>>>
+>;
+
 export default new (class PersistentStorage {
-	stored: Record<string, { schema: SchemaWithFallback; setter: Setter<any> | SetStoreFunction<any>; transform?: (v: any) => any }> = {};
+	stored: Record<string, { schema: unknownFallbackSchema; setter: Setter<any> | SetStoreFunction<any>; transform?: (v: any) => any }> = {};
 	hasInitialized = false;
 
 	constructor() {
@@ -27,39 +32,43 @@ export default new (class PersistentStorage {
 		});
 	}
 
-	registerStore<T extends SchemaWithFallback>(
+	registerStore<T extends unknownFallbackSchema>(
 		key: string,
 		verifier: T,
-		transform?: (v: Output<T>) => Output<T>,
-	): [Store<Output<T>>, SetStoreFunction<Output<T>>] {
+		transform?: (v: InferOutput<T>) => InferOutput<T>,
+	): [Store<InferOutput<T>>, SetStoreFunction<InferOutput<T>>] {
+		// @ts-expect-error sigh.
 		const [store, s] = createStore(verifier.fallback);
 		if (this.hasInitialized) {
 			get(key).then((v) => {
 				const res = safeParse(verifier, v);
-				if (res.success) s(transform ? transform(res.output) : res.output);
+				if (res.success) s((transform ? transform(res.output) : res.output) as any);
 			});
 		}
 		this.stored[key] = { schema: verifier, setter: s, transform };
 
-		const updater = (...args: any[]): void => {
+		const updater: StoreSetter<InferOutput<T>> = (...args): void => {
 			// @ts-expect-error what even
 			s(...args);
 			set(key, unwrap(store));
 		};
 
-		return [store, updater as typeof s];
+		// @ts-expect-error sigh.
+		return [store, updater as StoreSetter<InferOutput<T>>];
 	}
 
-	registerSignal<T extends SchemaWithFallback>(
+	registerSignal<T extends unknownFallbackSchema>(
 		key: string,
 		verifier: T,
-		transform?: (v: Output<T>) => Output<T>,
-	): [Accessor<Output<T>>, Setter<Output<T>>] {
+		transform?: (v: InferOutput<T>) => InferOutput<T>,
+	): [Accessor<InferOutput<T>>, Setter<InferOutput<T>>] {
 		const [g, s] = createSignal(verifier.fallback);
 		if (this.hasInitialized) {
 			get(key).then((v) => {
 				const res = safeParse(verifier, v);
-				if (res.success) s(transform ? transform(res.output) : res.output);
+				if (!res.success) return;
+				// @ts-expect-error sigh.
+				s(transform ? transform(res.output) : res.output);
 			});
 		}
 		this.stored[key] = { schema: verifier, setter: s, transform };

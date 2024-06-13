@@ -1,5 +1,5 @@
 import { createMemo, JSX } from "solid-js";
-import { Output } from "valibot";
+import { InferOutput } from "valibot";
 
 import { attachmentFlags } from "@constants/message";
 import _attachment from "@constants/schemata/message/attachment";
@@ -8,7 +8,7 @@ import { hasBit } from "@stores/permissions";
 
 import { Media } from "@components/common/media";
 
-type attachment = Output<typeof _attachment>;
+type attachment = InferOutput<typeof _attachment>;
 
 export default function Attachment(props: attachment): JSX.Element {
 	const isClip = createMemo(() => hasBit(props.flags ?? 0, attachmentFlags.IS_CLIP));

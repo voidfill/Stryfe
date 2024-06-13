@@ -1,7 +1,7 @@
-import { any, array, boolean, merge, nullable, number, object, optional, record, string, union, unknown } from "valibot";
+import { any, array, boolean, literal, nullable, number, object, optional, picklist, record, string, union, unknown } from "valibot";
 
 import { guild_channel } from "../channels";
-import { equal, equalArray, user } from "../common";
+import { user } from "../common";
 import { mute_config } from "../settings";
 import { thread } from "../thread";
 import emoji from "./emoji";
@@ -10,13 +10,14 @@ import role from "./role";
 import sticker from "./sticker";
 import voice_state from "./voicestate";
 
-const application_command_counts = record(number());
+const application_command_counts = record(string(), number());
 
 export const ready_guild_properties = object({
 	afk_channel_id: nullable(string()),
 	afk_timeout: number(),
 	application_id: nullable(string()),
 	banner: nullable(string()),
+	clan: nullable(unknown()),
 	default_message_notifications: number(),
 	description: nullable(string()),
 	discovery_splash: nullable(unknown()),
@@ -51,9 +52,10 @@ export const ready_guild_properties = object({
 });
 
 export const ready_guild = object({
+	activity_instances: unknown(),
 	application_command_counts: application_command_counts,
 	channels: array(guild_channel),
-	data_mode: equalArray(["full", "partial"] as const),
+	data_mode: picklist(["full", "partial"]),
 	emojis: nullable(array(emoji)),
 	guild_scheduled_events: nullable(array(unknown())),
 	id: string(),
@@ -68,51 +70,50 @@ export const ready_guild = object({
 	stickers: nullable(array(sticker)),
 	threads: nullable(
 		array(
-			merge([
-				thread,
-				object({
-					last_message_id: nullable(string()),
-					last_pin_timestamp: optional(nullable(string())),
-					member: optional(
-						object({
-							flags: number(),
-							join_timestamp: string(),
-							mute_config: nullable(mute_config),
-							muted: boolean(),
-						}),
-					),
-				}),
-			]),
+			object({
+				...thread.entries,
+				last_message_id: nullable(string()),
+				last_pin_timestamp: optional(nullable(string())),
+				member: optional(
+					object({
+						flags: number(),
+						join_timestamp: string(),
+						mute_config: nullable(mute_config),
+						muted: boolean(),
+					}),
+				),
+				member_count: number(),
+				member_ids_preview: array(string()),
+				message_count: number(),
+				total_message_sent: number(),
+			}),
 		),
 	),
-	unavailable: optional(equal(false)), // This property does not exist, but its very useful for type-narrowing
+	unavailable: optional(literal(false)), // This property does not exist, but its very useful for type-narrowing
 	version: string(),
 });
 
 export const unavailable_guild = object({
 	id: string(),
-	unavailable: equal(true),
+	unavailable: literal(true),
 });
 
 export const GUILD_CREATE = union([
-	merge([
-		ready_guild,
-		object({
-			embedded_activities: nullable(unknown()),
-			members: nullable(array(guild_member)),
-			presences: nullable(array(unknown())),
-			voice_states: nullable(array(voice_state)),
-		}),
-	]),
+	object({
+		...ready_guild.entries,
+		embedded_activities: nullable(unknown()),
+		guild_id: string(),
+		members: nullable(array(guild_member)),
+		presences: nullable(array(unknown())),
+		voice_states: nullable(array(voice_state)),
+	}),
 	unavailable_guild,
 ]);
 
-export const GUILD_UPDATE = merge([
-	ready_guild_properties,
-	object({
-		id: string(),
-	}),
-]);
+export const GUILD_UPDATE = object({
+	...ready_guild_properties.entries,
+	id: string(),
+});
 
 export const GUILD_DELETE = object({
 	id: string(),

@@ -1,4 +1,4 @@
-import { Output } from "valibot";
+import { InferOutput } from "valibot";
 
 import { dispatches as __allDispatches } from "@constants/schemata";
 
@@ -87,7 +87,7 @@ export type GatewayPayload =
 	  }
 	| {
 			[key in keyof typeof __allDispatches]: {
-				d: Output<(typeof __allDispatches)[key]>;
+				d: InferOutput<(typeof __allDispatches)[key]>;
 				op: OPCodes.DISPATCH;
 				s: number;
 				t: key;

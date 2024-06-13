@@ -1,9 +1,10 @@
-import { array, nullable, number, object, string } from "valibot";
+import { array, boolean, nullable, number, object, optional, string } from "valibot";
 
 import { status } from "../common";
 import { activity } from "../presence";
 
 export const session = object({
+	active: optional(boolean()),
 	activities: nullable(array(activity)),
 	client_info: object({
 		client: string(),

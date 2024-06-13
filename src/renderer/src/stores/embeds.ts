@@ -1,11 +1,11 @@
 import { createStore, produce } from "solid-js/store";
-import { Output } from "valibot";
+import { InferOutput } from "valibot";
 
 import _embed from "@constants/schemata/message/embed";
 
 import Store from ".";
 
-type embed = Output<typeof _embed>;
+type embed = InferOutput<typeof _embed>;
 
 export type storedEmbed = DistributiveOmit<embed, "image"> & {
 	images?: {

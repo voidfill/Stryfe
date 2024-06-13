@@ -1,6 +1,6 @@
 import { batch, untrack } from "solid-js";
 import { createStore, produce } from "solid-js/store";
-import { boolean, fallback, Output } from "valibot";
+import { boolean, fallback, InferOutput } from "valibot";
 
 import { genericMessage as _genericMessage } from "@constants/schemata/message";
 
@@ -175,7 +175,7 @@ export const [messageLoggerEnabled, setMessageLoggerEnabled] = Persistent.regist
 
 // it might happen that we accidentally store some of the omitted values in here since spread operator is funny but its important that we mark them as not accessible
 type message = DistributiveOmit<
-	Output<typeof _genericMessage>,
+	InferOutput<typeof _genericMessage>,
 	"id" | "channel_id" | "author" | "member" | "mentions" | "message_reference" | "embeds"
 > & {
 	author_id: string;
