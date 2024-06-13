@@ -40,7 +40,7 @@ function intoStoredClan(clan: Output<typeof _clan> & { identity_enabled: true })
 }
 
 // TODO: this cannot be optimal....
-function intoStored<T extends { [key: string]: unknown } & { discriminator: string; username: string }>(user: T): storedUser {
+function intoStoredUser<T extends { [key: string]: unknown } & { discriminator: string; username: string }>(user: T): storedUser {
 	return {
 		avatar: typeof user.avatar === "string" ? user.avatar : null,
 		bot: typeof user.bot === "boolean" ? user.bot : false,
@@ -60,18 +60,18 @@ export default new (class UserStore extends Store {
 				setUsers(
 					produce((s) => {
 						for (const user of channel.recipients) {
-							s[user.id] ??= intoStored(user);
+							s[user.id] ??= intoStoredUser(user);
 						}
 					}),
 				);
 			},
 			CHANNEL_RECIPIENT_ADD: ({ user }) => {
-				setUsers(user.id, intoStored(user));
+				setUsers(user.id, intoStoredUser(user));
 				if (user.clan?.identity_enabled) setClans(user.id, intoStoredClan(user.clan));
 			},
 			GUILD_MEMBER_ADD: ({ user }) => {
 				if (users[user.id]) return;
-				setUsers(user.id, intoStored(user));
+				setUsers(user.id, intoStoredUser(user));
 				if (user.clan?.identity_enabled) setClans(user.id, intoStoredClan(user.clan));
 			},
 			GUILD_MEMBERS_CHUNK: ({ members }) => {
@@ -80,15 +80,36 @@ export default new (class UserStore extends Store {
 					setUsers(
 						produce((s) => {
 							for (const { user } of members) {
-								s[user.id] ??= intoStored(user);
+								s[user.id] ??= intoStoredUser(user);
 							}
 						}),
 					);
 				});
 			},
-			MESSAGE_CREATE: ({ author }) => {
-				if (!users[author.id]) setUsers(author.id, intoStored(author));
-				if (author.clan?.identity_enabled) setClans(author.id, intoStoredClan(author.clan));
+			MESSAGE_CREATE: ({ author, referenced_message, mentions }) => {
+				batch(() => {
+					setUsers(
+						produce((s) => {
+							s[author.id] ??= intoStoredUser(author);
+							for (const mention of mentions ?? []) s[mention.id] ??= intoStoredUser(mention);
+
+							if (referenced_message) {
+								s[referenced_message.author.id] ??= intoStoredUser(referenced_message.author);
+								for (const mention of referenced_message.mentions ?? []) s[mention.id] ??= intoStoredUser(mention);
+							}
+						}),
+					);
+					setClans(
+						produce((s) => {
+							if (author.clan?.identity_enabled) s[author.id] ??= intoStoredClan(author.clan);
+							if (referenced_message?.author.clan?.identity_enabled)
+								s[referenced_message.author.id] ??= intoStoredClan(referenced_message.author.clan);
+							for (const mention of mentions ?? []) if (mention.clan?.identity_enabled) s[mention.id] ??= intoStoredClan(mention.clan);
+							for (const mention of referenced_message?.mentions ?? [])
+								if (mention.clan?.identity_enabled) s[mention.id] ??= intoStoredClan(mention.clan);
+						}),
+					);
+				});
 			},
 			MESSAGES_FETCH_SUCCESS: ({ messages }) => {
 				if (!messages?.length) return;
@@ -96,18 +117,29 @@ export default new (class UserStore extends Store {
 					setUsers(
 						produce((s) => {
 							for (const message of messages) {
-								s[message.author.id] ??= intoStored(message.author);
-								if (message.referenced_message?.author)
-									s[message.referenced_message.author.id] ??= intoStored(message.referenced_message.author);
+								s[message.author.id] ??= intoStoredUser(message.author);
+								for (const mention of message.mentions ?? []) s[mention.id] ??= intoStoredUser(mention);
+
+								if (message.referenced_message) {
+									s[message.referenced_message.author.id] ??= intoStoredUser(message.referenced_message.author);
+									for (const mention of message.referenced_message.mentions ?? []) s[mention.id] ??= intoStoredUser(mention);
+								}
 							}
 						}),
 					);
 					setClans(
 						produce((s) => {
-							for (const { author, referenced_message } of messages) {
-								if (author.clan?.identity_enabled) s[author.id] = intoStoredClan(author.clan);
-								if (referenced_message?.author?.clan?.identity_enabled)
-									s[referenced_message.author.id] = intoStoredClan(referenced_message.author.clan);
+							for (const { author, referenced_message, mentions } of messages) {
+								if (author.clan?.identity_enabled) s[author.id] ??= intoStoredClan(author.clan);
+								for (const mention of mentions ?? [])
+									if (mention.clan?.identity_enabled) s[mention.id] ??= intoStoredClan(mention.clan);
+
+								if (referenced_message) {
+									if (referenced_message.author.clan?.identity_enabled)
+										s[referenced_message.author.id] ??= intoStoredClan(referenced_message.author.clan);
+									for (const mention of referenced_message.mentions ?? [])
+										if (mention.clan?.identity_enabled) s[mention.id] ??= intoStoredClan(mention.clan);
+								}
 							}
 						}),
 					);
@@ -122,7 +154,7 @@ export default new (class UserStore extends Store {
 					setUsers(
 						produce((s) => {
 							for (const user of users ?? []) {
-								s[user.id] = intoStored(user);
+								s[user.id] = intoStoredUser(user);
 							}
 						}),
 					);
@@ -142,7 +174,7 @@ export default new (class UserStore extends Store {
 			},
 			VOICE_STATE_UPDATE: (vs) => {
 				if (!("member" in vs && vs.member && !users[vs.user_id])) return;
-				setUsers(vs.user_id, intoStored(vs.member.user));
+				setUsers(vs.user_id, intoStoredUser(vs.member.user));
 				if (vs.member.user.clan?.identity_enabled) setClans(vs.user_id, intoStoredClan(vs.member.user.clan));
 			},
 		});

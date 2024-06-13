@@ -15,10 +15,10 @@ tippy;
 
 export default function UserName(props: {
 	clan?: boolean;
-	clanClickable?: boolean;
 	color?: boolean;
 	guildId?: string;
 	id: string;
+	noInteract?: boolean;
 	roleIcon?: boolean;
 }): JSX.Element {
 	const user = createMemo(() => UserStore.getUser(props.id));
@@ -44,10 +44,12 @@ export default function UserName(props: {
 	});
 
 	return (
-		<span class="username" style={{ color: color() }}>
-			<Show when={name()} fallback={"unknown"} keyed>
-				{(n) => <span class="username-name">{n}</span>}
-			</Show>
+		<span classList={{ "no-interact": props.noInteract, username: true }}>
+			<span style={{ color: color() }} class="username-name">
+				<Show when={name()} fallback={"unknown"} keyed>
+					{(n) => n}
+				</Show>
+			</span>
 			<Show when={props.roleIcon && iconRole()}>
 				{(r) => (
 					<span class="role-icon-container" use:tippy={{ content: () => r().name }}>
@@ -58,7 +60,7 @@ export default function UserName(props: {
 				)}
 			</Show>
 			<Show when={props.clan}>
-				<ClanBadge userId={props.id} clickable={props.clanClickable} />
+				<ClanBadge userId={props.id} clickable={!props.noInteract} />
 			</Show>
 		</span>
 	);

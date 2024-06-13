@@ -8,11 +8,13 @@ import "./tooltip.scss";
 import makeTippy, { hideAll, Props, roundArrow } from "tippy.js";
 import makeHeadlessTippy from "tippy.js/headless";
 
-type p = {
+type _p = {
 	content: () => JSX.Element;
 	disabled?: boolean;
 	props?: Partial<DistributiveOmit<Props, "content" | "onShow" | "onHidden">>; // cba dealing with setting this up, its conditionally rendered already
 };
+
+type p = _p | (() => JSX.Element);
 
 declare module "solid-js" {
 	namespace JSX {
@@ -41,7 +43,12 @@ window.addEventListener(
 );
 
 function tippyFactory(tippyProducer: typeof makeTippy): (target: Element, props: Accessor<p>) => void {
-	return (target, props) => {
+	return (target, _props) => {
+		const props = (): _p => {
+			const p = _props();
+			return typeof p === "function" ? { content: p } : p;
+		};
+
 		const [isOpen, setIsOpen] = createSignal(false);
 		function ToShow(): JSX.Element {
 			// lazy eval wrapper

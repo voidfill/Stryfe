@@ -11,6 +11,8 @@ import {
 	JSX,
 	onCleanup,
 	onMount,
+	Owner,
+	runWithOwner,
 	Show,
 	untrack,
 	useContext,
@@ -47,7 +49,7 @@ const searchTerms = new ReactiveMap<string, string>();
 const refMap = new ReactiveMap<string, Element>();
 const parentMap = new Map<string, string>();
 
-type context = {
+export type context = {
 	get: () => string;
 	hide: () => void;
 	is: (id: string) => boolean;
@@ -56,7 +58,7 @@ type context = {
 	parentCleanup: (toCleanup: () => void) => void;
 };
 
-type genericProps = {
+export type genericProps = {
 	action?: () => boolean | void; // return a truthy value to keep the menu open
 	color?: Colors;
 	disabled?: boolean;
@@ -65,7 +67,7 @@ type genericProps = {
 	subText?: string;
 };
 
-type parentRect = {
+export type parentRect = {
 	height: number;
 	width: number;
 	x: number;
@@ -391,23 +393,17 @@ export function Switch(props: {
 	);
 }
 
-export function ContextmenuDirective(
-	element: Element,
-	_value: Accessor<{ menu: () => JSX.Element; on?: "click" | "contextmenu"; parentRect?: parentRect; searchable?: boolean } | (() => JSX.Element)>,
-): void {
-	let layerId: number | undefined;
-	const toCleanup: (() => void)[] = [];
-	const id = getUniqueId();
-	const [r, sr] = createSignal<Element | undefined>(undefined);
-	const value = createMemo(() => {
-		const v = _value();
-		if (typeof v === "function") return { menu: v };
-		return v;
-	});
-
+function makeStack(): {
+	get: () => string;
+	is: (id: string) => boolean;
+	killStack: () => void;
+	off: (id: string) => void;
+	on: (id: string) => void;
+	setIgnoreOn: (v: boolean) => void;
+} {
 	const [stack, setStack] = createStore<string[]>([]);
-
 	let ignoreOn = false;
+
 	function on(id: string): void {
 		if (ignoreOn) return;
 		setStack(
@@ -445,9 +441,243 @@ export function ContextmenuDirective(
 	}
 	const is = createSelector(get);
 
+	return {
+		get,
+		is,
+		killStack: () => setStack([]),
+		off,
+		on,
+		setIgnoreOn: (v): void => {
+			ignoreOn = v;
+		},
+	};
+}
+
+const movementKeys = new Set(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]);
+function keyboardEventHandler(
+	e: KeyboardEvent,
+	get: () => string,
+	on: (s: string) => void,
+	off: (s: string) => void,
+	setIgnoreOn: (b: boolean) => void,
+	hide: () => void,
+	topRef: () => Element | undefined,
+): void {
+	if (e.key === "Escape") hide();
+
+	// @ts-expect-error nodeName does exist.
+	if (e.target?.nodeName === "INPUT" && !movementKeys.has(e.key)) return;
+	else {
+		e.preventDefault();
+		e.stopPropagation();
+	}
+
+	const el = refMap.get(get());
+	if (e.key === "Enter" || e.key === " ") {
+		// @ts-expect-error bla
+		if (el) el.click?.();
+		return;
+	}
+	if (!movementKeys.has(e.key)) return;
+
+	function kbOn(el: Element): void {
+		setIgnoreOn(true);
+		el.scrollIntoView({ behavior: "instant", block: "nearest" });
+		requestAnimationFrame(() => {
+			setIgnoreOn(false);
+			on(el.id);
+		});
+		// @ts-expect-error bla
+		if (el.id.endsWith("-search")) el.focus?.();
+	}
+	function kbOff(el: Element): void {
+		off(el.id);
+		// @ts-expect-error bla
+		if (el.id.endsWith("-search")) el.blur?.();
+	}
+
+	function isValid(el: Element | null | undefined): boolean {
+		return el && el.id && el.id.startsWith("ctx-") && !el.classList.contains("disabled") ? true : false;
+	}
+
+	if (!el) {
+		switch (e.key) {
+			case "ArrowDown":
+			case "ArrowRight":
+			case "ArrowLeft": {
+				let child = topRef()?.firstElementChild?.firstElementChild;
+				if (!child) return;
+				while (child && !isValid(child)) child = child.nextElementSibling;
+				if (!child || !isValid(child)) return;
+				kbOn(child);
+				break;
+			}
+			case "ArrowUp": {
+				let child = topRef()?.firstElementChild?.lastElementChild;
+				if (!child) return;
+				while (child && !isValid(child)) child = child.previousElementSibling;
+				if (!child || !isValid(child)) return;
+				kbOn(child);
+				break;
+			}
+		}
+		return;
+	}
+
+	const parent = el.parentElement;
+	if (!parent) return;
+
+	switch (e.key) {
+		case "ArrowUp": {
+			let sib = el.previousElementSibling;
+			while (sib && !isValid(sib)) sib = sib.previousElementSibling;
+			if (!sib || !isValid(sib)) {
+				sib = parent.lastElementChild;
+				while (sib && !isValid(sib)) sib = sib.previousElementSibling;
+				if (!sib || sib === el || !isValid(sib)) return;
+			}
+			kbOff(el);
+			kbOn(sib);
+			break;
+		}
+		case "ArrowDown": {
+			let sib = el.nextElementSibling;
+			while (sib && !isValid(sib)) sib = sib.nextElementSibling;
+			if (!sib || !isValid(sib)) {
+				sib = parent.firstElementChild;
+				while (sib && !isValid(sib)) sib = sib.nextElementSibling;
+				if (!sib || sib === el || !isValid(sib)) return;
+			}
+			kbOff(el);
+			kbOn(sib);
+			break;
+		}
+		case "ArrowLeft": {
+			const parent = parentMap.get(el.id);
+			if (!parent) return;
+			const parentEl = refMap.get(parent);
+			if (!parentEl) return;
+			kbOff(el);
+			kbOn(parentEl);
+			break;
+		}
+		case "ArrowRight": {
+			if (!el.classList.contains("ctx-submenu") || el.classList.contains("disabled")) return;
+			let sub = el.lastElementChild?.firstElementChild?.firstElementChild;
+			if (!sub) return;
+			while (sub && !isValid(sub)) sub = sub.nextElementSibling;
+			if (!sub || !isValid(sub)) return;
+			kbOn(sub);
+		}
+	}
+}
+
+export function createContextmenu(
+	menu: () => JSX.Element,
+	parentRect: parentRect,
+	owner: Owner,
+	searchable = false,
+	onClose?: () => void,
+): () => void {
+	let c: (() => void) | undefined;
+
+	runWithOwner(owner, () => {
+		let layerId: number | undefined;
+		const toCleanup: (() => void)[] = [];
+		const id = getUniqueId();
+		const [r, sr] = createSignal<Element | undefined>(undefined);
+
+		const { get, is, off, on, setIgnoreOn, killStack } = makeStack();
+
+		function hide(): void {
+			if (layerId !== undefined) layerId = void removeLayer(layerId);
+			killStack();
+			window.removeEventListener("resize", hide);
+			document.removeEventListener("mousedown", clickOutsideHandler);
+			document.removeEventListener("contextmenu", clickOutsideHandler);
+			document.removeEventListener("keydown", kbNavHandler);
+			onClose?.();
+		}
+
+		function clickOutsideHandler(e: MouseEvent): void {
+			const menu = r();
+			if (layerId === undefined || !menu) return;
+			if (menu === e.target) return e.stopPropagation(), e.preventDefault();
+			if (!menu.contains(e.target as Node)) hide();
+		}
+
+		function kbNavHandler(e: KeyboardEvent): void {
+			keyboardEventHandler(e, get, on, off, setIgnoreOn, hide, r);
+		}
+
+		function clean(): void {
+			for (const to of toCleanup) to();
+			hide();
+			window.removeEventListener("resize", hide);
+			document.removeEventListener("mousedown", clickOutsideHandler);
+			document.removeEventListener("contextmenu", clickOutsideHandler);
+			document.removeEventListener("keydown", kbNavHandler);
+		}
+
+		onCleanup(clean);
+		c = clean;
+
+		window.addEventListener("resize", hide);
+		document.addEventListener("mousedown", clickOutsideHandler);
+		document.addEventListener("contextmenu", clickOutsideHandler);
+		document.addEventListener("keydown", kbNavHandler);
+
+		layerId = addLayer(() => (
+			<menuContext.Provider
+				value={{
+					get,
+					hide,
+					is,
+					off,
+					on,
+					parentCleanup: (to) => void toCleanup.push(to),
+				}}
+			>
+				<Wrapper
+					children={
+						<>
+							<Show when={searchable}>
+								<Search for={id} />
+							</Show>
+							{menu()}
+						</>
+					}
+					for={id}
+					parentRect={parentRect}
+					ref={sr}
+					toplevel={true}
+				/>
+			</menuContext.Provider>
+		));
+	});
+
+	return c || ((): void => void 0);
+}
+
+export function ContextmenuDirective(
+	element: Element,
+	_value: Accessor<{ menu: () => JSX.Element; on?: "click" | "contextmenu"; parentRect?: parentRect; searchable?: boolean } | (() => JSX.Element)>,
+): void {
+	let layerId: number | undefined;
+	const toCleanup: (() => void)[] = [];
+	const id = getUniqueId();
+	const [r, sr] = createSignal<Element | undefined>(undefined);
+	const value = createMemo(() => {
+		const v = _value();
+		if (typeof v === "function") return { menu: v };
+		return v;
+	});
+
+	const { get, is, off, on, setIgnoreOn, killStack } = makeStack();
+
 	function hide(): void {
 		if (layerId !== undefined) layerId = void removeLayer(layerId);
-		setStack([]);
+		killStack();
 		window.removeEventListener("resize", hide);
 		document.removeEventListener("mousedown", clickOutsideHandler);
 		document.removeEventListener("contextmenu", clickOutsideHandler);
@@ -505,115 +735,8 @@ export function ContextmenuDirective(
 		if (!menu.contains(e.target as Node)) hide();
 	}
 
-	const movementKeys = new Set(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]);
 	function kbNavHandler(e: KeyboardEvent): void {
-		if (e.key === "Escape") hide();
-
-		// @ts-expect-error nodeName does exist.
-		if (e.target?.nodeName === "INPUT" && !movementKeys.has(e.key)) return;
-		else {
-			e.preventDefault();
-			e.stopPropagation();
-		}
-
-		const el = refMap.get(get());
-		if (e.key === "Enter" || e.key === " ") {
-			// @ts-expect-error bla
-			if (el) el.click?.();
-			return;
-		}
-		if (!movementKeys.has(e.key)) return;
-
-		function kbOn(el: Element): void {
-			ignoreOn = true;
-			el.scrollIntoView({ behavior: "instant", block: "nearest" });
-			requestAnimationFrame(() => {
-				ignoreOn = false;
-				on(el.id);
-			});
-			// @ts-expect-error bla
-			if (el.id.endsWith("-search")) el.focus?.();
-		}
-		function kbOff(el: Element): void {
-			off(el.id);
-			// @ts-expect-error bla
-			if (el.id.endsWith("-search")) el.blur?.();
-		}
-
-		function isValid(el: Element | null | undefined): boolean {
-			return el && el.id && el.id.startsWith("ctx-") && !el.classList.contains("disabled") ? true : false;
-		}
-
-		if (!el) {
-			switch (e.key) {
-				case "ArrowDown":
-				case "ArrowRight":
-				case "ArrowLeft": {
-					let child = r()?.firstElementChild?.firstElementChild;
-					if (!child) return;
-					while (child && !isValid(child)) child = child.nextElementSibling;
-					if (!child || !isValid(child)) return;
-					kbOn(child);
-					break;
-				}
-				case "ArrowUp": {
-					let child = r()?.firstElementChild?.lastElementChild;
-					if (!child) return;
-					while (child && !isValid(child)) child = child.previousElementSibling;
-					if (!child || !isValid(child)) return;
-					kbOn(child);
-					break;
-				}
-			}
-			return;
-		}
-
-		const parent = el.parentElement;
-		if (!parent) return;
-
-		switch (e.key) {
-			case "ArrowUp": {
-				let sib = el.previousElementSibling;
-				while (sib && !isValid(sib)) sib = sib.previousElementSibling;
-				if (!sib || !isValid(sib)) {
-					sib = parent.lastElementChild;
-					while (sib && !isValid(sib)) sib = sib.previousElementSibling;
-					if (!sib || sib === el || !isValid(sib)) return;
-				}
-				kbOff(el);
-				kbOn(sib);
-				break;
-			}
-			case "ArrowDown": {
-				let sib = el.nextElementSibling;
-				while (sib && !isValid(sib)) sib = sib.nextElementSibling;
-				if (!sib || !isValid(sib)) {
-					sib = parent.firstElementChild;
-					while (sib && !isValid(sib)) sib = sib.nextElementSibling;
-					if (!sib || sib === el || !isValid(sib)) return;
-				}
-				kbOff(el);
-				kbOn(sib);
-				break;
-			}
-			case "ArrowLeft": {
-				const parent = parentMap.get(el.id);
-				if (!parent) return;
-				const parentEl = refMap.get(parent);
-				if (!parentEl) return;
-				kbOff(el);
-				kbOn(parentEl);
-				break;
-			}
-			case "ArrowRight": {
-				if (!el.classList.contains("ctx-submenu") || el.classList.contains("disabled")) return;
-				let sub = el.lastElementChild?.firstElementChild?.firstElementChild;
-				if (!sub) return;
-				while (sub && !isValid(sub)) sub = sub.nextElementSibling;
-				if (!sub || !isValid(sub)) return;
-				kbOn(sub);
-			}
-		}
+		keyboardEventHandler(e, get, on, off, setIgnoreOn, hide, r);
 	}
 
 	createRenderEffect(() => {

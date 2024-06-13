@@ -1,4 +1,4 @@
-import { createMemo, For, JSX, Match, Show, Switch } from "solid-js";
+import { createMemo, createSignal, For, JSX, Match, Show, Switch } from "solid-js";
 
 import { MessageType } from "@constants/message";
 
@@ -17,6 +17,7 @@ import tippy from "@components/common/tooltip";
 import UserName from "@components/common/username";
 
 import Attachment from "./attachment";
+import MessageButtons from "./buttons";
 import Divider from "./divider";
 import Embed from "./embed";
 import Reply from "./reply";
@@ -57,6 +58,8 @@ export default function Message(props: { id: string; prevId?: string }): JSX.Ele
 	const content = createMemo(() => msg()?.content ?? "");
 	const embeds = createMemo(() => EmbedStore.getEmbeds(props.id));
 
+	const [hoveredOnce, setHoveredOnce] = createSignal(false);
+
 	return (
 		<Show when={msg()}>
 			{(msg): JSX.Element => (
@@ -79,6 +82,7 @@ export default function Message(props: { id: string; prevId?: string }): JSX.Ele
 								<ViewRaw Content={() => msg().content} Message={msg} />
 							</>
 						)}
+						onMouseEnter={() => setHoveredOnce(true)}
 					>
 						{((): JSX.Element => {
 							// this is an iife because we need the context of hoveranimationdirective for md parsing
@@ -86,75 +90,66 @@ export default function Message(props: { id: string; prevId?: string }): JSX.Ele
 							const md = createMemo(() => parse(content(), { allowHeading: true, inline: true, outputData: {} }));
 
 							return (
-								<Switch fallback={`This messagetype hasnt been implemented yet. type=${msg().type}`}>
-									<Match when={msg().type === MessageType.DEFAULT || msg().type === MessageType.REPLY}>
-										<Show when={msg().type === MessageType.REPLY}>
-											<Reply guildId={location().guildId} id={msg().message_reference!} />
-										</Show>
-										<div class="message-container">
-											<div class="message-aside">
-												<Show
-													when={!isCompact() && isGroupStart()}
-													fallback={<span class="message-date">{date().toLocaleDateString()}</span>}
-												>
-													<Avatar
-														size={32}
-														userId={msg().author_id}
-														guildId={location().guildId === "@me" ? undefined : location().guildId}
-														showStatus={ShowStatus.NEVER}
-													/>
-												</Show>
-											</div>
-											<div class="message-main">
-												<Show
-													when={!isCompact()}
-													fallback={
-														<>
-															<Show when={showAvatarsInCompact()}>
-																<Avatar
-																	size={16}
-																	userId={msg().author_id}
-																	guildId={location().guildId === "@me" ? undefined : location().guildId}
-																	showStatus={ShowStatus.NEVER}
-																/>
-															</Show>
-															<UserName
-																guildId={location().guildId}
-																id={msg().author_id}
-																color
-																roleIcon
-																clan
-																clanClickable
-															/>
-														</>
-													}
-												>
-													<Show when={isGroupStart()}>
-														<div class="message-header">
-															<UserName
-																guildId={location().guildId}
-																id={msg().author_id}
-																color
-																roleIcon
-																clan
-																clanClickable
-															/>
-															{date().toLocaleTimeString()}
-														</div>
+								<>
+									<Switch fallback={`This messagetype hasnt been implemented yet. type=${msg().type}`}>
+										<Match when={msg().type === MessageType.DEFAULT || msg().type === MessageType.REPLY}>
+											<Show when={msg().type === MessageType.REPLY}>
+												<Reply guildId={location().guildId} id={msg().message_reference!} />
+											</Show>
+											<div class="message-container">
+												<div class="message-aside">
+													<Show
+														when={!isCompact() && isGroupStart()}
+														fallback={<span class="message-date">{date().toLocaleDateString()}</span>}
+													>
+														<Avatar
+															size={32}
+															userId={msg().author_id}
+															guildId={location().guildId === "@me" ? undefined : location().guildId}
+															showStatus={ShowStatus.NEVER}
+														/>
 													</Show>
-												</Show>
-												<span class="message-content">{md().element}</span>
-												<div classList={{ "message-accessories": true, [`message-accesories-${props.id}`]: true }}>
-													<For each={msg().attachments ?? []}>{Attachment}</For>
-													<For each={embeds() ?? []}>
-														{(e): JSX.Element => <Embed embed={e} spoilers={md().outputData.spoilers ?? {}} />}
-													</For>
-													<For each={msg().sticker_items ?? []}>{Sticker}</For>
+												</div>
+												<div class="message-main">
+													<Show
+														when={!isCompact()}
+														fallback={
+															<>
+																<Show when={showAvatarsInCompact()}>
+																	<Avatar
+																		size={16}
+																		userId={msg().author_id}
+																		guildId={location().guildId === "@me" ? undefined : location().guildId}
+																		showStatus={ShowStatus.NEVER}
+																	/>
+																</Show>
+																<UserName guildId={location().guildId} id={msg().author_id} color roleIcon clan />
+															</>
+														}
+													>
+														<Show when={isGroupStart()}>
+															<div class="message-header">
+																<UserName guildId={location().guildId} id={msg().author_id} color roleIcon clan />
+																{date().toLocaleTimeString()}
+															</div>
+														</Show>
+													</Show>
+													<span class="message-content">{md().element}</span>
+													<div classList={{ "message-accessories": true, [`message-accesories-${props.id}`]: true }}>
+														<For each={msg().attachments ?? []}>{Attachment}</For>
+														<For each={embeds() ?? []}>
+															{(e): JSX.Element => <Embed embed={e} spoilers={md().outputData.spoilers ?? {}} />}
+														</For>
+														<For each={msg().sticker_items ?? []}>{Sticker}</For>
+													</div>
 												</div>
 											</div>
-										</div>
-									</Match>
-								</Switch>
+										</Match>
+									</Switch>
+									<Show when={hoveredOnce()}>
+										<MessageButtons messageId={props.id} />
+									</Show>
+								</>
 							);
 						})()}
 					</div>

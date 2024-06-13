@@ -4,4 +4,16 @@
 	align-items: center;
 	white-space: nowrap;
 	gap: 2px;
+
+	&.no-interact {
+		pointer-events: none;
+	}
+
+	> .username-name:hover {
+		text-decoration: underline;
+	}
+
+	> * {
+		cursor: pointer;
+	}
 }

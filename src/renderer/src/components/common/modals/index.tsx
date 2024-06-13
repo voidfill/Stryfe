@@ -19,7 +19,7 @@ type modalProps = {
 let nextId = 1;
 // [id, noDismiss]
 const [stack, setStack] = createStore<[number, boolean][]>([]);
-const visible = createSelector<number>(() => stack.length && stack[stack.length - 1][0]);
+const visible = createSelector(() => stack[stack.length - 1]?.[0]);
 
 const defaultAnimationOptions: KeyframeAnimationOptions = {
 	duration: 450,
@@ -70,6 +70,9 @@ export function createModal(opts: modalProps): () => void {
 				onAfterExit={() => {
 					layerId &&= void removeLayer(layerId);
 				}}
+				onBeforeEnter={() => {
+					layerId ||= addLayer(Menu);
+				}}
 			>
 				<Show when={visible(id)}>
 					<ModalContext.Provider value={closeSelf}>
@@ -105,7 +108,7 @@ export function ModalDirective(el: Element, value: Accessor<modalProps & { on?: 
 declare module "solid-js" {
 	namespace JSX {
 		interface Directives {
-			modal: Parameters<typeof ModalDirective>[1];
+			ModalDirective: ReturnType<Parameters<typeof ModalDirective>[1]>;
 		}
 	}
 }

@@ -6,6 +6,7 @@
 	display: flex;
 	flex-direction: column;
 	user-select: text;
+	position: relative;
 
 	&.message-compact.is-group-start .message-aside span.message-date,
 	&:hover .message-aside span.message-date {
@@ -40,7 +41,6 @@
 		.message-main {
 			padding-left: 4px;
 		}
-
 	}
 	.message-header {
 		display: flex;
@@ -74,6 +74,39 @@
 
 	&:hover {
 		background-color: var(--background-primary);
+
+		.message-buttons {
+			display: flex;
+		}
+	}
+}
+
+.message-buttons {
+	display: none;
+	position: absolute;
+	flex-direction: row;
+	right: 15px;
+	top: -16px;
+	height: 30px;
+	border: 1px solid var(--background-tertiary);
+	border-radius: 4px;
+	background-color: var(--background-secondary);
+	user-select: none;
+
+	.message-button {
+		width: 30px;
+		height: 30px;
+		display: grid;
+		place-items: center;
+		cursor: pointer;
+
+		&:hover {
+			background-color: var(--background-tertiary);
+		}
+	}
+
+	&:hover {
+		box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
 	}
 }
 
@@ -144,7 +177,7 @@
 		filter: brightness(0.8);
 
 		&:hover {
-			filter: brightness(1)
+			filter: brightness(1);
 		}
 	}
 }

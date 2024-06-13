@@ -59,16 +59,10 @@ onmessage = ({ data: message }: MessageEvent<"reset" | { data: ArrayBuffer; type
 
 		if (!typecheck || out.op !== OPCodes.DISPATCH) return void postMessage(out);
 
-		if (!(out.t in __allDispatches)) {
-			logger.error("Unknown dispatch:", out.t);
-			return;
-		}
+		if (!(out.t in __allDispatches)) return logger.error("Unknown dispatch:", out.t, out.d);
 
 		const res = safeParse(__allDispatches[out.t as keyof typeof __allDispatches], out.d);
-		if (!res.success) {
-			logger.error("Failed to parse dispatch:", out.t, res.issues, out.d);
-			return;
-		}
+		if (!res.success) return logger.error("Failed to parse dispatch:", out.t, res.issues, out.d);
 
 		out.d = res.output;
 

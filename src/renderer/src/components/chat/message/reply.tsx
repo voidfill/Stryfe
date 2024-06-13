@@ -30,7 +30,7 @@ export default function Reply(props: { guildId?: string; id: string }): JSX.Elem
 						<>
 							<div class="reply-line" />
 							<Avatar size={16} userId={m().author_id} guildId={props.guildId} showStatus={ShowStatus.NEVER} />
-							<UserName guildId={props.guildId} id={m().author_id} color clan clanClickable />
+							<UserName guildId={props.guildId} id={m().author_id} color clan />
 							<div class="content md-format-inline">{md().element}</div>
 						</>
 					);

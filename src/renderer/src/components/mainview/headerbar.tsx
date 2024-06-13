@@ -13,6 +13,8 @@ import Avatar, { ShowStatus } from "../common/avatar";
 import ChannelIcon from "../common/channelicon";
 import { useLocationContext } from "../common/locationcontext";
 import { parse } from "../common/md";
+import { ModalDirective } from "../common/modals";
+import { GenericModal, ModalHeader } from "../common/modals";
 
 import "./headerbar.scss";
 
@@ -28,6 +30,7 @@ import {
 } from "@renderer/signals";
 
 tippy;
+ModalDirective;
 
 const threadChannelTypes = new Set([ChannelTypes.PUBLIC_THREAD, ChannelTypes.PRIVATE_THREAD, ChannelTypes.ANNOUNCEMENT_THREAD]);
 
@@ -124,6 +127,23 @@ function Forum(props: { id: string }): JSX.Element {
 	return <span class="channel-name">{channelName()}</span>;
 }
 
+function TopicModal(props: { channelId: string }): JSX.Element {
+	const topic = createMemo(() => {
+		const c = ChannelStore.getGuildChannel(props.channelId);
+		if (!c || !("topic" in c) || !c.topic) return "";
+		return c.topic;
+	});
+	const parsed = createMemo(() => parse(topic(), { allowHeading: true, formatInline: true, inline: true, outputData: {} }));
+	const channelName = createMemo(() => ChannelStore.getGuildChannel(props.channelId)?.name);
+
+	return (
+		<GenericModal>
+			<ModalHeader title={"#" + channelName()} closeButton />
+			<div style={{ padding: "16px", width: "490px" }}>{parsed().element}</div>
+		</GenericModal>
+	);
+}
+
 function TextOrVoice(props: { id: string }): JSX.Element {
 	const channel = createMemo(() => ChannelStore.getGuildChannel(props.id));
 	const topic = createMemo(() => {
@@ -140,7 +160,7 @@ function TextOrVoice(props: { id: string }): JSX.Element {
 					{(t) => (
 						<>
 							<div class="topic-divider" />
-							<div class="channel-topic md-format-inline">
+							<div class="channel-topic md-format-inline" use:ModalDirective={{ content: () => <TopicModal channelId={props.id} /> }}>
 								{parse(t, { allowHeading: true, formatInline: true, inline: true, outputData: {} }).element}
 							</div>
 						</>

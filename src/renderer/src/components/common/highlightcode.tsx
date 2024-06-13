@@ -31,9 +31,11 @@ export default function HighlightCodeBlock(props: { content: string; copy?: bool
 					border: "1px solid #181818",
 					"border-radius": "4px",
 					display: "block",
+					overflow: "hidden",
 					padding: "0.5em",
 					"user-select": "text",
 					"white-space": "pre-wrap",
+					"word-wrap": "break-word",
 				}}
 			>
 				{props.content}
