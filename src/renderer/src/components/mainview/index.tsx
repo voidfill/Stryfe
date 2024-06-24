@@ -3,9 +3,9 @@ import { createEffect, createMemo, createSelector, JSX, Match, Show, Switch } fr
 
 import { ChannelTypes } from "@constants/channel";
 
-import ChannelStore from "@stores/channels";
-import ConnectionStore from "@stores/connection";
-import GuildStore from "@stores/guilds";
+import { getDirectMessage, getGuildChannel, getPrivateChannelName, getSortedGuildChannels } from "@stores/channels";
+import { firstConnect, tlState, trace, uiVisible } from "@stores/connection";
+import { getGuild } from "@stores/guilds";
 
 import { Timeline, TimelineItem } from "@components/common/timeline";
 import GuildsList from "@components/guilds";
@@ -26,7 +26,7 @@ import { lastSelectedChannels, setLastSelectedChannels, setWindowTitle, showDMUs
 
 function NotConnected(): JSX.Element {
 	const traceData = createMemo(() => {
-		const t = ConnectionStore.trace();
+		const t = trace();
 		if (!t) return null;
 		try {
 			const d = JSON.parse(t[0]);
@@ -43,13 +43,13 @@ function NotConnected(): JSX.Element {
 				<h2>Stryfe</h2>
 			</div>
 			<Show
-				when={ConnectionStore.firstConnect()}
+				when={firstConnect()}
 				fallback={
 					<span>Connecting...</span>
 					// TODO: display out of retries etc
 				}
 			>
-				<Timeline state={ConnectionStore.tlState()}>
+				<Timeline state={tlState()}>
 					<TimelineItem title="Connection Open" />
 					<TimelineItem title="Hello Received" />
 					<TimelineItem
@@ -77,9 +77,7 @@ export default function MainView(): JSX.Element {
 		navigate = useNavigate(),
 		selectedChannel = createSelector(() => params.channelId),
 		selectedGuild = createSelector(() => params.guildId),
-		currChannel = createMemo(() =>
-			params.guildId === "@me" ? ChannelStore.getDirectMessage(params.channelId) : ChannelStore.getGuildChannel(params.channelId),
-		);
+		currChannel = createMemo(() => (params.guildId === "@me" ? getDirectMessage(params.channelId) : getGuildChannel(params.channelId)));
 
 	createEffect(() => {
 		if (params.guildId === "@me") {
@@ -89,7 +87,7 @@ export default function MainView(): JSX.Element {
 		}
 
 		if (!currChannel()) {
-			const sortedChannels = ChannelStore.getSortedGuildChannels(params.guildId);
+			const sortedChannels = getSortedGuildChannels(params.guildId);
 			const channelId = sortedChannels?.uncategorized.other[0] || sortedChannels?.categorized[0]?.other[0];
 			if (channelId) navigate(`/channels/${params.guildId}/${channelId}`);
 			return;
@@ -103,20 +101,16 @@ export default function MainView(): JSX.Element {
 	createEffect(() => {
 		const ch = currChannel();
 		if (params.guildId === "@me") {
-			if (ch)
-				setWindowTitle(
-					`${(currChannel()?.type === ChannelTypes.DM ? "@" : "") + ChannelStore.getPrivateChannelName(params.channelId)} - Stryfe`,
-				);
+			if (ch) setWindowTitle(`${(currChannel()?.type === ChannelTypes.DM ? "@" : "") + getPrivateChannelName(params.channelId)} - Stryfe`);
 			else setWindowTitle("Friends - Stryfe");
 			return;
 		}
-		if (ch)
-			setWindowTitle(`#${"name" in ch ? ch.name : params.channelId} | ${GuildStore.getGuild(params.guildId)?.name ?? params.guildId} - Stryfe`);
+		if (ch) setWindowTitle(`#${"name" in ch ? ch.name : params.channelId} | ${getGuild(params.guildId)?.name ?? params.guildId} - Stryfe`);
 		else setWindowTitle("Stryfe");
 	});
 
 	return (
-		<Show when={ConnectionStore.uiVisible()} fallback={<NotConnected />}>
+		<Show when={uiVisible()} fallback={<NotConnected />}>
 			<LocationContext.Provider
 				value={() => ({
 					channelId: params.channelId,

@@ -2,8 +2,8 @@ import { createMemo, JSX, Match, Show, Switch } from "solid-js";
 
 import { ChannelTypes } from "@constants/channel";
 
-import ChannelStore from "@stores/channels";
-import UserStore from "@stores/users";
+import { getChannel, getDirectMessage, getGuildChannel, getPrivateChannelName } from "@stores/channels";
+import { getUser } from "@stores/users";
 
 import tippy from "@components/common/tooltip";
 import { FaSolidCircleUser } from "solid-icons/fa";
@@ -89,9 +89,9 @@ function FriendsHeaderButtons(): JSX.Element {
 }
 
 function DM(props: { id: string }): JSX.Element {
-	const channel = createMemo(() => ChannelStore.getDirectMessage(props.id));
-	const userId = createMemo(() => channel()?.recipient_ids[0]);
-	const user = createMemo(() => UserStore.getUser(userId()));
+	const channel = createMemo(() => getDirectMessage(props.id));
+	const userId = createMemo(() => channel()?.recipient_ids[0] || "");
+	const user = createMemo(() => getUser(userId()));
 
 	return (
 		<>
@@ -104,7 +104,7 @@ function DM(props: { id: string }): JSX.Element {
 }
 
 function GroupDM(props: { id: string }): JSX.Element {
-	const name = createMemo(() => ChannelStore.getPrivateChannelName(props.id));
+	const name = createMemo(() => getPrivateChannelName(props.id));
 
 	function onChangeName(newName: string): void {
 		// TODO: make api call, optimistically set name
@@ -123,18 +123,18 @@ function Thread(props: { id: string }): JSX.Element {
 }
 
 function Forum(props: { id: string }): JSX.Element {
-	const channelName = createMemo(() => ChannelStore.getGuildChannel(props.id)?.name);
+	const channelName = createMemo(() => getGuildChannel(props.id)?.name);
 	return <span class="channel-name">{channelName()}</span>;
 }
 
 function TopicModal(props: { channelId: string }): JSX.Element {
 	const topic = createMemo(() => {
-		const c = ChannelStore.getGuildChannel(props.channelId);
+		const c = getGuildChannel(props.channelId);
 		if (!c || !("topic" in c) || !c.topic) return "";
 		return c.topic;
 	});
 	const parsed = createMemo(() => parse(topic(), { allowHeading: true, formatInline: true, inline: true, outputData: {} }));
-	const channelName = createMemo(() => ChannelStore.getGuildChannel(props.channelId)?.name);
+	const channelName = createMemo(() => getGuildChannel(props.channelId)?.name);
 
 	return (
 		<GenericModal>
@@ -145,7 +145,7 @@ function TopicModal(props: { channelId: string }): JSX.Element {
 }
 
 function TextOrVoice(props: { id: string }): JSX.Element {
-	const channel = createMemo(() => ChannelStore.getGuildChannel(props.id));
+	const channel = createMemo(() => getGuildChannel(props.id));
 	const topic = createMemo(() => {
 		const c = channel();
 		if (!c || !("topic" in c) || !c.topic) return "";
@@ -173,7 +173,7 @@ function TextOrVoice(props: { id: string }): JSX.Element {
 
 export default function HeaderBar(): JSX.Element {
 	const location = useLocationContext(),
-		type = createMemo(() => ChannelStore.getChannel(location().channelId)?.type);
+		type = createMemo(() => getChannel(location().channelId)?.type);
 
 	return (
 		<div class="header-bar">

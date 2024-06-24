@@ -1,7 +1,7 @@
 import { createContext, createMemo, createRenderEffect, createSignal, getOwner, JSX as _JSX, onCleanup, useContext, ValidComponent } from "solid-js";
 import { Dynamic, DynamicProps } from "solid-js/web";
 
-import WindowStore from "@stores/window";
+import { isFocused } from "@stores/window";
 
 export const AnimationContext = createContext(() => false as boolean);
 export const useAnimationContext = (): (() => boolean) => useContext(AnimationContext);
@@ -14,7 +14,7 @@ export function HoverAnimationProvider<T extends ValidComponent>(
 	// eslint-disable-next-line solid/reactivity
 	props.component ??= "div";
 	const [isHover, setIsHover] = createSignal(false),
-		memo = createMemo(() => isHover() && WindowStore.isFocused());
+		memo = createMemo(() => isHover() && isFocused());
 
 	return (
 		<AnimationContext.Provider value={memo}>
@@ -31,7 +31,7 @@ export function FocusAnimationProvider<T extends ValidComponent>(props: DynamicP
 	// eslint-disable-next-line solid/reactivity
 	props.component ??= "div";
 	return (
-		<AnimationContext.Provider value={WindowStore.isFocused}>
+		<AnimationContext.Provider value={isFocused}>
 			<Dynamic {...props} />
 		</AnimationContext.Provider>
 	);
@@ -41,13 +41,13 @@ export function FocusAnimationDirective(): void {
 	const owner = getOwner();
 
 	createRenderEffect(() => {
-		owner!.context = { ...owner!.context, [AnimationContext.id]: WindowStore.isFocused };
+		owner!.context = { ...owner!.context, [AnimationContext.id]: isFocused };
 	});
 }
 
 export function HoverAnimationDirective(el: Element): void {
 	const [isHover, setIsHover] = createSignal(false),
-		memo = createMemo(() => isHover() && WindowStore.isFocused()),
+		memo = createMemo(() => isHover() && isFocused()),
 		owner = getOwner();
 
 	createRenderEffect(() => {

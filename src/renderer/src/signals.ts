@@ -1,11 +1,11 @@
 import { createSignal } from "solid-js";
 import { boolean, fallback, optional, record, string } from "valibot";
 
-import Persistent from "@stores/persistent";
+import { persistSignal, persistStore } from "@modules/persist";
 
 export const [windowTitle, setWindowTitle] = createSignal("Stryfe");
 
-export const [lastSelectedChannels, setLastSelectedChannels] = Persistent.registerStore(
+export const [lastSelectedChannels, setLastSelectedChannels] = persistStore(
 	"lastSelectedChannels",
 	fallback(record(string(), optional(string())), {}),
 	(v) => {
@@ -14,10 +14,10 @@ export const [lastSelectedChannels, setLastSelectedChannels] = Persistent.regist
 	},
 );
 
-export const [showMembers, setShowMembers] = Persistent.registerSignal("showMembers", fallback(boolean(), true));
-export const [showDMUserProfile, setShowDMUserProfile] = Persistent.registerSignal("showDMUserProfile", fallback(boolean(), true));
-export const [showHelp, setShowHelp] = Persistent.registerSignal("showHelp", fallback(boolean(), true));
-export const [showAvatarsInCompact, setShowAvatarsInCompact] = Persistent.registerSignal("showAvatarsInCompact", fallback(boolean(), true));
+export const [showMembers, setShowMembers] = persistSignal("showMembers", fallback(boolean(), true));
+export const [showDMUserProfile, setShowDMUserProfile] = persistSignal("showDMUserProfile", fallback(boolean(), true));
+export const [showHelp, setShowHelp] = persistSignal("showHelp", fallback(boolean(), true));
+export const [showAvatarsInCompact, setShowAvatarsInCompact] = persistSignal("showAvatarsInCompact", fallback(boolean(), true));
 
 export enum FriendsTabs {
 	ONLINE,

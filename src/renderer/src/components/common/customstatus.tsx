@@ -2,7 +2,7 @@ import { createMemo, JSX, Show } from "solid-js";
 
 import { ActivityTypes } from "@constants/user";
 
-import ActivityStore from "@stores/activities";
+import { getActivities, getCustomStatus } from "@stores/activities";
 
 import { BsCardText } from "solid-icons/bs";
 
@@ -16,8 +16,8 @@ tippy;
 OverflowTooltip;
 
 export default function CustomStatus(props: { inline?: boolean; noToolTip?: boolean; userId: string }): JSX.Element {
-	const status = createMemo(() => ActivityStore.getCustomStatus(props.userId));
-	const isPlaying = createMemo(() => ActivityStore.getActivities(props.userId)?.some((a) => a.type !== ActivityTypes.CUSTOM));
+	const status = createMemo(() => getCustomStatus(props.userId));
+	const isPlaying = createMemo(() => getActivities(props.userId)?.some((a) => a.type !== ActivityTypes.CUSTOM));
 
 	return (
 		<Show when={status()}>

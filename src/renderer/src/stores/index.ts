@@ -1,16 +1,9 @@
-import Dispatcher, { dispatches as validDispatches } from "@modules/dispatcher";
-
-type dispatchesWithArgs = OmitByType<validDispatches, undefined>;
-type dispatchesWithoutArgs = PickByType<validDispatches, undefined>;
+import Dispatcher, { dispatches as validDispatches, Listener } from "@modules/dispatcher";
 
 type dispatches = {
-	[key in keyof dispatchesWithArgs]: (args: dispatchesWithArgs[key]) => void;
+	[key in keyof validDispatches]: Listener<validDispatches[key]>;
 } & {
-	[key in keyof dispatchesWithoutArgs]: () => void;
-} & {
-	[key in keyof dispatchesWithArgs as `once_${key}`]: (args: dispatchesWithArgs[key]) => void;
-} & {
-	[key in keyof dispatchesWithoutArgs as `once_${key}`]: () => void;
+	[key in keyof validDispatches as `once_${key}`]: Listener<validDispatches[key]>;
 };
 
 export default class Store {
@@ -19,19 +12,24 @@ export default class Store {
 	constructor(dispatches: Partial<dispatches>) {
 		for (const [key, value] of Object.entries(dispatches)) {
 			if (key.startsWith("once_")) {
+				// @ts-expect-error yea.
 				this.#__registeredDispatches.add(Dispatcher.once(key.slice(5) as keyof validDispatches, value));
 			} else {
+				// @ts-expect-error yea.
 				this.#__registeredDispatches.add(Dispatcher.on(key as keyof validDispatches, value));
 			}
 		}
 
-		if (window.isDev) {
-			window.stores ??= {};
-			window.stores[this.constructor.name] = this;
-		}
+		registerDebugStore(this.constructor.name, this);
 	}
 
 	__kill(): void {
 		for (const remove of this.#__registeredDispatches) remove();
 	}
+}
+
+if (window.isDev) window.stores = {};
+
+export function registerDebugStore(name: string, target: object): void {
+	if (window.stores) window.stores[name] = target;
 }

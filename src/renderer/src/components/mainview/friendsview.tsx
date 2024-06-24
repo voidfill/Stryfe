@@ -3,11 +3,11 @@ import { createMemo, createSignal, For, JSX, Match, Show, Switch, untrack } from
 
 import { RelationshipTypes } from "@constants/user";
 
-import ActivityStore from "@stores/activities";
-import ChannelStore from "@stores/channels";
-import RelationshipStore from "@stores/relationships";
-import StatusStore, { Status, statusToText } from "@stores/status";
-import UserStore from "@stores/users";
+import { getActivities } from "@stores/activities";
+import { getDMForUser } from "@stores/channels";
+import { getBlocked, getFriends, getPending, getRelationship } from "@stores/relationships";
+import { getStatus, Status, statusToText } from "@stores/status";
+import { getUser } from "@stores/users";
 
 import { BsThreeDots } from "solid-icons/bs";
 import { FaSolidCheck, FaSolidMagnifyingGlass, FaSolidXmark } from "solid-icons/fa";
@@ -34,13 +34,13 @@ function AddFriend(): JSX.Element {
 const filter = createMemo((): (() => string[]) => {
 	switch (friendsTab()) {
 		case FriendsTabs.ONLINE:
-			return () => RelationshipStore.getFriends().filter((id) => StatusStore.getStatus(id) !== Status.OFFLINE);
+			return () => getFriends().filter((id) => getStatus(id) !== Status.OFFLINE);
 		case FriendsTabs.ALL:
-			return () => RelationshipStore.getFriends();
+			return () => getFriends();
 		case FriendsTabs.PENDING:
-			return () => RelationshipStore.getPending();
+			return () => getPending();
 		case FriendsTabs.BLOCKED:
-			return () => RelationshipStore.getBlocked();
+			return () => getBlocked();
 		default:
 			return () => [];
 	}
@@ -50,10 +50,10 @@ const lower = createMemo(() => search().toLocaleLowerCase());
 
 function FriendItem(props: { id: string }): JSX.Element {
 	const navigate = useNavigate();
-	const user = createMemo(() => UserStore.getUser(props.id));
-	const relationship = createMemo(() => RelationshipStore.getRelationship(props.id));
-	const hasActivity = createMemo(() => (ActivityStore.getActivities(props.id)?.length ?? 0) > 0);
-	const statusText = createMemo(() => statusToText(StatusStore.getStatus(props.id)));
+	const user = createMemo(() => getUser(props.id));
+	const relationship = createMemo(() => getRelationship(props.id));
+	const hasActivity = createMemo(() => (getActivities(props.id)?.length ?? 0) > 0);
+	const statusText = createMemo(() => statusToText(getStatus(props.id)));
 
 	return (
 		<Show when={(user()?.display_name?.toLowerCase().includes(lower()) || user().username?.toLowerCase().includes(lower())) && user()}>
@@ -68,7 +68,7 @@ function FriendItem(props: { id: string }): JSX.Element {
 						)}
 						class="friend-item"
 						onClick={(): void => {
-							const id = untrack((): string | undefined => ChannelStore.getDMForUser(props.id));
+							const id = untrack((): string | undefined => getDMForUser(props.id));
 							switch (friendsTab()) {
 								case FriendsTabs.ONLINE:
 								case FriendsTabs.ALL:
@@ -175,7 +175,7 @@ function Friends(): JSX.Element {
 	const filteredIds = createMemo(() =>
 		filter()()
 			.map((id) => {
-				const user = UserStore.getUser(id);
+				const user = getUser(id);
 				return [id, user?.display_name || user?.username];
 			})
 			.sort((a, b) => a[1].localeCompare(b[1]))
@@ -185,7 +185,7 @@ function Friends(): JSX.Element {
 	const searchedCount = createMemo(
 		() =>
 			filteredIds().filter((id) => {
-				const user = UserStore.getUser(id);
+				const user = getUser(id);
 				return user.display_name?.toLowerCase().includes(lower()) || user.username?.toLowerCase().includes(lower());
 			}).length,
 	);

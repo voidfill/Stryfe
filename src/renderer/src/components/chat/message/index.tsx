@@ -4,8 +4,8 @@ import { MessageType } from "@constants/message";
 
 import { extractTimeStamp } from "@modules/unix";
 
-import EmbedStore from "@stores/embeds";
-import MessageStore from "@stores/messages";
+import { getEmbeds } from "@stores/embeds";
+import { getMessage, getMessageState } from "@stores/messages";
 import SettingsStore from "@stores/settings";
 
 import { HoverAnimationDirective, NoAnimationDirective } from "@components/common/animationcontext";
@@ -37,15 +37,15 @@ const isCompact = createMemo(() => SettingsStore.preloadedSettings.textAndImages
 export default function Message(props: { id: string; prevId?: string }): JSX.Element {
 	const location = useLocationContext();
 
-	const msg = createMemo(() => MessageStore.getMessage(props.id));
-	const state = createMemo(() => MessageStore.getMessageState(props.id));
+	const msg = createMemo(() => getMessage(props.id));
+	const state = createMemo(() => getMessageState(props.id));
 	const date = createMemo(() => extractTimeStamp(props.id));
 
 	const prevDate = createMemo(() => (props.prevId ? extractTimeStamp(props.prevId) : new Date(0)));
 	const isNextDay = createMemo(
 		() => (props.prevId && date().getDay() !== prevDate().getDay()) || date().valueOf() - prevDate().valueOf() > 86_400_000,
 	);
-	const prevAuthorId = createMemo<string | undefined>(() => props.prevId && MessageStore.getMessage(props.prevId)?.author_id);
+	const prevAuthorId = createMemo<string | undefined>(() => props.prevId && getMessage(props.prevId)?.author_id);
 	const isGroupStart = createMemo(() => {
 		if (msg()?.type === MessageType.REPLY) return true;
 		if (!props.prevId) return true;
@@ -56,7 +56,7 @@ export default function Message(props: { id: string; prevId?: string }): JSX.Ele
 	});
 
 	const content = createMemo(() => msg()?.content ?? "");
-	const embeds = createMemo(() => EmbedStore.getEmbeds(props.id));
+	const embeds = createMemo(() => getEmbeds(props.id));
 
 	const [hoveredOnce, setHoveredOnce] = createSignal(false);
 

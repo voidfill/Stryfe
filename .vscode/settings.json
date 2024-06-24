@@ -8,15 +8,7 @@
 	"[json]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode"
 	},
-	"cSpell.words": [
-		"APNG",
-		"brotli",
-		"frecency",
-		"picklist",
-		"protos",
-		"stryfe",
-		"valibot"
-	],
+	"cSpell.words": ["APNG", "brotli", "frecency", "picklist", "protos", "stryfe", "valibot"],
 	"files.associations": {
 		"*.tcc": "cpp",
 		"fstream": "cpp",

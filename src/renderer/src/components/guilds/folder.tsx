@@ -1,8 +1,9 @@
 import { createMemo, For, JSX, Show } from "solid-js";
 import { boolean, fallback, record, string } from "valibot";
 
-import GuildStore from "@stores/guilds";
-import Persistent from "@stores/persistent";
+import { persistStore } from "@modules/persist";
+
+import { getAcronym, getIconUrl } from "@stores/guilds";
 
 import { AiOutlineFolder } from "solid-icons/ai";
 
@@ -10,11 +11,11 @@ import Guild from "./guild";
 
 import { PreloadedUserSettings_GuildFolder } from "discord-protos";
 
-const [collapsed, setCollapsed] = Persistent.registerStore("collapsedFolders", fallback(record(string(), boolean()), {}));
+const [collapsed, setCollapsed] = persistStore("collapsedFolders", fallback(record(string(), boolean()), {}));
 
 function MiniIcon(props: { id: string }): JSX.Element {
-	const url = createMemo(() => GuildStore.getIconUrl(props.id, 32, false));
-	const acronym = createMemo(() => GuildStore.getAcronym(props.id));
+	const url = createMemo(() => getIconUrl(props.id, 32, false));
+	const acronym = createMemo(() => getAcronym(props.id));
 
 	return (
 		<Show when={url()} fallback={acronym()}>

@@ -2,12 +2,12 @@ import { createMemo, JSX, Show } from "solid-js";
 
 import { clanIconURL } from "@constants/images";
 
-import UserStore from "@stores/users";
+import { getClan } from "@stores/users";
 
 import "./clanbadge.scss";
 
 export default function clanBadge(props: { clickable?: boolean; userId: string }): JSX.Element {
-	const clan = createMemo(() => UserStore.getClan(props.userId));
+	const clan = createMemo(() => getClan(props.userId));
 
 	return (
 		<Show when={clan()}>

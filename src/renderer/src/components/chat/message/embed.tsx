@@ -1,8 +1,9 @@
 import { createMemo, For, JSX, Match, Show, Switch } from "solid-js";
 import { boolean, fallback } from "valibot";
 
+import { persistSignal } from "@modules/persist";
+
 import { storedEmbed } from "@stores/embeds";
-import Persistent from "@stores/persistent";
 
 import { parse } from "@components/common/md";
 import { MaybeSpoiler, Media, Youtube } from "@components/common/media";
@@ -19,7 +20,7 @@ function isYoutubeEmbedUrl(url: string): boolean {
 	return true;
 }
 
-export const [allowYoutubeEmbedDescription, setAllowYoutubeEmbedDescription] = Persistent.registerSignal(
+export const [allowYoutubeEmbedDescription, setAllowYoutubeEmbedDescription] = persistSignal(
 	"allowYoutubeEmbedDescription",
 	fallback(boolean(), false),
 );

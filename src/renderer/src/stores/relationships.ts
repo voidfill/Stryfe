@@ -3,7 +3,10 @@ import { createStore, produce } from "solid-js/store";
 
 import { RelationshipTypes } from "@constants/user";
 
-import Store from ".";
+import { on } from "@modules/dispatcher";
+import { p } from "@modules/patcher";
+
+import { registerDebugStore } from ".";
 
 type Relationship = {
 	id: string;
@@ -51,73 +54,60 @@ function remove(id: string): void {
 	}
 }
 
-export default new (class RelationshipStore extends Store {
-	constructor() {
-		super({
-			READY: ({ relationships: r }) => {
-				if (!r) return;
-				batch(() => {
-					for (const relationship of r) {
-						setRelationships(relationship.id, {
-							id: relationship.id,
-							nickname: relationship.nickname || null,
-							since: relationship.since ? new Date(relationship.since) : null,
-							type: relationship.type,
-						});
-					}
-
-					setFriends(r.filter((r) => r.type == RelationshipTypes.FRIEND).map((r) => r.id));
-					setBlocked(r.filter((r) => r.type == RelationshipTypes.BLOCKED).map((r) => r.id));
-					setPending(
-						r
-							.filter((r) => r.type == RelationshipTypes.PENDING_INCOMING || r.type == RelationshipTypes.PENDING_OUTGOING)
-							.map((r) => r.id),
-					);
-				});
-			},
-			RELATIONSHIP_ADD: (relationship) => {
-				add(relationship.id, {
-					id: relationship.id,
-					nickname: relationship.nickname || null,
-					since: relationship.since ? new Date(relationship.since) : null,
-					type: relationship.type,
-				});
-			},
-			RELATIONSHIP_REMOVE: ({ id }) => {
-				remove(id);
-			},
-		});
-	}
-
-	getRelationships(): string[];
-	getRelationships(validator: (r: Relationship) => boolean): string[];
-	// eslint-disable-next-line solid/reactivity
-	getRelationships(validator?: (r: Relationship) => boolean): string[] {
-		if (validator) {
-			return Object.keys(relationships).filter((id) => validator(relationships[id]));
+on("READY", ({ relationships: r }) => {
+	if (!r) return;
+	batch(() => {
+		for (const relationship of r) {
+			setRelationships(relationship.id, {
+				id: relationship.id,
+				nickname: relationship.nickname || null,
+				since: relationship.since ? new Date(relationship.since) : null,
+				type: relationship.type,
+			});
 		}
-		return Object.keys(relationships);
-	}
 
-	// eslint-disable-next-line solid/reactivity
-	getRelationship(id: string): Relationship | undefined {
-		return relationships[id];
-	}
+		setFriends(r.filter((r) => r.type == RelationshipTypes.FRIEND).map((r) => r.id));
+		setBlocked(r.filter((r) => r.type == RelationshipTypes.BLOCKED).map((r) => r.id));
+		setPending(r.filter((r) => r.type == RelationshipTypes.PENDING_INCOMING || r.type == RelationshipTypes.PENDING_OUTGOING).map((r) => r.id));
+	});
+});
 
-	// eslint-disable-next-line solid/reactivity
-	getRelationshipsByType(type: RelationshipTypes): string[] {
-		return Object.keys(relationships).filter((id) => relationships[id].type == type);
-	}
+on("RELATIONSHIP_ADD", (relationship) => {
+	add(relationship.id, {
+		id: relationship.id,
+		nickname: relationship.nickname || null,
+		since: relationship.since ? new Date(relationship.since) : null,
+		type: relationship.type,
+	});
+});
 
-	getFriends(): string[] {
-		return friends;
-	}
+on("RELATIONSHIP_REMOVE", ({ id }) => {
+	remove(id);
+});
 
-	getBlocked(): string[] {
-		return blocked;
+export const getRelationships = p((validator?: (r: Relationship) => boolean) => {
+	if (validator) {
+		return Object.keys(relationships).filter((id) => validator(relationships[id]));
 	}
+	return Object.keys(relationships);
+});
 
-	getPending(): string[] {
-		return pending;
-	}
-})();
+export const getRelationship = p((id: string) => relationships[id]);
+
+export const getRelationshipsByType = p((type: RelationshipTypes) => Object.keys(relationships).filter((id) => relationships[id].type == type));
+
+export const getFriends = p(() => friends);
+
+export const getBlocked = p(() => blocked);
+
+export const getPending = p(() => pending);
+
+registerDebugStore("relationships", {
+	getBlocked,
+	getFriends,
+	getPending,
+	getRelationship,
+	getRelationships,
+	getRelationshipsByType,
+	state: { blocked, friends, pending, relationships },
+});

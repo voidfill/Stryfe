@@ -2,9 +2,9 @@ import { createMemo, JSX, Show } from "solid-js";
 
 import { roleIconURL } from "@constants/images";
 
-import MemberStore from "@stores/members";
-import RoleStore from "@stores/roles";
-import UserStore from "@stores/users";
+import { getName, hasMember } from "@stores/members";
+import { getHighestColoredForMember, getHighestIconForMember, getRole } from "@stores/roles";
+import { getUser } from "@stores/users";
 
 import ClanBadge from "./clanbadge";
 import tippy from "./tooltip";
@@ -21,26 +21,26 @@ export default function UserName(props: {
 	noInteract?: boolean;
 	roleIcon?: boolean;
 }): JSX.Element {
-	const user = createMemo(() => UserStore.getUser(props.id));
+	const user = createMemo(() => getUser(props.id));
 	const color = createMemo<string>(() => {
-		if (!props.color || !props.guildId || !MemberStore.hasMember(props.guildId, props.id) || !user()) return "#fff";
-		const highest = RoleStore.getHighestColoredForMember(props.guildId!, props.id);
+		if (!props.color || !props.guildId || !hasMember(props.guildId, props.id) || !user()) return "#fff";
+		const highest = getHighestColoredForMember(props.guildId!, props.id);
 		if (highest) {
-			const role = RoleStore.getRole(highest);
+			const role = getRole(highest);
 			if (typeof role?.color === "number") return "#" + role.color.toString(16).padStart(6, "0");
 		}
 		return "#fff";
 	});
 	const name = createMemo<string | undefined>(() =>
-		props.guildId ? MemberStore.getName(props.guildId, props.id) : user()?.username || user()?.display_name || undefined,
+		props.guildId ? getName(props.guildId, props.id) : user()?.username || user()?.display_name || undefined,
 	);
 	const iconRoleId = createMemo<string | undefined>(() =>
-		props.roleIcon && props.guildId ? RoleStore.getHighestIconForMember(props.guildId, props.id) : undefined,
+		props.roleIcon && props.guildId ? getHighestIconForMember(props.guildId, props.id) : undefined,
 	);
 	const iconRole = createMemo(() => {
 		const i = iconRoleId();
 		if (!i) return undefined;
-		return RoleStore.getRole(i);
+		return getRole(i);
 	});
 
 	return (

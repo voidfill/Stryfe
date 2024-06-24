@@ -1,6 +1,8 @@
 import { createSignal } from "solid-js";
 
-import Store from ".";
+import { on } from "@modules/dispatcher";
+
+import { registerDebugStore } from ".";
 
 export const enum TLState {
 	NONE = -1,
@@ -18,40 +20,44 @@ const [firstConnect, setFirstConnect] = createSignal(true);
 const [trace, setTrace] = createSignal<string[]>([]);
 let timeoutId: NodeJS.Timeout | undefined;
 
-export default new (class ConnectionStore extends Store {
-	constructor() {
-		super({
-			GATEWAY_CONN_OPEN: () => setTlState(TLState.CONN_OPEN),
-			GATEWAY_CONNECT: () => {
-				setConnected(true);
-				setOutOfRetries(false);
-				if (timeoutId) timeoutId = void clearTimeout(timeoutId);
-				setUiVisible(true);
-				setFirstConnect(false);
-			},
-			GATEWAY_DISCONNECT: () => {
-				setConnected(false);
-				timeoutId = setTimeout(() => setUiVisible(false), 10_000);
-			},
-			GATEWAY_GIVE_UP: () => {
-				setOutOfRetries(true);
-				if (timeoutId) timeoutId = void clearTimeout(timeoutId);
-				setUiVisible(false);
-			},
-			GATEWAY_HELLO_RECEIVED: () => setTlState(TLState.HELLO_RECEIVED),
-			READY: ({ _trace }) => {
-				setTlState(TLState.READY);
-				setTrace(_trace);
-			},
-			READY_SUPPLEMENTAL: () => setTlState(TLState.READY_SUPP),
-			RESUMED: ({ _trace }) => setTrace(_trace),
-		});
-	}
+on("GATEWAY_CONN_OPEN", () => setTlState(TLState.CONN_OPEN));
 
-	connected = connected;
-	outOfRetries = outOfRetries;
-	uiVisible = uiVisible;
-	tlState = tlState;
-	firstConnect = firstConnect;
-	trace = trace;
-})();
+on("GATEWAY_CONNECT", () => {
+	setConnected(true);
+	setOutOfRetries(false);
+	if (timeoutId) timeoutId = void clearTimeout(timeoutId);
+	setUiVisible(true);
+	setFirstConnect(false);
+});
+
+on("GATEWAY_DISCONNECT", () => {
+	setConnected(false);
+	timeoutId = setTimeout(() => setUiVisible(false), 10_000);
+});
+
+on("GATEWAY_GIVE_UP", () => {
+	setOutOfRetries(true);
+	if (timeoutId) timeoutId = void clearTimeout(timeoutId);
+	setUiVisible(false);
+});
+
+on("GATEWAY_HELLO_RECEIVED", () => setTlState(TLState.HELLO_RECEIVED));
+
+on("READY", ({ _trace }) => {
+	setTlState(TLState.READY);
+	setTrace(_trace);
+});
+on("READY_SUPPLEMENTAL", () => setTlState(TLState.READY_SUPP));
+
+on("RESUMED", ({ _trace }) => setTrace(_trace));
+
+export { connected, outOfRetries, uiVisible, tlState, firstConnect, trace };
+
+registerDebugStore("connection", {
+	connected,
+	firstConnect,
+	outOfRetries,
+	tlState,
+	trace,
+	uiVisible,
+});

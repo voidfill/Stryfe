@@ -3,7 +3,6 @@ import os from "os";
 
 import { ipc } from "./index";
 
-import Store from "@renderer/stores";
 import { type inspect } from "util";
 
 declare global {
@@ -14,6 +13,6 @@ declare global {
 		nodeInspect: inspect;
 		os: typeof os;
 		os_type: string;
-		stores: isDev extends true ? Record<string, InstanceType<typeof Store>> : undefined;
+		stores: isDev extends true ? Record<string, object> : undefined;
 	}
 }

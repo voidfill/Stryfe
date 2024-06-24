@@ -6,8 +6,8 @@ import permissions from "@constants/permissions";
 
 import Api from "@modules/api";
 
-import ChannelStore from "@stores/channels";
-import MessageStore from "@stores/messages";
+import { getChannel, getLastMessageId } from "@stores/channels";
+import { getChunk, getEarliestMessageId } from "@stores/messages";
 
 import { usePermissionsContext } from "@components/common/permissionscontext";
 
@@ -47,8 +47,8 @@ function LazyScroller(props: { around?: string; channelId: string; guildId?: str
 		}
 	}
 
-	const channel = createMemo(() => ChannelStore.getChannel(props.channelId));
-	const chunk = createMemo(() => MessageStore.getChunk(props.channelId, props.around));
+	const channel = createMemo(() => getChannel(props.channelId));
+	const chunk = createMemo(() => getChunk(props.channelId, props.around));
 	const pctx = usePermissionsContext();
 	const canFetchMessages = createMemo(
 		() =>
@@ -56,12 +56,12 @@ function LazyScroller(props: { around?: string; channelId: string; guildId?: str
 			pctx().can(permissions.READ_MESSAGE_HISTORY | permissions.VIEW_CHANNEL),
 	);
 	function hasBefore(id: string): boolean {
-		const earliest = untrack(() => MessageStore.getEarliestMessageId(props.channelId));
+		const earliest = untrack(() => getEarliestMessageId(props.channelId));
 		if (!earliest) return true;
 		return BigInt(id) > BigInt(earliest);
 	}
 	function hasAfter(id: string): boolean {
-		const latest = untrack(() => ChannelStore.getLastMessageId(props.channelId));
+		const latest = untrack(() => getLastMessageId(props.channelId));
 		if (!latest) return true;
 		return BigInt(id) < BigInt(latest);
 	}

@@ -3,8 +3,8 @@ import { createMemo, createSignal, FlowProps, getOwner, JSX, onCleanup, Show } f
 import { deletable } from "@constants/message";
 import permissions from "@constants/permissions";
 
-import MessageStore from "@stores/messages";
-import UserStore from "@stores/users";
+import { getMessage } from "@stores/messages";
+import { getSelfId } from "@stores/users";
 
 import { createContextmenu, Item } from "@components/common/contextmenu";
 import { useLocationContext } from "@components/common/locationcontext";
@@ -66,8 +66,8 @@ export default function Buttons(props: { messageId: string }): JSX.Element {
 	if (!owner) throw new Error("No owner");
 	const location = useLocationContext();
 	const currentPermissions = usePermissionsContext();
-	const msg = createMemo(() => MessageStore.getMessage(props.messageId));
-	const isAuthor = createMemo(() => msg()?.author_id === UserStore.getSelfId());
+	const msg = createMemo(() => getMessage(props.messageId));
+	const isAuthor = createMemo(() => msg()?.author_id === getSelfId());
 	const canDelete = createMemo(() => {
 		const m = msg();
 		if (!m || !deletable[m.type]) return false;

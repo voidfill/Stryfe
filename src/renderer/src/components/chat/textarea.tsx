@@ -2,7 +2,7 @@ import { createMemo, createSignal, JSX, Show } from "solid-js";
 
 import permissions from "@constants/permissions";
 
-import ChannelStore from "@stores/channels";
+import { getGuildChannel, getPrivateChannelName } from "@stores/channels";
 
 import { useLocationContext } from "@components/common/locationcontext";
 import { usePermissionsContext } from "@components/common/permissionscontext";
@@ -10,9 +10,7 @@ import { usePermissionsContext } from "@components/common/permissionscontext";
 export default function TextArea(): JSX.Element {
 	const location = useLocationContext();
 	const channelName = createMemo(() =>
-		location().guildId === "@me"
-			? "@" + ChannelStore.getPrivateChannelName(location().channelId)
-			: "#" + ChannelStore.getGuildChannel(location().channelId)?.name,
+		location().guildId === "@me" ? "@" + getPrivateChannelName(location().channelId) : "#" + getGuildChannel(location().channelId)?.name,
 	);
 
 	const pctx = usePermissionsContext();

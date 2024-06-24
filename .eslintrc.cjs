@@ -19,6 +19,12 @@ module.exports = {
 				"@typescript-eslint/explicit-function-return-type": "off",
 			},
 		},
+		{
+			files: ["src/renderer/src/stores/**/*.ts"],
+			rules: {
+				"solid/reactivity": "off",
+			},
+		},
 	],
 	parser: "@typescript-eslint/parser",
 	parserOptions: {
@@ -59,7 +65,6 @@ module.exports = {
 				endOfLine: "auto",
 			},
 		],
-
 		"simple-import-sort/imports": [
 			"error",
 			{
@@ -78,7 +83,8 @@ module.exports = {
 				],
 			},
 		],
-		"sort-keys-plus/sort-keys": ["warn", "asc", { caseSensitive: true, natural: true }], // if you rely on object key order, youre doing it wrong.
+		// if you rely on object key order, youre doing it wrong.
+		"sort-keys-plus/sort-keys": ["warn", "asc", { caseSensitive: true, natural: true }],
 		"typescript-sort-keys/interface": ["warn", "asc", { caseSensitive: true, natural: true }],
 	},
 };

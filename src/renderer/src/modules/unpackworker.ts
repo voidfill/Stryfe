@@ -1,10 +1,9 @@
 import { safeParse } from "valibot";
 
+import { OPCodes } from "@constants/gateway";
 import { dispatches as __allDispatches } from "@constants/schemata";
 
 import { Logger } from "./logger";
-
-import { OPCodes } from "@renderer/constants/gateway";
 
 const erl = require("erl");
 const Zlibsync = require("zlib-sync");

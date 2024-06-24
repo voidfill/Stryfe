@@ -4,15 +4,18 @@ import { boolean, fallback, InferOutput } from "valibot";
 
 import { genericMessage as _genericMessage } from "@constants/schemata/message";
 
-import Persistent from "@stores/persistent";
+import { on } from "@modules/dispatcher";
+import { p } from "@modules/patcher";
+import { persistSignal } from "@modules/persist";
 
-import Store from ".";
+import { registerDebugStore } from ".";
 
 // sorted low to high
 type chunk = string[];
 // chunks sorted by first entry's id, descending
 // [["5", "6"], ["3", "4"], ["1", "2"]]
 const [perChannel, setPerChannel] = createStore<{ [key: string]: chunk[] }>({});
+const perChannelUnordered = new Map<string, Set<string>>();
 
 const enum MessageFetchType {
 	AROUND,
@@ -171,7 +174,7 @@ function removeEntry(channelId: string, messageId: string): void {
 }
 
 // Should probably prompt to reload when disabling this
-export const [messageLoggerEnabled, setMessageLoggerEnabled] = Persistent.registerSignal("messageLoggerEnabled", fallback(boolean(), false));
+export const [messageLoggerEnabled, setMessageLoggerEnabled] = persistSignal("messageLoggerEnabled", fallback(boolean(), false));
 
 // it might happen that we accidentally store some of the omitted values in here since spread operator is funny but its important that we mark them as not accessible
 type message = DistributiveOmit<
@@ -196,199 +199,178 @@ const [messageState, setMessageState] = createStore<{ [key: string]: MessageStat
 
 const [earliestMessageId, setEarliestMessageId] = createStore<{ [key: string]: string }>({});
 
-const __perChannel = new Map<string, Set<string>>();
-
-export default new (class MessageStore extends Store {
-	constructor() {
-		super({
-			CHANNEL_DELETE: ({ id }) => {
-				batch(() => {
-					setMessages(
-						produce((messages) => {
-							for (const message_id of __perChannel.get(id) ?? []) {
-								delete messages[message_id];
-							}
-						}),
-					);
-					__perChannel.delete(id);
-				});
-			},
-			MESSAGE_CREATE: (message) => {
-				batch(() => {
-					// eslint-disable-next-line @typescript-eslint/no-unused-vars
-					const { id, channel_id, author, member, mentions, message_reference, referenced_message, ...rest } = message;
-					setMessages(id, {
-						...rest,
-						author_id: author.id,
-						mention_ids: mentions?.map((mention) => mention.id),
-						message_reference: message_reference?.message_id,
-					});
-					if (__perChannel.has(channel_id)) __perChannel.get(channel_id)!.add(id);
-					else __perChannel.set(channel_id, new Set([id]));
-
-					if (referenced_message) {
-						// eslint-disable-next-line @typescript-eslint/no-unused-vars
-						const { id, channel_id, author, mentions, message_reference, ...rest } = referenced_message;
-						setMessages(referenced_message.id, {
-							...rest,
-							author_id: author.id,
-							mention_ids: mentions?.map((mention) => mention.id),
-							message_reference: message_reference?.message_id,
-						});
-
-						__perChannel.get(channel_id)!.add(id);
-					}
-
-					addMessage(channel_id, id);
-				});
-			},
-			MESSAGE_DELETE: (message) => {
-				if (!messages[message.id]) return;
-				if (messageLoggerEnabled()) {
-					setMessageState(message.id, MessageState.DELETED);
-				} else {
-					setMessages(
-						produce((messages) => {
-							delete messages[message.id];
-						}),
-					);
-					__perChannel.get(message.channel_id)?.delete(message.id);
-					removeEntry(message.channel_id, message.id);
+on("CHANNEL_DELETE", ({ id }) => {
+	batch(() => {
+		setMessages(
+			produce((messages) => {
+				for (const message_id of perChannelUnordered.get(id) ?? []) {
+					delete messages[message_id];
 				}
-			},
-			MESSAGE_DELETE_BULK: ({ channel_id, ids }) => {
-				batch(() => {
-					if (messageLoggerEnabled()) {
-						for (const id of ids) {
-							setMessageState(id, MessageState.DELETED);
-						}
-					} else {
-						setMessages(
-							produce((messages) => {
-								for (const id of ids) {
-									delete messages[id];
-								}
-							}),
-						);
-						for (const id of ids) {
-							__perChannel.get(channel_id)?.delete(id);
-						}
+			}),
+		);
+		perChannelUnordered.delete(id);
+		setPerChannel(produce((perChannel) => delete perChannel[id]));
+	});
+});
 
-						removeEntries(channel_id, new Set(ids));
-					}
-				});
-			},
-			MESSAGE_UPDATE: (message) => {
-				batch(() => {
-					if (!messages[message.id]) return;
-					// eslint-disable-next-line @typescript-eslint/no-unused-vars
-					const { id, channel_id, author, member, mentions, message_reference, ...rest } = message;
-					setMessages(id, rest);
-					if (mentions) {
-						setMessages(
-							id,
-							"mention_ids",
-							mentions.map((mention) => mention.id),
-						);
-					}
-				});
-			},
-			MESSAGES_FETCH_SUCCESS: ({ messages, channelId, after, around, before, limit }) => {
-				if (!messages.length) return;
-				const messageIds = messages.map((m) => m.id).reverse();
-
-				batch(() => {
-					if (!__perChannel.has(channelId)) __perChannel.set(channelId, new Set());
-					for (const id of messageIds) __perChannel.get(channelId)!.add(id);
-					if (!after && limit && messageIds.length < limit) setEarliestMessageId(channelId, messageIds[0]);
-
-					for (const message of messages) {
-						// eslint-disable-next-line @typescript-eslint/no-unused-vars
-						const { id, channel_id, author, mentions, message_reference, referenced_message, ...rest } = message;
-						setMessages(id, {
-							...rest,
-							author_id: author.id,
-							mention_ids: mentions?.map((mention) => mention.id),
-							message_reference: message_reference?.message_id,
-						});
-
-						if (referenced_message) {
-							// eslint-disable-next-line @typescript-eslint/no-unused-vars
-							const { id, channel_id, author, mentions, message_reference, ...rest } = referenced_message;
-							setMessages(referenced_message.id, {
-								...rest,
-								author_id: author.id,
-								mention_ids: mentions?.map((mention) => mention.id),
-								message_reference: message_reference?.message_id,
-							});
-
-							__perChannel.get(channel_id)!.add(id);
-						}
-					}
-
-					const messageFetchType = after
-						? MessageFetchType.AFTER
-						: before
-							? MessageFetchType.BEFORE
-							: around
-								? MessageFetchType.AROUND
-								: MessageFetchType.INITIAL;
-					addMessages(channelId, messageIds, messageFetchType, after ?? before ?? around);
-				});
-			},
-			THREAD_DELETE: ({ id }) => {
-				batch(() => {
-					setMessages(
-						produce((messages) => {
-							for (const message_id of __perChannel.get(id) ?? []) {
-								delete messages[message_id];
-							}
-						}),
-					);
-					__perChannel.delete(id);
-				});
-			},
+on("MESSAGE_CREATE", (message) => {
+	batch(() => {
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		const { id, channel_id, author, member, mentions, message_reference, referenced_message, ...rest } = message;
+		setMessages(id, {
+			...rest,
+			author_id: author.id,
+			mention_ids: mentions?.map((mention) => mention.id),
+			message_reference: message_reference?.message_id,
 		});
-	}
+		if (!perChannelUnordered.has(channel_id)) perChannelUnordered.set(channel_id, new Set());
 
-	perChannel = perChannel;
+		if (referenced_message) {
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
+			const { id, channel_id, author, mentions, message_reference, ...rest } = referenced_message;
+			setMessages(referenced_message.id, {
+				...rest,
+				author_id: author.id,
+				mention_ids: mentions?.map((mention) => mention.id),
+				message_reference: message_reference?.message_id,
+			});
+			perChannelUnordered.get(channel_id)!.add(referenced_message.id);
+		}
 
-	// eslint-disable-next-line solid/reactivity
-	getMessage(id: string): message | undefined {
-		return messages[id];
-	}
+		perChannelUnordered.get(channel_id)!.add(id);
+		addMessage(channel_id, id);
+	});
+});
 
-	// eslint-disable-next-line solid/reactivity
-	getMessageState(id: string): MessageState {
-		return messageState[id] ?? MessageState.SENT;
+on("MESSAGE_DELETE", (message) => {
+	if (!messages[message.id]) return;
+	if (messageLoggerEnabled()) {
+		setMessageState(message.id, MessageState.DELETED);
+	} else {
+		setMessages(
+			produce((messages) => {
+				delete messages[message.id];
+			}),
+		);
+		perChannelUnordered.get(message.channel_id)?.delete(message.id);
+		removeEntry(message.channel_id, message.id);
 	}
+});
 
-	// if it has a value, then theres no more messages in the channel before that id
-	// eslint-disable-next-line solid/reactivity
-	getEarliestMessageId(channelId: string): string | undefined {
-		return earliestMessageId[channelId];
-	}
+on("MESSAGE_DELETE_BULK", ({ channel_id, ids }) => {
+	batch(() => {
+		if (messageLoggerEnabled()) {
+			for (const id of ids) {
+				setMessageState(id, MessageState.DELETED);
+			}
+		} else {
+			setMessages(
+				produce((messages) => {
+					for (const id of ids) {
+						delete messages[id];
+					}
+				}),
+			);
+			for (const id of ids) {
+				perChannelUnordered.get(channel_id)?.delete(id);
+			}
 
-	// TODO: actual message type, validator?
-	createMessage(channel_id: string, content: string): void {
-		// get "fake" message id: nonce as either last message in that channel + 1 or Date.now() as snowflake
-		// add to sending set
-		// add to messages store
-		// add to messages list
-		//
-		// make request
-		// if fail, set state to failed
-		// else
-		// remove from sending set
-		// remove from messages store and set under new id
-		// update message list entry with new id
-	}
+			removeEntries(channel_id, new Set(ids));
+		}
+	});
+});
 
-	// eslint-disable-next-line solid/reactivity
-	getChunk(channelId: string, around?: string): chunk | undefined {
-		const chunks = perChannel[channelId];
-		if (!chunks) return undefined;
-		if (!around) return chunks[0];
-		return chunks.find((chunk) => BigInt(chunk[0]) <= BigInt(around) && BigInt(chunk[chunk.length - 1]) >= BigInt(around));
-	}
-})();
+on("MESSAGE_UPDATE", (message) => {
+	batch(() => {
+		if (!messages[message.id]) return;
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		const { id, channel_id, author, member, mentions, message_reference, ...rest } = message;
+		setMessages(id, rest);
+		if (mentions) {
+			setMessages(
+				id,
+				"mention_ids",
+				mentions.map((mention) => mention.id),
+			);
+		}
+	});
+});
+
+on("MESSAGES_FETCH_SUCCESS", ({ messages, channelId, after, around, before, limit }) => {
+	if (!messages.length) return;
+	const messageIds = messages.map((m) => m.id).reverse();
+
+	batch(() => {
+		if (!perChannelUnordered.has(channelId)) perChannelUnordered.set(channelId, new Set(messageIds));
+		else for (const id of messageIds) perChannelUnordered.get(channelId)!.add(id);
+
+		if (!after && limit && messageIds.length < limit) setEarliestMessageId(channelId, messageIds[0]);
+
+		for (const message of messages) {
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
+			const { id, channel_id, author, mentions, message_reference, referenced_message, ...rest } = message;
+			setMessages(id, {
+				...rest,
+				author_id: author.id,
+				mention_ids: mentions?.map((mention) => mention.id),
+				message_reference: message_reference?.message_id,
+			});
+
+			if (referenced_message) {
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
+				const { id, channel_id, author, mentions, message_reference, ...rest } = referenced_message;
+				setMessages(referenced_message.id, {
+					...rest,
+					author_id: author.id,
+					mention_ids: mentions?.map((mention) => mention.id),
+					message_reference: message_reference?.message_id,
+				});
+
+				perChannelUnordered.get(channel_id)!.add(id);
+			}
+		}
+
+		const messageFetchType = after
+			? MessageFetchType.AFTER
+			: before
+				? MessageFetchType.BEFORE
+				: around
+					? MessageFetchType.AROUND
+					: MessageFetchType.INITIAL;
+		addMessages(channelId, messageIds, messageFetchType, after ?? before ?? around);
+	});
+});
+
+on("THREAD_DELETE", ({ id }) => {
+	batch(() => {
+		setMessages(
+			produce((messages) => {
+				for (const message_id of perChannelUnordered.get(id) ?? []) {
+					delete messages[message_id];
+				}
+			}),
+		);
+		perChannelUnordered.delete(id);
+	});
+});
+
+export const getMessage = p((id: string): message | undefined => messages[id]);
+
+export const getMessageState = p((id: string): MessageState => messageState[id] ?? MessageState.SENT);
+
+export const getEarliestMessageId = p((channelId: string): string | undefined => earliestMessageId[channelId]);
+
+export const getChunk = p((channelId: string, around?: string): chunk | undefined => {
+	const chunks = perChannel[channelId];
+	if (!chunks) return undefined;
+	if (!around) return chunks[0];
+	return chunks.find((chunk) => BigInt(chunk[0]) <= BigInt(around) && BigInt(chunk[chunk.length - 1]) >= BigInt(around));
+});
+
+registerDebugStore("messages", {
+	getChunk,
+	getEarliestMessageId,
+	getMessage,
+	getMessageState,
+	state: { messageState, messages, perChannel, perChannelUnordered },
+});

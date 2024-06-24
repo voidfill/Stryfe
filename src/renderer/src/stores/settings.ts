@@ -6,9 +6,10 @@ import { channel_override, guild_settings_entry } from "@constants/schemata/sett
 import { HighlightLevel, NotificationLevel, UserSettingsType } from "@constants/schemata/settings";
 
 import Api from "@modules/api";
+import { on, once } from "@modules/dispatcher";
 
 import Store from ".";
-import ChannelStore from "./channels";
+import { getGuildChannel } from "./channels";
 
 import { FrecencyUserSettings, PreloadedUserSettings } from "discord-protos";
 
@@ -99,82 +100,85 @@ export function base64ToUint8Array(base64: string): Uint8Array {
 	return bytes;
 }
 
-export default new (class SettingsStore extends Store {
+on("READY", ({ user_settings_proto, user_guild_settings }) => {
+	// TODO: set status from settings
+	batch(() => {
+		setPreloadedSettings(PreloadedUserSettings.fromBinary(base64ToUint8Array(user_settings_proto)));
+
+		if (!user_guild_settings) return;
+		if (user_guild_settings.partial) throw new Error("Partial updates are not supported");
+
+		setUserGuildSettingsVersion(user_guild_settings.version);
+		for (const entry of user_guild_settings.entries ?? []) {
+			const { guild_id, channel_overrides, ...rest } = entry;
+			setUserGuildSettings(guild_id as string, rest);
+			if (channel_overrides)
+				setUserGuildSettings(
+					guild_id as string,
+					"overridden_channel_ids",
+					channel_overrides.map((o) => o.channel_id),
+				);
+			if (entry.mute_config && entry.muted) registerTimedGuildMute(guild_id as string, entry.mute_config);
+
+			for (const override of channel_overrides ?? []) {
+				const { channel_id, ...rest } = override;
+				setChannelOverrides(channel_id, rest);
+				if (override.mute_config && override.muted) registerTimedChannelMute(channel_id, override.mute_config);
+			}
+		}
+	});
+});
+
+on("USER_GUILD_SETTINGS_UPDATE", ({ guild_id, channel_overrides, ...rest }) => {
+	const lastVersion = userGuildSettings[guild_id as string];
+	if (lastVersion) {
+		for (const o of lastVersion.overridden_channel_ids ?? []) {
+			if (muteTimers.has(o)) clearTimeout(muteTimers.get(o)!);
+		}
+		setChannelOverrides(
+			produce((p) => {
+				for (const o of lastVersion.overridden_channel_ids ?? []) {
+					delete p[o];
+				}
+			}),
+		);
+	}
+
+	setUserGuildSettings(guild_id as string, rest);
+	if (rest.mute_config && rest.muted) registerTimedGuildMute(guild_id as string, rest.mute_config);
+
+	for (const override of channel_overrides ?? []) {
+		const { channel_id, ...rest } = override;
+		setChannelOverrides(channel_id, rest);
+		if (override.mute_config && override.muted) registerTimedChannelMute(channel_id, override.mute_config);
+	}
+
+	setUserGuildSettingsVersion(rest.version);
+});
+
+on("USER_SETTINGS_PROTO_UPDATE", ({ partial, settings }) => {
+	if (partial) throw new Error("Partial updates are not supported");
+	switch (settings.type) {
+		case UserSettingsType.FRECENCY_AND_FAVORITES_SETTINGS:
+			setFrecencySettings(FrecencyUserSettings.fromBinary(base64ToUint8Array(settings.proto)));
+			break;
+		case UserSettingsType.PRELOADED_USER_SETTINGS:
+			setPreloadedSettings(PreloadedUserSettings.fromBinary(base64ToUint8Array(settings.proto)));
+			break;
+		default:
+			throw new Error("Unknown settings type");
+	}
+});
+
+once("GATEWAY_CONNECT", async () => {
+	const res = await Api.getSettingsProto(UserSettingsType.FRECENCY_AND_FAVORITES_SETTINGS);
+	setFrecencySettings(FrecencyUserSettings.fromBinary(base64ToUint8Array(res.settings)));
+});
+
+// TODO: redo all of this
+export default new (class s extends Store {
 	constructor() {
-		super({
-			READY: ({ user_settings_proto, user_guild_settings }) => {
-				// TODO: set status from settings
-				batch(() => {
-					setPreloadedSettings(PreloadedUserSettings.fromBinary(base64ToUint8Array(user_settings_proto)));
-
-					if (!user_guild_settings) return;
-					if (user_guild_settings.partial) throw new Error("Partial updates are not supported");
-
-					setUserGuildSettingsVersion(user_guild_settings.version);
-					for (const entry of user_guild_settings.entries ?? []) {
-						const { guild_id, channel_overrides, ...rest } = entry;
-						setUserGuildSettings(guild_id as string, rest);
-						if (channel_overrides)
-							setUserGuildSettings(
-								guild_id as string,
-								"overridden_channel_ids",
-								channel_overrides.map((o) => o.channel_id),
-							);
-						if (entry.mute_config && entry.muted) registerTimedGuildMute(guild_id as string, entry.mute_config);
-
-						for (const override of channel_overrides ?? []) {
-							const { channel_id, ...rest } = override;
-							setChannelOverrides(channel_id, rest);
-							if (override.mute_config && override.muted) registerTimedChannelMute(channel_id, override.mute_config);
-						}
-					}
-				});
-			},
-			USER_GUILD_SETTINGS_UPDATE: ({ guild_id, channel_overrides, ...rest }) => {
-				const lastVersion = userGuildSettings[guild_id as string];
-				if (lastVersion) {
-					for (const o of lastVersion.overridden_channel_ids ?? []) {
-						if (muteTimers.has(o)) clearTimeout(muteTimers.get(o)!);
-					}
-					setChannelOverrides(
-						produce((p) => {
-							for (const o of lastVersion.overridden_channel_ids ?? []) {
-								delete p[o];
-							}
-						}),
-					);
-				}
-
-				setUserGuildSettings(guild_id as string, rest);
-				if (rest.mute_config && rest.muted) registerTimedGuildMute(guild_id as string, rest.mute_config);
-
-				for (const override of channel_overrides ?? []) {
-					const { channel_id, ...rest } = override;
-					setChannelOverrides(channel_id, rest);
-					if (override.mute_config && override.muted) registerTimedChannelMute(channel_id, override.mute_config);
-				}
-
-				setUserGuildSettingsVersion(rest.version);
-			},
-			USER_SETTINGS_PROTO_UPDATE: ({ partial, settings }) => {
-				if (partial) throw new Error("Partial updates are not supported");
-				switch (settings.type) {
-					case UserSettingsType.FRECENCY_AND_FAVORITES_SETTINGS:
-						setFrecencySettings(FrecencyUserSettings.fromBinary(base64ToUint8Array(settings.proto)));
-						break;
-					case UserSettingsType.PRELOADED_USER_SETTINGS:
-						setPreloadedSettings(PreloadedUserSettings.fromBinary(base64ToUint8Array(settings.proto)));
-						break;
-					default:
-						throw new Error("Unknown settings type");
-				}
-			},
-			// await connect to make sure token is valid trolley
-			once_GATEWAY_CONNECT: async () => {
-				const res = await Api.getSettingsProto(UserSettingsType.FRECENCY_AND_FAVORITES_SETTINGS);
-				setFrecencySettings(FrecencyUserSettings.fromBinary(base64ToUint8Array(res.settings)));
-			},
-		});
+		super({});
 	}
 
 	preloadedSettings = preloadedSettings;
@@ -182,24 +186,21 @@ export default new (class SettingsStore extends Store {
 	userGuildSettings = userGuildSettings;
 	channelOverrides = channelOverrides;
 
-	// eslint-disable-next-line solid/reactivity
 	getChannelNotificationLevel(channelId: string): NotificationLevel {
 		const ch = channelOverrides[channelId];
 		if (!ch) return NotificationLevel.PARENT_DEFAULT;
 		return ch.message_notifications;
 	}
 
-	// eslint-disable-next-line solid/reactivity
 	getGuildNotificationLevel(guildId: string): NotificationLevel {
 		const guild = userGuildSettings[guildId];
 		if (!guild) return guildSettingsDefaults.message_notifications;
 		return guild.message_notifications;
 	}
 
-	// eslint-disable-next-line solid/reactivity
 	resolveChannelNotificationLevel(channelId: string | undefined, guildId: string, parentChannelId?: string): NotificationLevel {
 		if (!channelId) return this.getGuildNotificationLevel(guildId);
-		const ch = ChannelStore.getGuildChannel(channelId);
+		const ch = getGuildChannel(channelId);
 		if (!ch) throw new Error("Unknown channel");
 		const override = channelOverrides[channelId];
 
@@ -217,8 +218,6 @@ export default new (class SettingsStore extends Store {
 			"collapsed",
 			untrack(() => !ch?.collapsed),
 		);
-
-		// TODO: send update to discord
 	}
 
 	collapse(channelId: string): void {

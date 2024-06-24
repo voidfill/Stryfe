@@ -4,10 +4,10 @@ import { createMemo, JSX, Show } from "solid-js";
 import { ChannelTypes } from "@constants/channel";
 import Permissions from "@constants/permissions";
 
-import ChannelStore from "@stores/channels";
-import GuildStore from "@stores/guilds";
-import PermissionStore from "@stores/permissions";
-import UserStore from "@stores/users";
+import { getChannel, getChannelName } from "@stores/channels";
+import { getGuild } from "@stores/guilds";
+import { can } from "@stores/permissions";
+import { getSelfId } from "@stores/users";
 
 import { BsChatLeftText } from "solid-icons/bs";
 
@@ -22,8 +22,8 @@ type d = {
 };
 
 function ChannelOrMessage(props: d): JSX.Element {
-	const channel = createMemo(() => ChannelStore.getChannel(props.channelId));
-	const channelName = createMemo(() => ChannelStore.getChannelName(props.channelId));
+	const channel = createMemo(() => getChannel(props.channelId));
+	const channelName = createMemo(() => getChannelName(props.channelId));
 	const guildId = createMemo(() => {
 		const c = channel();
 		if (!c || !("guild_id" in c)) return null;
@@ -35,15 +35,15 @@ function ChannelOrMessage(props: d): JSX.Element {
 		if (c.type === ChannelTypes.DM || c.type === ChannelTypes.GROUP_DM) return true;
 		const gid = guildId();
 		if (!gid) return false;
-		return PermissionStore.can({
+		return can({
 			channelId: props.channelId,
 			guildId: gid,
-			memberId: UserStore.getSelfId(),
+			memberId: getSelfId(),
 			toCheck: Permissions.VIEW_CHANNEL,
 		});
 	});
 	const guild = createMemo(() => {
-		return guildId() ? GuildStore.getGuild(guildId()!) : null;
+		return guildId() ? getGuild(guildId()!) : null;
 	});
 	const location = useLocationContext();
 	const isSameGuild = createMemo(() => guildId() === location().guildId);

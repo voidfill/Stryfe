@@ -59,7 +59,9 @@
 		cursor: pointer;
 	}
 
-	.channel-icon, .channel-name, .topic-divider {
+	.channel-icon,
+	.channel-name,
+	.topic-divider {
 		flex-shrink: 0;
 	}
 }

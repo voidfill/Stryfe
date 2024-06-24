@@ -3,7 +3,10 @@ import { InferOutput } from "valibot";
 
 import _embed from "@constants/schemata/message/embed";
 
-import Store from ".";
+import { on } from "@modules/dispatcher";
+import { p } from "@modules/patcher";
+
+import { registerDebugStore } from ".";
 
 type embed = InferOutput<typeof _embed>;
 
@@ -52,44 +55,35 @@ function mergeEmbeds(embeds: embed[]): storedEmbed[] {
 }
 
 // TODO: channel/guild/thread deletions
-// maybe some unified way?
-export default new (class EmbedStore extends Store {
-	constructor() {
-		super({
-			MESSAGE_CREATE: ({ id, embeds }) => {
-				setEmbeds(id, mergeEmbeds(embeds ?? []));
-			},
-			MESSAGE_DELETE: ({ id }) => {
-				setEmbeds(id, []);
-			},
-			MESSAGE_DELETE_BULK: ({ ids }) => {
-				setEmbeds(
-					produce((embeds) => {
-						for (const id of ids) {
-							delete embeds[id];
-						}
-					}),
-				);
-			},
-			MESSAGE_UPDATE: ({ id, embeds }) => {
-				setEmbeds(id, mergeEmbeds(embeds ?? []));
-			},
-			MESSAGES_FETCH_SUCCESS: ({ messages }) => {
-				setEmbeds(
-					produce((embeds) => {
-						for (const message of messages) {
-							embeds[message.id] = mergeEmbeds(message.embeds ?? []);
-							if (message.referenced_message)
-								embeds[message.referenced_message.id] = mergeEmbeds(message.referenced_message.embeds ?? []);
-						}
-					}),
-				);
-			},
-		});
-	}
+on("MESSAGE_CREATE", ({ id, embeds }) => {
+	setEmbeds(id, mergeEmbeds(embeds ?? []));
+});
+on("MESSAGE_DELETE", ({ id }) => {
+	setEmbeds(id, []);
+});
+on("MESSAGE_DELETE_BULK", ({ ids }) => {
+	setEmbeds(
+		produce((embeds) => {
+			for (const id of ids) {
+				delete embeds[id];
+			}
+		}),
+	);
+});
+on("MESSAGE_UPDATE", ({ id, embeds }) => {
+	setEmbeds(id, mergeEmbeds(embeds ?? []));
+});
+on("MESSAGES_FETCH_SUCCESS", ({ messages }) => {
+	setEmbeds(
+		produce((embeds) => {
+			for (const message of messages) {
+				embeds[message.id] = mergeEmbeds(message.embeds ?? []);
+				if (message.referenced_message) embeds[message.referenced_message.id] = mergeEmbeds(message.referenced_message.embeds ?? []);
+			}
+		}),
+	);
+});
 
-	// eslint-disable-next-line solid/reactivity
-	getEmbeds(id: string): storedEmbed[] {
-		return embeds[id] ?? [];
-	}
-})();
+export const getEmbeds = p((messageId: string) => embeds[messageId] || undefined);
+
+registerDebugStore("embeds", { getEmbeds, state: { embeds } });

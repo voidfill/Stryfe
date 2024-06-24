@@ -1,6 +1,6 @@
 import { createMemo, JSX, Show } from "solid-js";
 
-import MessageStore from "@stores/messages";
+import { getMessage } from "@stores/messages";
 
 import { NoAnimationDirective } from "@components/common/animationcontext";
 import Avatar, { ShowStatus } from "@components/common/avatar";
@@ -11,7 +11,7 @@ import { parse } from "../../common/md";
 NoAnimationDirective;
 
 export default function Reply(props: { guildId?: string; id: string }): JSX.Element {
-	const msg = createMemo(() => MessageStore.getMessage(props.id));
+	const msg = createMemo(() => getMessage(props.id));
 	const content = createMemo(() => msg()?.content ?? "");
 
 	return (

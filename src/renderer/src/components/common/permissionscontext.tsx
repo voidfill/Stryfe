@@ -2,9 +2,9 @@ import { Accessor, createContext, createMemo, JSX, ParentProps, useContext } fro
 
 import Permissions from "@constants/permissions";
 
-import GuildStore from "@stores/guilds";
-import PermissionsStore, { hasBit } from "@stores/permissions";
-import UserStore from "@stores/users";
+import { isOwner } from "@stores/guilds";
+import { canIgnoreAdmin, computeBasePermissions, computeChannelOverwrites, hasBit } from "@stores/permissions";
+import { getSelfId } from "@stores/users";
 
 import { useLocationContext } from "./locationcontext";
 
@@ -19,23 +19,21 @@ export const usePermissionsContext = (): Accessor<t> => useContext(PermissionsCo
 
 export function CurrentPermissionProvider(props: ParentProps): JSX.Element {
 	const location = useLocationContext();
-	const basePermissions = createMemo(() => PermissionsStore.computeBasePermissions(location().guildId, UserStore.getSelfId()));
+	const basePermissions = createMemo(() => computeBasePermissions(location().guildId, getSelfId()));
 	const channelPermissions = createMemo(() =>
-		location().channelId
-			? PermissionsStore.computeChannelOverwrites(basePermissions(), location().guildId, location().channelId, UserStore.getSelfId())
-			: Permissions.NONE,
+		location().channelId ? computeChannelOverwrites(basePermissions(), location().guildId, location().channelId, getSelfId()) : Permissions.NONE,
 	);
-	const isOwner = createMemo(() => GuildStore.isOwner(location().guildId, UserStore.getSelfId()));
+	const owner = createMemo(() => isOwner(location().guildId, getSelfId()));
 
 	const v = createMemo(() => ({
 		can: (check: bigint, channelId?: string): boolean => {
-			if (location().guildId === "@me" || isOwner() || hasBit(basePermissions(), Permissions.ADMINISTRATOR)) return true;
+			if (location().guildId === "@me" || owner() || hasBit(basePermissions(), Permissions.ADMINISTRATOR)) return true;
 			if (channelId && channelId !== location().channelId)
-				return PermissionsStore.canIgnoreAdmin({
+				return canIgnoreAdmin({
 					basePermissions: basePermissions(),
 					channelId,
 					guildId: location().guildId,
-					memberId: UserStore.getSelfId(),
+					memberId: getSelfId(),
 					toCheck: check,
 				});
 			return hasBit(channelPermissions(), check);

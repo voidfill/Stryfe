@@ -3,9 +3,9 @@ import { createMemo, JSX, Match, Show, Switch } from "solid-js";
 import { ChannelTypes } from "@constants/channel";
 import permissions from "@constants/permissions";
 
-import ChannelStore from "@stores/channels";
-import PermissionsStore from "@stores/permissions";
-import RolesStore from "@stores/roles";
+import { getGuildChannel, hasThreads } from "@stores/channels";
+import { computeChannelOverwrites, hasBit } from "@stores/permissions";
+import { getRole } from "@stores/roles";
 
 import { FaSolidHashtag, FaSolidImage, FaSolidLock, FaSolidTriangleExclamation } from "solid-icons/fa";
 import { HiOutlineChatBubbleLeftRight, HiOutlineSpeakerWave, HiSolidChatBubbleLeft } from "solid-icons/hi";
@@ -123,17 +123,17 @@ export function ModifiedIcon(props: { hasThreads: boolean; isLimited: boolean; i
 }
 
 export default function ChannelIcon(props: { guildId: string; id: string; size: number }): JSX.Element {
-	const channel = createMemo(() => ChannelStore.getGuildChannel(props.id) /* || ChannelStore.getThread(props.id) */),
-		hasThreads = createMemo(() => ChannelStore.hasThreads(props.id)),
-		everyonePermissions = createMemo(() => RolesStore.getRole(props.guildId)?.permissions ?? permissions.NONE),
-		everyoneOverwrites = createMemo(() => PermissionsStore.computeChannelOverwrites(everyonePermissions(), props.guildId, props.id, "no one")),
-		isLimited = createMemo(() => !PermissionsStore.hasBit(everyoneOverwrites(), permissions.VIEW_CHANNEL));
+	const channel = createMemo(() => getGuildChannel(props.id) /* ||  getThread(props.id) */),
+		threads = createMemo(() => hasThreads(props.id)),
+		everyonePermissions = createMemo(() => getRole(props.guildId)?.permissions ?? permissions.NONE),
+		everyoneOverwrites = createMemo(() => computeChannelOverwrites(everyonePermissions(), props.guildId, props.id, "no one")),
+		isLimited = createMemo(() => !hasBit(everyoneOverwrites(), permissions.VIEW_CHANNEL));
 
 	return (
 		<Show when={channel()}>
 			{(channel): JSX.Element => (
 				<ModifiedIcon
-					hasThreads={channel().type !== ChannelTypes.GUILD_FORUM && channel().type !== ChannelTypes.GUILD_MEDIA && hasThreads()}
+					hasThreads={channel().type !== ChannelTypes.GUILD_FORUM && channel().type !== ChannelTypes.GUILD_MEDIA && threads()}
 					isLimited={isLimited()}
 					isNSFW={((): boolean => {
 						const c = channel();

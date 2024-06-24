@@ -1,11 +1,11 @@
 import { createMemo, JSX, Show } from "solid-js";
 
-import ActivityStore from "@stores/activities";
-import ChannelStore from "@stores/channels";
-import MemberStore from "@stores/members";
-import StatusStore, { Status as StatusEnum, statusToText } from "@stores/status";
-import TypingStore from "@stores/typing";
-import UserStore from "@stores/users";
+import { isStreaming } from "@stores/activities";
+import { getPrivateChannelIcon } from "@stores/channels";
+import { getGuildAvatarURL } from "@stores/members";
+import { getStatus, Status as StatusEnum, statusToText } from "@stores/status";
+import { isTypingInChannel } from "@stores/typing";
+import { getAvatarUrl } from "@stores/users";
 
 import { useAnimationContext } from "./animationcontext";
 import tippy from "./tooltip";
@@ -67,18 +67,18 @@ export default function Avatar(props: avatarProps): JSX.Element {
 	const shouldAnimate = useAnimationContext();
 
 	const avatarUrl = createMemo(() => {
-		if ("groupDMId" in props) return ChannelStore.getPrivateChannelIcon(props.groupDMId, props.size, shouldAnimate());
+		if ("groupDMId" in props) return getPrivateChannelIcon(props.groupDMId, props.size, shouldAnimate());
 
-		if (props.guildId) return MemberStore.getGuildAvatarURL(props.guildId, props.userId, props.size, shouldAnimate());
+		if (props.guildId) return getGuildAvatarURL(props.guildId, props.userId, props.size, shouldAnimate());
 
-		return UserStore.getAvatarUrl(props.userId, props.size, shouldAnimate());
+		return getAvatarUrl(props.userId, props.size, shouldAnimate());
 	});
-	const status = createMemo(() => ("groupDMId" in props ? StatusEnum.OFFLINE : StatusStore.getStatus(props.userId)));
+	const status = createMemo(() => ("groupDMId" in props ? StatusEnum.OFFLINE : getStatus(props.userId)));
 	const isTyping = createMemo(() => {
 		if ("groupDMId" in props) return false;
 		if (!props.channelId) return false;
 
-		return !props.noTyping && TypingStore.isTypingInChannel(props.channelId, props.userId);
+		return !props.noTyping && isTypingInChannel(props.channelId, props.userId);
 	});
 	const shouldShowStatus = createMemo(() => {
 		if ("groupDMId" in props) return false;
@@ -92,7 +92,7 @@ export default function Avatar(props: avatarProps): JSX.Element {
 				return status() !== StatusEnum.OFFLINE;
 		}
 	});
-	const isStreaming = createMemo(() => "userId" in props && ActivityStore.isStreaming(props.userId));
+	const streaming = createMemo(() => "userId" in props && isStreaming(props.userId));
 
 	return (
 		<svg class="avatar" width={props.size} height={props.size}>
@@ -111,7 +111,7 @@ export default function Avatar(props: avatarProps): JSX.Element {
 				<Show when={shouldShowStatus()}>
 					<Status
 						userId={("userId" in props && props.userId) || "this wont happen so its ok"}
-						isStreaming={isStreaming()}
+						isStreaming={streaming()}
 						isTyping={isTyping()}
 						size={props.size / 3.2}
 						status={status()}

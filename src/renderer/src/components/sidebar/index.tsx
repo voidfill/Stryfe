@@ -1,8 +1,8 @@
 import { useParams } from "@solidjs/router";
 import { createMemo, JSX, Show } from "solid-js";
 
-import ActivityStore from "@stores/activities";
-import UserStore from "@stores/users";
+import { getCustomStatus } from "@stores/activities";
+import { getSelf, getSelfId } from "@stores/users";
 
 import { BiRegularMicrophone } from "solid-icons/bi";
 import { FiHeadphones } from "solid-icons/fi";
@@ -16,10 +16,10 @@ import PrivateChannels from "./privatechannels";
 import "./style.scss";
 
 function UserArea(): JSX.Element {
-	const self = createMemo(() => UserStore.getSelf());
+	const self = createMemo(() => getSelf());
 	const displayName = createMemo(() => self()?.display_name || self()?.username);
 	const hasCustomStatus = createMemo(() => {
-		return !!ActivityStore.getCustomStatus(UserStore.getSelfId());
+		return !!getCustomStatus(getSelfId());
 	});
 
 	return (

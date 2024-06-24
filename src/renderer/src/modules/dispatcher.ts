@@ -3,14 +3,14 @@ import { _dispatches } from "@constants/schemata";
 import { Logger } from "./logger";
 const logger = new Logger("Dispatcher", "purple");
 
-export type Listener<T> = T extends undefined ? () => void : (args: T) => void;
+export type Listener<T> = (...args: T extends undefined ? [] : [T]) => void;
 
 export class EventEmitter<
 	T extends {
 		[key: string]: any;
 	},
 > {
-	#listeners = new Map<keyof T, Set<(args?: any) => void>>();
+	#listeners = new Map<keyof T, Set<Listener<any>>>();
 
 	emit<K extends keyof PickByType<T, undefined>>(event: K): void;
 	emit<K extends keyof OmitByType<T, undefined>>(event: K, args: T[K]): void;
@@ -45,8 +45,9 @@ export class EventEmitter<
 	once<K extends keyof T>(event: K, listener: Listener<T[K]>): () => void {
 		const remove = this.addListener(event, ((args) => {
 			remove();
+			// @ts-expect-error this is fixable but not worth the effort
 			listener(args);
-		}) as Listener<T[K]>); // we do a bit of trolling.
+		}) as Listener<T[K]>);
 		return remove;
 	}
 }
@@ -60,4 +61,14 @@ declare global {
 	}
 }
 
-export default window.Dispatcher = new (class Dispatcher extends EventEmitter<dispatches> {})();
+const dispatcher = (window.Dispatcher = new (class Dispatcher extends EventEmitter<dispatches> {})());
+export default dispatcher;
+
+const emit = dispatcher.emit.bind(dispatcher);
+const addListener = dispatcher.addListener.bind(dispatcher);
+const on = dispatcher.on.bind(dispatcher);
+const removeListener = dispatcher.removeListener.bind(dispatcher);
+const removeAllListeners = dispatcher.removeAllListeners.bind(dispatcher);
+const once = dispatcher.once.bind(dispatcher);
+
+export { emit, addListener, on, removeListener, removeAllListeners, once };

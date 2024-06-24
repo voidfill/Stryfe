@@ -4,10 +4,10 @@ import { createMemo, JSX, Show } from "solid-js";
 import permissions from "@constants/permissions";
 import { HighlightLevel, NotificationLevel } from "@constants/schemata/settings";
 
-import GuildStore from "@stores/guilds";
-import PermissionsStore from "@stores/permissions";
+import { getAcronym, getFeatures, getGuild, getIconUrl, isOwner, isUnavailable } from "@stores/guilds";
+import { can, computeBasePermissions } from "@stores/permissions";
 import SettingsStore, { notificationLevelToText } from "@stores/settings";
-import UserStore from "@stores/users";
+import { getSelfId } from "@stores/users";
 
 import { tippy } from "@components/common/tooltip";
 
@@ -24,10 +24,10 @@ tippy;
 function ImageOrAcronym(props: { id: string }): JSX.Element {
 	const doAnimate = useAnimationContext();
 
-	const icon = createMemo(() => GuildStore.getIconUrl(props.id, 96, doAnimate()));
+	const icon = createMemo(() => getIconUrl(props.id, 96, doAnimate()));
 
 	return (
-		<Show when={icon()} fallback={<div class="guild-icon acronym">{GuildStore.getAcronym(props.id)}</div>}>
+		<Show when={icon()} fallback={<div class="guild-icon acronym">{getAcronym(props.id)}</div>}>
 			<img class="guild-icon icon" src={icon()} />
 		</Show>
 	);
@@ -73,24 +73,24 @@ export function MuteMenu(props: {
 
 function GuildContextmenu(props: { guildId: string }): JSX.Element {
 	const notificationLevel = createMemo(() => SettingsStore.getGuildNotificationLevel(props.guildId));
-	const basePermissions = createMemo(() => PermissionsStore.computeBasePermissions(props.guildId, UserStore.getSelfId()));
+	const basePermissions = createMemo(() => computeBasePermissions(props.guildId, getSelfId()));
 	const canCreateEvents = createMemo(() =>
-		PermissionsStore.can({
+		can({
 			basePermissions: basePermissions(),
 			guildId: props.guildId,
-			memberId: UserStore.getSelfId(),
+			memberId: getSelfId(),
 			toCheck: permissions.CREATE_EVENTS,
 		}),
 	);
 	const canManageChannels = createMemo(() =>
-		PermissionsStore.can({
+		can({
 			basePermissions: basePermissions(),
 			guildId: props.guildId,
-			memberId: UserStore.getSelfId(),
+			memberId: getSelfId(),
 			toCheck: permissions.MANAGE_CHANNELS,
 		}),
 	);
-	const isOwner = createMemo(() => GuildStore.isOwner(props.guildId, UserStore.getSelfId()));
+	const owner = createMemo(() => isOwner(props.guildId, getSelfId()));
 
 	return (
 		<>
@@ -168,22 +168,22 @@ function GuildContextmenu(props: { guildId: string }): JSX.Element {
 			<Show when={canCreateEvents() || canManageChannels()}>
 				<Separator />
 			</Show>
-			<Show when={!isOwner()}>
+			<Show when={!owner()}>
 				<Item label="Leave Server" color={Colors.RED} />
 				<Separator />
 			</Show>
 			<Id id={props.guildId} resource="Server" />
-			<ViewRaw Guild={() => GuildStore.getGuild(props.guildId)} Features={() => GuildStore.getFeatures(props.guildId)} />
+			<ViewRaw Guild={() => getGuild(props.guildId)} Features={() => getFeatures(props.guildId)} />
 		</>
 	);
 }
 
 export default function Guild(props: { id: string }): JSX.Element {
-	const guild = createMemo(() => GuildStore.getGuild(props.id));
+	const guild = createMemo(() => getGuild(props.id));
 	const location = useLocationContext();
 
 	return (
-		<Show when={!GuildStore.isUnavailable(props.id) && guild()} fallback={<div class={`guild guild-${props.id} unavailable`} />}>
+		<Show when={!isUnavailable(props.id) && guild()} fallback={<div class={`guild guild-${props.id} unavailable`} />}>
 			<div
 				classList={{
 					available: true,

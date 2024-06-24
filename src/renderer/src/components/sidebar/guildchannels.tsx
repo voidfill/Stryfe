@@ -4,12 +4,12 @@ import { Accessor, createEffect, createMemo, For, JSX, onCleanup, Show, untrack 
 import { ChannelTypes } from "@constants/channel";
 import permissions from "@constants/permissions";
 
-import ChannelStore from "@stores/channels";
-import GuildStore from "@stores/guilds";
-import MemberStore from "@stores/members";
+import { getGuildCategoryChannel, getGuildTextChannel, getGuildVoiceChannel, getSortedGuildChannels } from "@stores/channels";
+import { getGuild } from "@stores/guilds";
+import { getMember } from "@stores/members";
 import SettingsStore from "@stores/settings";
-import UserStore from "@stores/users";
-import VoiceStateStore from "@stores/voicestates";
+import { getUser } from "@stores/users";
+import { getSessionIdsForChannel, getVoiceState } from "@stores/voicestates";
 
 import { FaSolidChevronDown } from "solid-icons/fa";
 import { TbMicrophoneOff } from "solid-icons/tb";
@@ -31,7 +31,7 @@ const refMap = new Map<string, any>();
 
 function TextChannel(props: { id: string; isCollapsed: Accessor<boolean>; parentId?: string }): JSX.Element {
 	const location = useLocationContext();
-	const channel = createMemo(() => ChannelStore.getGuildTextChannel(props.id));
+	const channel = createMemo(() => getGuildTextChannel(props.id));
 	const mutedHide = createMemo(
 		() => (SettingsStore.userGuildSettings[location().guildId]?.hide_muted_channels && SettingsStore.channelOverrides[props.id]?.muted) ?? false,
 	);
@@ -74,9 +74,9 @@ function TextChannel(props: { id: string; isCollapsed: Accessor<boolean>; parent
 }
 
 function VoiceCard(props: { sessionId: string }): JSX.Element {
-	const voiceState = createMemo(() => VoiceStateStore.getVoiceState(props.sessionId));
-	const member = createMemo(() => MemberStore.getMember(voiceState()?.guild_id ?? "", voiceState()?.user_id ?? ""));
-	const user = createMemo(() => UserStore.getUser(voiceState()?.user_id ?? ""));
+	const voiceState = createMemo(() => getVoiceState(props.sessionId));
+	const member = createMemo(() => getMember(voiceState()?.guild_id ?? "", voiceState()?.user_id ?? ""));
+	const user = createMemo(() => getUser(voiceState()?.user_id ?? ""));
 
 	return (
 		<Show when={voiceState()}>
@@ -101,12 +101,12 @@ function VoiceCard(props: { sessionId: string }): JSX.Element {
 }
 
 function VoiceChannel(props: { id: string; isCollapsed: Accessor<boolean> }): JSX.Element {
-	const channel = createMemo(() => ChannelStore.getGuildVoiceChannel(props.id));
+	const channel = createMemo(() => getGuildVoiceChannel(props.id));
 	const location = useLocationContext();
 	const mutedHide = createMemo(
 		() => (SettingsStore.userGuildSettings[location().guildId]?.hide_muted_channels && SettingsStore.channelOverrides[props.id]?.muted) ?? false,
 	);
-	const voiceStates = createMemo(() => VoiceStateStore.getSessionIdsForChannel(props.id));
+	const voiceStates = createMemo(() => getSessionIdsForChannel(props.id));
 	// TODO: sort by name, streaming, camera etc
 	// TODO: maybe add a specific list for users that are on stage? filtering onchange voice states seems like a bad idea
 
@@ -153,7 +153,7 @@ function VoiceChannel(props: { id: string; isCollapsed: Accessor<boolean> }): JS
 }
 
 function Category(props: { id: string; other: string[]; voice: string[] }): JSX.Element {
-	const category = createMemo(() => ChannelStore.getGuildCategoryChannel(props.id));
+	const category = createMemo(() => getGuildCategoryChannel(props.id));
 	const isCollapsed = createMemo(() => SettingsStore.channelOverrides[props.id]?.collapsed ?? false);
 	const currentPermissions = usePermissionsContext();
 
@@ -207,8 +207,8 @@ export default function GuildChannels(): JSX.Element {
 	const location = useLocationContext();
 	const currentPermissions = usePermissionsContext();
 	const canManageChannels = createMemo(() => currentPermissions().can(permissions.MANAGE_CHANNELS));
-	const channels = createMemo(() => ChannelStore.getSortedGuildChannels(location().guildId));
-	const guildName = createMemo(() => GuildStore.getGuild(location().guildId)?.name);
+	const channels = createMemo(() => getSortedGuildChannels(location().guildId));
+	const guildName = createMemo(() => getGuild(location().guildId)?.name);
 	let ref: HTMLDivElement | undefined;
 
 	createEffect(() => {

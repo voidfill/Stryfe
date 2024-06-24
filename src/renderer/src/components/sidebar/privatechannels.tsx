@@ -3,7 +3,7 @@ import { createEffect, createMemo, For, JSX, onMount, Show } from "solid-js";
 
 import { ChannelTypes } from "@constants/channel";
 
-import ChannelStore from "@stores/channels";
+import { getDirectMessage, getOrderedDirectMessages, getPrivateChannelName } from "@stores/channels";
 
 import { FiUsers } from "solid-icons/fi";
 
@@ -18,8 +18,8 @@ OverflowTooltip;
 
 function PrivateChannel(props: { id: string }): JSX.Element {
 	let ref: HTMLAnchorElement;
-	const channel = createMemo(() => ChannelStore.getDirectMessage(props.id));
-	const channelName = createMemo(() => ChannelStore.getPrivateChannelName(props.id));
+	const channel = createMemo(() => getDirectMessage(props.id));
+	const channelName = createMemo(() => getPrivateChannelName(props.id));
 	const location = useLocationContext();
 	const [searchParams, setSearchParams] = useSearchParams();
 
@@ -31,32 +31,35 @@ function PrivateChannel(props: { id: string }): JSX.Element {
 	});
 
 	return (
-		// @ts-expect-error ref
-		<A ref={ref} href={`/channels/@me/${props.id}`}>
-			<div
-				classList={{
-					channel: true,
-					[`channel-type-${channel().type}`]: true,
-					[`channel-${props.id}`]: true,
-					selected: location().selectedChannel(props.id),
-				}}
-				use:HoverAnimationDirective
-			>
-				<div class="channel-icon">
-					<Show when={channel().type === ChannelTypes.DM} fallback={<Avatar size={32} groupDMId={props.id} />}>
-						<Avatar size={32} userId={channel().recipient_ids[0]} showStatus={ShowStatus.ALWAYS} channelId={props.id} />
-					</Show>
-				</div>
-				<div class="channel-text">
-					<span class="channel-name" use:OverflowTooltip={() => channelName()}>
-						{channelName()}
-					</span>
-					<Show when={channel().type === ChannelTypes.DM}>
-						<CustomStatus userId={channel().recipient_ids[0]} inline />
-					</Show>
-				</div>
-			</div>
-		</A>
+		<Show when={channel()}>
+			{(channel): JSX.Element => (
+				<A ref={ref} href={`/channels/@me/${props.id}`}>
+					<div
+						classList={{
+							channel: true,
+							[`channel-type-${channel().type}`]: true,
+							[`channel-${props.id}`]: true,
+							selected: location().selectedChannel(props.id),
+						}}
+						use:HoverAnimationDirective
+					>
+						<div class="channel-icon">
+							<Show when={channel().type === ChannelTypes.DM} fallback={<Avatar size={32} groupDMId={props.id} />}>
+								<Avatar size={32} userId={channel().recipient_ids[0]} showStatus={ShowStatus.ALWAYS} channelId={props.id} />
+							</Show>
+						</div>
+						<div class="channel-text">
+							<span class="channel-name" use:OverflowTooltip={() => channelName()}>
+								{channelName()}
+							</span>
+							<Show when={channel().type === ChannelTypes.DM}>
+								<CustomStatus userId={channel().recipient_ids[0]} inline />
+							</Show>
+						</div>
+					</div>
+				</A>
+			)}
+		</Show>
 	);
 }
 
@@ -93,7 +96,7 @@ export default function PrivateChannels(): JSX.Element {
 				<span>Friends</span>
 			</A>
 			<div class="private-channels-header">Direct Messages</div>
-			<For each={ChannelStore.getOrderedDirectMessages()}>{(channel): JSX.Element => <PrivateChannel id={channel[0]} />}</For>
+			<For each={getOrderedDirectMessages()}>{(channel): JSX.Element => <PrivateChannel id={channel[0]} />}</For>
 		</div>
 	);
 }

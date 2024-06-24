@@ -1,11 +1,11 @@
 import { createMemo, createSignal, JSX, Show, untrack } from "solid-js";
 import { boolean, fallback, record, string } from "valibot";
 
+import { persistStore } from "@modules/persist";
+
 import { createModal, GenericModal, ModalFooter, useModalContext } from ".";
 
-import Persistent from "@renderer/stores/persistent";
-
-const [trustedLinks, setTrustedLinks] = Persistent.registerStore("trustedLinks", fallback(record(string(), boolean()), {}));
+const [trustedLinks, setTrustedLinks] = persistStore("trustedLinks", fallback(record(string(), boolean()), {}));
 
 export function isTrustedLink(url: string): boolean {
 	const u = new URL(url);

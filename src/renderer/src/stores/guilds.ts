@@ -7,9 +7,11 @@ import { InferOutput } from "valibot";
 import { guildIconURL } from "@constants/images";
 import { ready_guild_properties as _ready_guild_properties } from "@constants/schemata/guild";
 
+import { on } from "@modules/dispatcher";
 import logger from "@modules/logger";
+import { p } from "@modules/patcher";
 
-import Store from ".";
+import { registerDebugStore } from ".";
 
 type ready_guild_properties = InferOutput<typeof _ready_guild_properties>;
 
@@ -26,120 +28,114 @@ const [guilds, setGuilds] = createStore<{
 }>();
 const guildIds = createMemo(() => Object.keys(guilds));
 
-export default new (class GuildStore extends Store {
-	constructor() {
-		super({
-			GUILD_CREATE: (guild) => {
-				if (guild.unavailable) return void unavailableGuilds.add(guild.id);
-				unavailableGuilds.delete(guild.id);
+on("GUILD_CREATE", (guild) => {
+	if (guild.unavailable) return void unavailableGuilds.add(guild.id);
+	unavailableGuilds.delete(guild.id);
 
-				const { features: f, ...rest } = guild.properties;
-				features.set(guild.id, new ReactiveSet(f));
-				setGuilds(
-					guild.id,
-					reconcile({
-						joined_at: guild.joined_at,
-						large: guild.large,
-						lazy: guild.lazy,
-						...rest,
-					}),
-				);
+	const { features: f, ...rest } = guild.properties;
+	features.set(guild.id, new ReactiveSet(f));
+	setGuilds(
+		guild.id,
+		reconcile({
+			joined_at: guild.joined_at,
+			large: guild.large,
+			lazy: guild.lazy,
+			...rest,
+		}),
+	);
 
-				if (guild.data_mode != "full") logger.warn(`Guild ${guild.id} was not sent in full mode!`, guild);
-			},
-			GUILD_DELETE: ({ id, unavailable }) => {
-				if (unavailable) {
-					return void unavailableGuilds.add(id);
-				}
-				unavailableGuilds.delete(id);
-				features.delete(id);
-				setGuilds(produce((guilds) => delete guilds[id]));
-			},
-			GUILD_UPDATE: ({ id, ...properties }) => {
-				const { features: f, ...rest } = properties;
-				features.set(id, new ReactiveSet(f));
-				setGuilds(
-					id,
-					reconcile({
-						joined_at: guilds[id]?.joined_at,
-						large: guilds[id]?.large,
-						lazy: guilds[id]?.lazy,
-						...rest,
-					}),
-				);
-			},
-			READY: ({ guilds }) => {
-				batch(() => {
-					for (const guild of guilds ?? []) {
-						if (guild.unavailable) {
-							unavailableGuilds.add(guild.id);
-							continue;
-						}
-						unavailableGuilds.delete(guild.id);
-						const { features: f, ...rest } = guild.properties;
-						features.set(guild.id, new ReactiveSet(f));
-						setGuilds(
-							guild.id,
-							reconcile({
-								joined_at: guild.joined_at,
-								large: guild.large,
-								lazy: guild.lazy,
-								...rest,
-							}),
-						);
+	if (guild.data_mode != "full") logger.warn(`Guild ${guild.id} was not sent in full mode!`, guild);
+});
 
-						if (guild.data_mode != "full") logger.warn(`Guild ${guild.id} was not sent in full mode!`, guild);
-					}
-				});
-			},
-		});
-	}
+on("GUILD_DELETE", ({ id, unavailable }) => {
+	if (unavailable) return void unavailableGuilds.add(id);
 
-	isUnavailable(guildId: string): boolean {
-		return unavailableGuilds.has(guildId);
-	}
+	unavailableGuilds.delete(id);
+	features.delete(id);
+	setGuilds(produce((guilds) => delete guilds[id]));
+});
 
-	// eslint-disable-next-line solid/reactivity
-	getGuildIds(): string[] {
-		return guildIds();
-	}
+on("GUILD_UPDATE", ({ id, ...properties }) => {
+	const { features: f, ...rest } = properties;
+	features.set(id, new ReactiveSet(f));
+	setGuilds(
+		id,
+		reconcile({
+			joined_at: guilds[id]?.joined_at,
+			large: guilds[id]?.large,
+			lazy: guilds[id]?.lazy,
+			...rest,
+		}),
+	);
+});
 
-	// eslint-disable-next-line solid/reactivity
-	getGuild(guildId: string): stored_guild | undefined {
-		return guilds[guildId];
-	}
+on("READY", ({ guilds }) => {
+	batch(() => {
+		for (const guild of guilds ?? []) {
+			if (guild.unavailable) {
+				unavailableGuilds.add(guild.id);
+				continue;
+			}
 
-	getIconUrl(guildId: string, size = 96, animated = false): string | undefined {
-		const guild = this.getGuild(guildId);
-		if (!guild) return undefined;
-		if (!guild.icon) return undefined;
+			unavailableGuilds.delete(guild.id);
+			const { features: f, ...rest } = guild.properties;
+			features.set(guild.id, new ReactiveSet(f));
+			setGuilds(
+				guild.id,
+				reconcile({
+					joined_at: guild.joined_at,
+					large: guild.large,
+					lazy: guild.lazy,
+					...rest,
+				}),
+			);
 
-		animated = animated && guild.icon.startsWith("a_") && features.get(guildId)!.has("ANIMATED_ICON");
+			if (guild.data_mode != "full") logger.warn(`Guild ${guild.id} was not sent in full mode!`, guild);
+		}
+	});
+});
 
-		return guildIconURL(guildId, guild.icon, size, animated);
-	}
+export const isUnavailable = p((guildId: string): boolean => unavailableGuilds.has(guildId));
 
-	getAcronym(guildId: string): string | undefined {
-		const guild = this.getGuild(guildId);
-		if (!guild) return undefined;
-		if (!guild.name) return undefined;
+export const getGuildIds = p((): string[] => guildIds());
 
-		return guild.name
-			.split(/\s+/g)
-			.slice(0, 3)
-			.map((word) => word[0])
-			.join("");
-	}
+export const getGuild = p((guildId: string): stored_guild | undefined => guilds[guildId]);
 
-	hasFeature(guildId: string, feature: string): boolean {
-		return features.get(guildId)?.has(feature) ?? false;
-	}
+export const getIconUrl = p((guildId: string, size = 96, animated = false): string | undefined => {
+	const guild = getGuild(guildId);
+	if (!guild) return undefined;
+	if (!guild.icon) return undefined;
 
-	getFeatures(guildId: string): string[] {
-		return Array.from(features.get(guildId) ?? []);
-	}
+	animated = animated && guild.icon.startsWith("a_") && features.get(guildId)!.has("ANIMATED_ICON");
 
-	isOwner(guildId: string, userId: string): boolean {
-		return this.getGuild(guildId)?.owner_id === userId;
-	}
-})();
+	return guildIconURL(guildId, guild.icon, size, animated);
+});
+
+export const getAcronym = p((guildId: string): string | undefined => {
+	const guild = getGuild(guildId);
+	if (!guild) return undefined;
+	if (!guild.name) return undefined;
+
+	return guild.name
+		.split(/\s+/g)
+		.slice(0, 3)
+		.map((word) => word[0])
+		.join("");
+});
+
+export const hasFeature = p((guildId: string, feature: string): boolean => features.get(guildId)?.has(feature) ?? false);
+
+export const getFeatures = p((guildId: string): string[] => Array.from(features.get(guildId) ?? []));
+
+export const isOwner = p((guildId: string, userId: string): boolean => getGuild(guildId)?.owner_id === userId);
+
+registerDebugStore("guilds", {
+	getAcronym,
+	getGuild,
+	getGuildIds,
+	getIconUrl,
+	hasFeature,
+	isOwner,
+	isUnavailable,
+	state: { features, guilds, unavailableGuilds },
+});

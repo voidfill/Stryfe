@@ -1,7 +1,7 @@
 import { createMemo, For, JSX, Show } from "solid-js";
 
-import TypingStore from "@stores/typing";
-import WindowStore from "@stores/window";
+import { getTyping } from "@stores/typing";
+import { isFocused } from "@stores/window";
 
 import UserName from "../common/username";
 
@@ -10,12 +10,12 @@ import "./typing.scss";
 const maxCurrent = 5;
 
 export default function Typing(props: { channelId: string; guildId?: string }): JSX.Element {
-	const typing = createMemo(() => TypingStore.getTyping(props.channelId));
+	const typing = createMemo(() => getTyping(props.channelId));
 
 	return (
 		<div class="typing">
 			<Show when={!!typing().length}>
-				<svg height="10px" width="35px" classList={{ "animation-paused": !WindowStore.isFocused(), "typing-indicators": true }}>
+				<svg height="10px" width="35px" classList={{ "animation-paused": !isFocused(), "typing-indicators": true }}>
 					<circle cx="5" cy="5" r="5" />
 					<circle cx="17.5" cy="5" r="5" style={{ "animation-delay": "0.5s" }} />
 					<circle cx="30" cy="5" r="5" style={{ "animation-delay": "1s" }} />
