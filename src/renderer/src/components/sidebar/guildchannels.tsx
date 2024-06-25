@@ -7,7 +7,7 @@ import permissions from "@constants/permissions";
 import { getGuildCategoryChannel, getGuildTextChannel, getGuildVoiceChannel, getSortedGuildChannels } from "@stores/channels";
 import { getGuild } from "@stores/guilds";
 import { getMember } from "@stores/members";
-import SettingsStore from "@stores/settings";
+import { channelOverrides, setCollapsed, userGuildSettings } from "@stores/settings";
 import { getUser } from "@stores/users";
 import { getSessionIdsForChannel, getVoiceState } from "@stores/voicestates";
 
@@ -18,23 +18,19 @@ import { TbHeadphonesOff } from "solid-icons/tb";
 import { HoverAnimationDirective } from "../common/animationcontext";
 import Avatar, { ShowStatus } from "../common/avatar";
 import ChannelIcon from "../common/channelicon";
-import { Colors, ContextmenuDirective, Item, Separator, Switch } from "../common/contextmenu";
 import { useLocationContext } from "../common/locationcontext";
 import OverflowTooltip from "../common/overflowtooltip";
 import { usePermissionsContext } from "../common/permissionscontext";
 
 HoverAnimationDirective;
 OverflowTooltip;
-ContextmenuDirective;
 
 const refMap = new Map<string, any>();
 
 function TextChannel(props: { id: string; isCollapsed: Accessor<boolean>; parentId?: string }): JSX.Element {
 	const location = useLocationContext();
 	const channel = createMemo(() => getGuildTextChannel(props.id));
-	const mutedHide = createMemo(
-		() => (SettingsStore.userGuildSettings[location().guildId]?.hide_muted_channels && SettingsStore.channelOverrides[props.id]?.muted) ?? false,
-	);
+	const mutedHide = createMemo(() => (userGuildSettings[location().guildId]?.hide_muted_channels && channelOverrides[props.id]?.muted) ?? false);
 
 	const currentPermissions = usePermissionsContext();
 	const canSee = createMemo(() => currentPermissions().can(permissions.VIEW_CHANNEL, props.id));
@@ -103,9 +99,7 @@ function VoiceCard(props: { sessionId: string }): JSX.Element {
 function VoiceChannel(props: { id: string; isCollapsed: Accessor<boolean> }): JSX.Element {
 	const channel = createMemo(() => getGuildVoiceChannel(props.id));
 	const location = useLocationContext();
-	const mutedHide = createMemo(
-		() => (SettingsStore.userGuildSettings[location().guildId]?.hide_muted_channels && SettingsStore.channelOverrides[props.id]?.muted) ?? false,
-	);
+	const mutedHide = createMemo(() => (userGuildSettings[location().guildId]?.hide_muted_channels && channelOverrides[props.id]?.muted) ?? false);
 	const voiceStates = createMemo(() => getSessionIdsForChannel(props.id));
 	// TODO: sort by name, streaming, camera etc
 	// TODO: maybe add a specific list for users that are on stage? filtering onchange voice states seems like a bad idea
@@ -154,7 +148,7 @@ function VoiceChannel(props: { id: string; isCollapsed: Accessor<boolean> }): JS
 
 function Category(props: { id: string; other: string[]; voice: string[] }): JSX.Element {
 	const category = createMemo(() => getGuildCategoryChannel(props.id));
-	const isCollapsed = createMemo(() => SettingsStore.channelOverrides[props.id]?.collapsed ?? false);
+	const isCollapsed = createMemo(() => channelOverrides[props.id]?.collapsed ?? false);
 	const currentPermissions = usePermissionsContext();
 
 	const mapFn = (id: string): boolean => currentPermissions().can(permissions.VIEW_CHANNEL, id);
@@ -179,7 +173,7 @@ function Category(props: { id: string; other: string[]; voice: string[] }): JSX.
 							[`channel-${props.id}`]: true,
 							collapsed: isCollapsed(),
 						}}
-						onClick={(): void => SettingsStore.toggleCollapsed(props.id)}
+						onClick={(): void => setCollapsed(props.id, !isCollapsed())}
 						ref={(el): void => {
 							refMap.set(props.id, el);
 						}}
@@ -205,8 +199,6 @@ const scrollPositions = new Map<string, number>();
 
 export default function GuildChannels(): JSX.Element {
 	const location = useLocationContext();
-	const currentPermissions = usePermissionsContext();
-	const canManageChannels = createMemo(() => currentPermissions().can(permissions.MANAGE_CHANNELS));
 	const channels = createMemo(() => getSortedGuildChannels(location().guildId));
 	const guildName = createMemo(() => getGuild(location().guildId)?.name);
 	let ref: HTMLDivElement | undefined;
@@ -214,7 +206,7 @@ export default function GuildChannels(): JSX.Element {
 	createEffect(() => {
 		const pos = scrollPositions.get(location().guildId);
 		if (!ref) return;
-		if (pos || pos === 0) return void ref.scrollTo({ behavior: "instant", top: pos });
+		if (pos !== undefined) return void ref.scrollTo({ behavior: "instant", top: pos });
 		refMap.get(untrack(() => location().channelId))?.scrollIntoView({ behavior: "instant", block: "center" });
 	});
 
@@ -241,21 +233,6 @@ export default function GuildChannels(): JSX.Element {
 						ticking = true;
 					}
 				}}
-				use:ContextmenuDirective={() => (
-					<>
-						<Switch
-							label="Hide Muted Channels"
-							enabled={() => SettingsStore.userGuildSettings[location().guildId]?.hide_muted_channels || false}
-							set={() => SettingsStore.toggleHideMutedChannels(location().guildId)}
-						/>
-						<Separator />
-						<Show when={canManageChannels()}>
-							<Item label="Create Channel" />
-							<Item label="Create Category" />
-						</Show>
-						<Item label="Invite People" color={Colors.GREEN} />
-					</>
-				)}
 			>
 				<For each={channels()?.uncategorized.other}>
 					{(id): JSX.Element => <TextChannel id={/*@once*/ id} isCollapsed={(): boolean => false} />}

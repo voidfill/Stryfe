@@ -35,6 +35,7 @@ import connectedAccount from "./ready/connectedaccount";
 import { SESSIONS_REPLACE } from "./ready/session";
 import { RELATIONSHIP_ADD, RELATIONSHIP_REMOVE } from "./relationship";
 import { USER_GUILD_SETTINGS_UPDATE, USER_SETTINGS_PROTO_UPDATE } from "./settings";
+import { CONVERSATION_SUMMARY_UPDATE } from "./summary";
 import { THREAD_CREATE, THREAD_DELETE, THREAD_LIST_SYNC, THREAD_MEMBER_UPDATE, THREAD_MEMBERS_UPDATE, THREAD_UPDATE } from "./thread";
 import { TYPING_START } from "./typing";
 
@@ -48,6 +49,7 @@ export const dispatches = {
 	CHANNEL_RECIPIENT_ADD,
 	CHANNEL_RECIPIENT_REMOVE,
 	CHANNEL_UPDATE,
+	CONVERSATION_SUMMARY_UPDATE,
 	GUILD_APPLICATION_COMMAND_INDEX_UPDATE,
 	GUILD_AUDIT_LOG_ENTRY_CREATE,
 	GUILD_BAN_ADD,

@@ -1,0 +1,20 @@
+.textarea {
+	padding: 0 16px;
+
+	.textarea-container {
+		display: flex;
+		flex-direction: row;
+		min-height: 44px;
+		background: var(--background-tertiary);
+		border-radius: 8px;
+		padding-left: 16px;
+	}
+
+	textarea {
+		all: unset;
+		flex-grow: 1;
+		flex-shrink: 1;
+		padding: 11px 10px 11px 0;
+		height: 22px;
+	}
+}

@@ -118,6 +118,7 @@ function LazyScroller(props: { around?: string; channelId: string; guildId?: str
 				"flex-grow": 1,
 				"overflow-x": "hidden",
 				"overflow-y": "auto",
+				"padding-bottom": "20px",
 				width: "100%",
 			}}
 		>

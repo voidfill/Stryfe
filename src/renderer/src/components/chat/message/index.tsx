@@ -6,7 +6,7 @@ import { extractTimeStamp } from "@modules/unix";
 
 import { getEmbeds } from "@stores/embeds";
 import { getMessage, getMessageState } from "@stores/messages";
-import SettingsStore from "@stores/settings";
+import { preloadedSettings } from "@stores/settings";
 
 import { HoverAnimationDirective, NoAnimationDirective } from "@components/common/animationcontext";
 import Avatar, { ShowStatus } from "@components/common/avatar";
@@ -32,7 +32,7 @@ HoverAnimationDirective;
 tippy;
 ContextmenuDirective;
 
-const isCompact = createMemo(() => SettingsStore.preloadedSettings.textAndImages?.messageDisplayCompact?.value ?? false);
+const isCompact = createMemo(() => preloadedSettings.textAndImages?.messageDisplayCompact?.value ?? false);
 
 export default function Message(props: { id: string; prevId?: string }): JSX.Element {
 	const location = useLocationContext();

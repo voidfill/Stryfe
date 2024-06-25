@@ -2,7 +2,7 @@ import { A } from "@solidjs/router";
 import { createMemo, For, JSX, Show } from "solid-js";
 
 import { getGuild, getGuildIds } from "@stores/guilds";
-import SettingsStore from "@stores/settings";
+import { preloadedSettings } from "@stores/settings";
 
 import { TiHome } from "solid-icons/ti";
 
@@ -14,7 +14,7 @@ import "./style.scss";
 import { lastSelectedChannels } from "@renderer/signals";
 
 export default function GuildsList(): JSX.Element {
-	const folders = createMemo(() => SettingsStore.preloadedSettings.guildFolders?.folders);
+	const folders = createMemo(() => preloadedSettings.guildFolders?.folders);
 	const guildIds = createMemo(() => getGuildIds());
 	const notSortedAsSorted = createMemo<string[]>(
 		() => {

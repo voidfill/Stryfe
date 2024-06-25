@@ -7,6 +7,8 @@ import { getGuildChannel, getPrivateChannelName } from "@stores/channels";
 import { useLocationContext } from "@components/common/locationcontext";
 import { usePermissionsContext } from "@components/common/permissionscontext";
 
+import "./textarea.scss";
+
 export default function TextArea(): JSX.Element {
 	const location = useLocationContext();
 	const channelName = createMemo(() =>

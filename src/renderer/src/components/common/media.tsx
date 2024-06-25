@@ -1,7 +1,6 @@
 import { Accessor, createEffect, createMemo, createSignal, FlowProps, JSX, Match, onCleanup, onMount, Show, Switch } from "solid-js";
 
-import { base64ToUint8Array } from "@stores/settings";
-import SettingsStore from "@stores/settings";
+import { base64ToUint8Array, frecencySettings } from "@stores/settings";
 
 import { FaRegularStar, FaSolidPlay, FaSolidStar } from "solid-icons/fa";
 import { FiExternalLink, FiSlash } from "solid-icons/fi";
@@ -203,7 +202,7 @@ function AltText(props: { description: string }): JSX.Element {
 }
 
 function FavoriteStar(props: { url: string }): JSX.Element {
-	const isFavorite = createMemo(() => props.url in (SettingsStore.frecencySettings.favoriteGifs?.gifs ?? {}));
+	const isFavorite = createMemo(() => props.url in (frecencySettings.favoriteGifs?.gifs ?? {}));
 
 	function toggleFavorite(): void {
 		// TODO: toggle favorite

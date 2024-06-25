@@ -1,4 +1,4 @@
-import { array, boolean, enum_, nullable, number, object, omit, optional, picklist, string } from "valibot";
+import { array, boolean, enum_, nullable, number, object, omit, optional, partial, picklist, string } from "valibot";
 
 import { MessageType } from "@constants/message";
 
@@ -54,8 +54,9 @@ export const MESSAGE_CREATE = object({
 });
 
 export const MESSAGE_UPDATE = object({
-	...MESSAGE_CREATE.entries,
-	guild_id: optional(string()),
+	...partial(MESSAGE_CREATE).entries,
+	channel_id: string(),
+	id: string(),
 });
 
 export const MESSAGE_DELETE = object({

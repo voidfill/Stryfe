@@ -107,6 +107,7 @@ function GroupDM(props: { id: string }): JSX.Element {
 	const name = createMemo(() => getPrivateChannelName(props.id));
 
 	function onChangeName(newName: string): void {
+		newName;
 		// TODO: make api call, optimistically set name
 	}
 
@@ -119,6 +120,7 @@ function GroupDM(props: { id: string }): JSX.Element {
 }
 
 function Thread(props: { id: string }): JSX.Element {
+	props;
 	return <span>Thread</span>;
 }
 

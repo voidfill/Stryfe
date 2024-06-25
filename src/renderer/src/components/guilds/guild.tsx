@@ -6,7 +6,20 @@ import { HighlightLevel, NotificationLevel } from "@constants/schemata/settings"
 
 import { getAcronym, getFeatures, getGuild, getIconUrl, isOwner, isUnavailable } from "@stores/guilds";
 import { can, computeBasePermissions } from "@stores/permissions";
-import SettingsStore, { notificationLevelToText } from "@stores/settings";
+import {
+	guildSettingsDefaults,
+	muteGuild,
+	notificationLevelToText,
+	setGuildNotificationLevel,
+	setHideMutedChannels,
+	setMobilePush,
+	setMuteScheduledEvents,
+	setNotifyHighlights,
+	setSuppressEveryone,
+	setSuppressRoles,
+	unmuteGuild,
+	userGuildSettings,
+} from "@stores/settings";
 import { getSelfId } from "@stores/users";
 
 import { tippy } from "@components/common/tooltip";
@@ -34,6 +47,7 @@ function ImageOrAcronym(props: { id: string }): JSX.Element {
 }
 
 function Indicator(props: { id: string }): JSX.Element {
+	props;
 	return (
 		<div class="indicator">
 			<span class="pill" />
@@ -72,7 +86,7 @@ export function MuteMenu(props: {
 }
 
 function GuildContextmenu(props: { guildId: string }): JSX.Element {
-	const notificationLevel = createMemo(() => SettingsStore.getGuildNotificationLevel(props.guildId));
+	const notificationLevel = createMemo(() => (userGuildSettings[props.guildId] ?? guildSettingsDefaults()).message_notifications);
 	const basePermissions = createMemo(() => computeBasePermissions(props.guildId, getSelfId()));
 	const canCreateEvents = createMemo(() =>
 		can({
@@ -91,6 +105,7 @@ function GuildContextmenu(props: { guildId: string }): JSX.Element {
 		}),
 	);
 	const owner = createMemo(() => isOwner(props.guildId, getSelfId()));
+	const gs = createMemo(() => userGuildSettings[props.guildId] ?? guildSettingsDefaults());
 
 	return (
 		<>
@@ -100,16 +115,16 @@ function GuildContextmenu(props: { guildId: string }): JSX.Element {
 			<Separator />
 			<MuteMenu
 				resource="Server"
-				isMuted={SettingsStore.userGuildSettings[props.guildId]?.muted ?? false}
-				mute={(seconds) => SettingsStore.muteGuild(props.guildId, seconds)}
-				unmute={() => SettingsStore.unmuteGuild(props.guildId)}
+				isMuted={userGuildSettings[props.guildId]?.muted ?? false}
+				mute={(seconds) => muteGuild(props.guildId, seconds)}
+				unmute={() => unmuteGuild(props.guildId)}
 				endTime={() => {
-					const endTime = SettingsStore.userGuildSettings[props.guildId]?.mute_config?.end_time;
+					const endTime = userGuildSettings[props.guildId]?.mute_config?.end_time;
 					return endTime ? new Date(endTime) : undefined;
 				}}
 			/>
 			<SubMenu label="Notification Settings" subText={notificationLevelToText(notificationLevel())}>
-				<ChoiceGroup current={notificationLevel()} set={(next) => SettingsStore.setGuildNotificationLevel(props.guildId, next)}>
+				<ChoiceGroup current={notificationLevel()} set={(next) => setGuildNotificationLevel(props.guildId, next)}>
 					<Choice label={notificationLevelToText(NotificationLevel.ALL_MESSAGES)} value={NotificationLevel.ALL_MESSAGES} />
 					<Choice label={notificationLevelToText(NotificationLevel.ONLY_MENTIONS)} value={NotificationLevel.ONLY_MENTIONS} />
 					<Choice label={notificationLevelToText(NotificationLevel.NOTHING)} value={NotificationLevel.NOTHING} />
@@ -117,37 +132,40 @@ function GuildContextmenu(props: { guildId: string }): JSX.Element {
 				<Separator />
 				<Switch
 					label="Suppress @everyone and @here"
-					enabled={() => SettingsStore.userGuildSettings[props.guildId]?.suppress_everyone ?? false}
-					set={() => SettingsStore.toggleSuppressEveryone(props.guildId)}
+					enabled={() => gs().suppress_everyone}
+					set={() => setSuppressEveryone(props.guildId, !gs().suppress_everyone)}
 				/>
 				<Switch
 					label="Suppress All Role @mentions"
-					enabled={() => SettingsStore.userGuildSettings[props.guildId]?.suppress_roles ?? false}
-					set={() => SettingsStore.toggleSuppressRoles(props.guildId)}
+					enabled={() => gs().suppress_roles}
+					set={() => setSuppressRoles(props.guildId, !gs().suppress_roles)}
 				/>
 				<Switch
 					label="Suppress Highlights"
-					enabled={() =>
-						(SettingsStore.userGuildSettings[props.guildId]?.notify_highlights ?? HighlightLevel.DEFAULT) === HighlightLevel.DISABLED
+					enabled={() => gs().notify_highlights === HighlightLevel.DISABLED}
+					set={() =>
+						setNotifyHighlights(
+							props.guildId,
+							gs().notify_highlights === HighlightLevel.DISABLED ? HighlightLevel.ENABLED : HighlightLevel.DISABLED,
+						)
 					}
-					set={() => SettingsStore.toggleSuppressHighlights(props.guildId)}
 				/>
 				<Switch
 					label="Mute Scheduled Events"
-					enabled={() => SettingsStore.userGuildSettings[props.guildId]?.mute_scheduled_events ?? false}
-					set={() => SettingsStore.toggleMuteScheduledEvents(props.guildId)}
+					enabled={() => gs().mute_scheduled_events}
+					set={() => setMuteScheduledEvents(props.guildId, !gs().mute_scheduled_events)}
 				/>
 				<Separator />
 				<Switch
 					label="Mobile Push Notifications"
-					enabled={() => SettingsStore.userGuildSettings[props.guildId]?.mobile_push ?? false}
-					set={() => SettingsStore.toggleMobilePush(props.guildId)}
+					enabled={() => gs().mobile_push}
+					set={() => setMobilePush(props.guildId, !gs().mobile_push)}
 				/>
 			</SubMenu>
 			<Switch
 				label="Hide Muted Channels"
-				enabled={() => SettingsStore.userGuildSettings[props.guildId]?.hide_muted_channels ?? false}
-				set={() => SettingsStore.toggleHideMutedChannels(props.guildId)}
+				enabled={() => gs().hide_muted_channels}
+				set={() => setHideMutedChannels(props.guildId, !gs().hide_muted_channels)}
 			/>
 			<Separator />
 			<Show when={false /* TODO: figure out when and what to show */}>
