@@ -1,10 +1,16 @@
-import { createMemo, For, JSX, Show } from "solid-js";
+import { useNavigate, useParams } from "@solidjs/router";
+import { createEffect, createMemo, For, JSX, Show } from "solid-js";
+import { boolean, fallback, record, string } from "valibot";
+
+import { FaRegularFolder } from "solid-icons/fa";
 
 import { arbitrary } from "../common/usearbitrary";
 
 import "./style.scss";
 
-import { getGuild, getGuildIds } from "@renderer/stores/guilds";
+import { persistStore } from "@renderer/modules/persist";
+import { lastSelectedChannels } from "@renderer/signals";
+import { getAcronym, getGuild, getGuildIds, getIconUrl } from "@renderer/stores/guilds";
 import { preloadedSettings } from "@renderer/stores/settings";
 import {
 	closestCenter,
@@ -13,11 +19,19 @@ import {
 	createDroppable,
 	DragDropProvider,
 	DragDropSensors,
+	DragEventHandler,
+	DragOverlay,
 	Transformer,
 	useDragDropContext,
 } from "@thisbeyond/solid-dnd";
 
 arbitrary;
+
+type DragDropContext = ReturnType<typeof useDragDropContext> extends infer R | null ? R : never;
+type DragDropActions = DragDropContext[1];
+type DragDropState = DragDropContext[0];
+
+const [collapsed, setCollapsed] = persistStore("collapsedFolders", fallback(record(string(), boolean()), {}));
 
 type simpleFolder =
 	| {
@@ -55,46 +69,81 @@ function getSimpleGuilds(): simpleFolder[] {
 function DroppablePre(props: { id: string; insideFolder: boolean }): JSX.Element {
 	// eslint-disable-next-line solid/reactivity
 	const droppable = createDroppable(props.id + "-pre", { insideFolder: props.insideFolder });
-	const [state] = useDragDropContext()!;
 
-	const isActive = createMemo(() => {
-		return droppable.isActiveDroppable;
-		if (!droppable.isActiveDroppable) return false;
-		if (state.active.draggable?.data?.type === "folder" && props.insideFolder) return false;
-		return true;
-	});
-
-	return <div use:arbitrary={[droppable]} classList={{ ["droppable-" + props.id + "-pre"]: true, active: isActive(), "droppable-pre": true }} />;
+	return (
+		<div
+			use:arbitrary={[droppable]}
+			classList={{ ["droppable-" + props.id + "-pre"]: true, active: droppable.isActiveDroppable, "droppable-pre": true }}
+		/>
+	);
 }
 
 function DroppablePost(props: { id: string; insideFolder: boolean }): JSX.Element {
 	// eslint-disable-next-line solid/reactivity
 	const droppable = createDroppable(props.id + "-post", { insideFolder: props.insideFolder });
-	const [state] = useDragDropContext()!;
 
-	const isActive = createMemo(() => {
-		return droppable.isActiveDroppable;
-		if (!droppable.isActiveDroppable) return false;
-		if (state.active.draggable?.data?.type === "folder" && props.insideFolder) return false;
-		return true;
-	});
-
-	return <div use:arbitrary={[droppable]} classList={{ ["droppable-" + props.id + "-post"]: true, active: isActive(), "droppable-post": true }} />;
+	return (
+		<div
+			use:arbitrary={[droppable]}
+			classList={{
+				["droppable-" + props.id + "-post"]: true,
+				active: droppable.isActiveDroppable,
+				"droppable-post": true,
+				"inside-folder": props.insideFolder,
+			}}
+		/>
+	);
 }
 
-function Guild(props: { id: string }): JSX.Element {
+function GuildIcon(props: { id: string }): JSX.Element {
 	const guild = createMemo(() => getGuild(props.id));
+	return (
+		<Show when={guild()}>
+			{(guild) => (
+				<Show when={guild().icon} fallback={<div class="icon guild-acronym">{getAcronym(props.id)}</div>}>
+					<img class="icon" src={getIconUrl(props.id, 48)} draggable={false} />
+				</Show>
+			)}
+		</Show>
+	);
+}
+
+function GuildWrapper(props: { id: string }): JSX.Element {
+	const nav = useNavigate();
+	const params = useParams();
+
+	const guild = createMemo(() => getGuild(props.id));
+	const isSelected = createMemo(() => params.guildId === props.id);
 	// eslint-disable-next-line solid/reactivity
 	const draggable = createDraggable(props.id, { type: "guild" });
 
 	return (
 		<Show when={guild()}>
 			{(guild) => (
-				<div class="guild" use:arbitrary={[draggable]}>
-					{guild().name}
+				<div
+					classList={{ "active-draggable": draggable?.isActiveDraggable, guild: true, selected: isSelected() }}
+					use:arbitrary={[draggable]}
+				>
+					<div class="indicator" />
+					<div
+						classList={{ acronym: !guild().icon, "icon-container": true }}
+						onClick={() => nav(`/channels/${props.id}/${lastSelectedChannels[props.id] ?? ""}`)}
+					>
+						<Show when={!draggable?.isActiveDraggable}>
+							<GuildIcon id={props.id} />
+						</Show>
+					</div>
 				</div>
 			)}
 		</Show>
+	);
+}
+
+function FolderIcon(props: { guilds: string[]; id: string; open: boolean }): JSX.Element {
+	return (
+		<div class="folder-icon">
+			<FaRegularFolder size={48} />
+		</div>
 	);
 }
 
@@ -103,6 +152,20 @@ function Folder(props: simpleFolder): JSX.Element {
 	const droppable = createDroppable(props.id, { insideFolder: true });
 	// eslint-disable-next-line solid/reactivity
 	const draggable = createDraggable(props.id, { type: "folder" });
+	const [, actions] = useDragDropContext()!;
+
+	const isOpen = createMemo(() => {
+		if (!props.isFolder) return false;
+		if (draggable.isActiveDraggable) return false;
+		return collapsed[props.id] ?? false;
+	});
+
+	let firstRun = true;
+	createEffect(() => {
+		isOpen();
+		if (firstRun) return void (firstRun = false);
+		requestAnimationFrame(() => actions?.recomputeLayouts());
+	});
 
 	return (
 		<>
@@ -111,25 +174,37 @@ function Folder(props: simpleFolder): JSX.Element {
 				<Show
 					when={props.isFolder}
 					fallback={
-						<div use:arbitrary={[droppable]}>
-							<Guild id={props.guilds[0]} />
+						<div
+							use:arbitrary={[droppable]}
+							classList={{ active: droppable.isActiveDroppable, "fake-folder": true, "folder-droppable": true }}
+						>
+							<GuildWrapper id={props.guilds[0]} />
 						</div>
 					}
 				>
-					<div class="folder-header" use:arbitrary={[droppable, draggable]}>
-						{props.id}
+					<div
+						classList={{ active: droppable.isActiveDroppable, "folder-droppable": true, "folder-header-container": true }}
+						use:arbitrary={[droppable, draggable]}
+						onClick={() => setCollapsed(props.id, (p) => !p)}
+					>
+						<div class="folder-header">
+							<div class="indicator" />
+							<FolderIcon guilds={props.guilds} open={isOpen()} id={props.id} />
+						</div>
 					</div>
-					<div>
-						<For each={props.guilds}>
-							{(id) => (
-								<>
-									<DroppablePre id={id} insideFolder={true} />
-									<Guild id={id} />
-								</>
-							)}
-						</For>
-						<DroppablePost id={props.guilds[props.guilds.length - 1]} insideFolder={true} />
-					</div>
+					<Show when={isOpen()}>
+						<div>
+							<For each={props.guilds}>
+								{(id) => (
+									<>
+										<DroppablePre id={id} insideFolder={true} />
+										<GuildWrapper id={id} />
+									</>
+								)}
+							</For>
+							<DroppablePost id={props.guilds[props.guilds.length - 1]} insideFolder={true} />
+						</div>
+					</Show>
 				</Show>
 				<div class="folder-header" />
 			</div>
@@ -137,28 +212,11 @@ function Folder(props: simpleFolder): JSX.Element {
 	);
 }
 
-// thanks example page
-function ConstrainDragAxis(): JSX.Element {
-	const [, { onDragStart, onDragEnd, addTransformer, removeTransformer }] = useDragDropContext()!;
-
-	const transformer: Transformer = {
-		callback: (transform) => ({ ...transform, x: 0 }),
-		id: "constrain-x-axis",
-		order: 100,
-	};
-
-	onDragStart(({ draggable }) => {
-		addTransformer("draggables", draggable.id, transformer);
-	});
-
-	onDragEnd(({ draggable }) => {
-		removeTransformer("draggables", draggable.id, transformer.id);
-	});
-
-	return <></>;
-}
-
 export default function GuildsList(): JSX.Element {
+	let scrollRef: HTMLDivElement | undefined;
+	let actions: DragDropActions | undefined;
+	let state: DragDropState | undefined;
+
 	const folders = createMemo(getSimpleGuilds, [], {
 		equals: (a, b) => {
 			if (a.length !== b.length) return false;
@@ -175,16 +233,86 @@ export default function GuildsList(): JSX.Element {
 
 	const collisionDetector: CollisionDetector = (draggable, droppables, context) => {
 		if (draggable.data.type === "folder") droppables = droppables.filter((d) => !d.data.insideFolder);
+		if (draggable.data.type === "guild") droppables = droppables.filter((d) => d.id !== draggable.id);
 		return closestCenter(draggable, droppables, context);
 	};
 
+	const constrainXAxis: Transformer = {
+		callback: (transform) => {
+			return { ...transform, x: 0 };
+		},
+		id: "constrain-x-axis",
+		order: 100,
+	};
+
+	let interval: NodeJS.Timeout | undefined;
+
+	function onMouseMove(): void {
+		const cur = state?.active.overlay?.transformed;
+		if (!cur || !scrollRef) return;
+		const r = scrollRef.getBoundingClientRect();
+
+		if (cur.y < -48 || cur.y > r.y + r.height + 48) {
+			if (interval) interval = void clearInterval(interval);
+			return;
+		}
+
+		if (cur.y < cur.height && scrollRef.scrollTop > 0) {
+			if (interval) interval = void clearInterval(interval);
+			const f = (): void => {
+				scrollRef.scrollTo({ top: scrollRef.scrollTop - 1 });
+				requestAnimationFrame(() => actions?.recomputeLayouts());
+			};
+			interval = setInterval(f, 50 / (cur.height / cur.y));
+			f();
+			return;
+		}
+
+		if (cur.y > r.y + r.height - cur.height && scrollRef.scrollTop < scrollRef.scrollHeight - r.height) {
+			if (interval) interval = void clearInterval(interval);
+			const f = (): void => {
+				scrollRef.scrollTo({ top: scrollRef.scrollTop + 1 });
+				requestAnimationFrame(() => actions?.recomputeLayouts());
+			};
+			interval = setInterval(f, 50 / (cur.height / (r.y + r.height - cur.y - cur.height)));
+			f();
+			return;
+		}
+
+		if (interval) interval = void clearInterval(interval);
+	}
+
+	const onDragStart: DragEventHandler = (event) => {
+		actions?.addTransformer("draggables", event.draggable.id, constrainXAxis);
+		document?.addEventListener("mousemove", onMouseMove);
+	};
+
+	const onDragEnd: DragEventHandler = (event) => {
+		actions?.removeTransformer("draggables", event.draggable.id, constrainXAxis.id);
+		document.removeEventListener("mousemove", onMouseMove);
+		if (interval) clearInterval(interval);
+	};
+
 	return (
-		<div class="guilds-list">
-			<DragDropProvider collisionDetector={collisionDetector}>
+		<div ref={scrollRef} class="guilds-list">
+			<DragDropProvider collisionDetector={collisionDetector} onDragStart={onDragStart} onDragEnd={onDragEnd}>
+				{((): JSX.Element => {
+					[state, actions] = useDragDropContext()!;
+					return <></>;
+				})()}
 				<DragDropSensors />
-				<ConstrainDragAxis />
 				<For each={folders()}>{Folder}</For>
 				<DroppablePost id={folders()[folders().length - 1].id} insideFolder={false} />
+				<DragOverlay>
+					<div class="drag-overlay">
+						<Show when={state.active.draggable?.data.type === "guild"}>
+							<GuildWrapper id={state.active.draggableId!.toString()} />
+						</Show>
+						<Show when={state.active.draggable?.data.type === "folder"}>
+							<FaRegularFolder size={48} />
+						</Show>
+					</div>
+				</DragOverlay>
 			</DragDropProvider>
 		</div>
 	);

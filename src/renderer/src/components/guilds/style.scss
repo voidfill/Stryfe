@@ -1,22 +1,148 @@
-.droppable-pre {
-	height: 8px;
+:root {
+	--guild-drop-color: green;
+}
+
+.droppable-pre,
+.droppable-post:not(.inside-folder),
+.droppable-post.active {
+	height: 4px;
+	margin: 2px 4px;
+	border-radius: 2px;
 
 	&.active {
-		background-color: green;
+		background-color: var(--guild-drop-color);
 	}
 }
 
-.droppable-post.active {
-	height: 8px;
-	background-color: blue;
-}
-
 .guilds-list {
-	overflow-x: visible;
+	overflow-x: hidden;
 	overflow-y: scroll;
+	flex-shrink: 0;
+	padding-bottom: 8px;
 	width: 72px;
+
+	&::-webkit-scrollbar {
+		display: none;
+	}
 }
 
 .guild {
 	height: 48px;
+	display: flex;
+	flex-direction: row;
+}
+
+.indicator {
+	width: 12px;
+	height: 100%;
+}
+
+.drag-overlay {
+	opacity: 0.5;
+	color: white;
+}
+
+.guild .icon-container {
+	overflow: hidden;
+	border-radius: 50%;
+	transition: border-radius 0.2s;
+	width: 48px;
+	height: 48px;
+}
+
+.guild.active-draggable,
+.guild.selected,
+.fake-folder.active {
+	.icon-container {
+		border-radius: 16px;
+	}
+}
+
+.icon-container:hover {
+	border-radius: 16px;
+}
+
+.icon-container {
+	cursor: pointer;
+}
+
+.fake-folder.active {
+	.icon-container {
+		background-color: var(--background-secondary);
+	}
+}
+.icon-container.acronym {
+	background-color: var(--background-secondary);
+
+	.guild-acronym {
+		width: 100%;
+		height: 100%;
+		display: grid;
+		place-content: center;
+	}
+}
+
+.fake-folder {
+	> .guild .icon-container .icon {
+		transform: scale(1) translate(0, 0);
+		border-radius: 0;
+		transition: transform 0.2s;
+	}
+
+	&.active > .guild .icon-container .icon {
+		border-radius: 50%;
+		transform: scale(0.35) translate(-24px, -24px);
+	}
+}
+
+.folder-droppable {
+	position: relative;
+}
+
+.folder-droppable.active {
+	&::after {
+		position: absolute;
+		content: "";
+		left: 6px;
+		top: 50%;
+		transform: translateY(-50%);
+
+		width: 12px;
+		height: 12px;
+		border-radius: 50%;
+		background-color: green;
+	}
+
+	> * {
+		animation: shake 0.5s infinite;
+	}
+}
+
+@keyframes shake {
+	0% {
+		transform: rotate(0);
+	}
+	25% {
+		transform: rotate(3deg);
+	}
+	50% {
+		transform: rotate(-3deg);
+	}
+	75% {
+		transform: rotate(3deg);
+	}
+	100% {
+		transform: rotate(-3deg);
+	}
+}
+
+.folder-header-container {
+	display: flex;
+	flex-direction: column;
+	height: 48px;
+}
+
+.folder-header {
+	display: flex;
+	flex-direction: row;
 }
