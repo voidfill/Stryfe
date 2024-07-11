@@ -102,7 +102,6 @@ export const GUILD_CREATE = union([
 	object({
 		...ready_guild.entries,
 		embedded_activities: nullable(unknown()),
-		guild_id: string(),
 		members: nullable(array(guild_member)),
 		presences: nullable(array(unknown())),
 		voice_states: nullable(array(voice_state)),

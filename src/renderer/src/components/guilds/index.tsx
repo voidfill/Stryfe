@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from "@solidjs/router";
-import { createEffect, createMemo, For, JSX, Show } from "solid-js";
+import { Accessor, createEffect, createMemo, For, JSX, Show } from "solid-js";
 import { createStore } from "solid-js/store";
 import { boolean, fallback, record, string } from "valibot";
 
@@ -108,6 +108,7 @@ function DroppablePost(props: { id: string; insideFolder: boolean; parentId?: st
 
 function GuildIcon(props: { id: string }): JSX.Element {
 	const guild = createMemo(() => getGuild(props.id));
+
 	return (
 		<Show when={guild()}>
 			{(guild) => (
@@ -148,10 +149,23 @@ function GuildWrapper(props: { id: string; parentId?: string }): JSX.Element {
 	);
 }
 
-function FolderIcon(props: { guilds: string[]; id: string; open: boolean }): JSX.Element {
+function FolderIcon(props: { id: string; open: boolean }): JSX.Element {
+	const folderSettings = createMemo(() => preloadedSettings.guildFolders?.folders?.find((f) => String(f.id?.value) === props.id));
+	const color = createMemo(() => {
+		const f = folderSettings();
+		if (!f) return;
+		return f.color?.value;
+	});
+	const guilds = createMemo(() => (folderSettings()?.guildIds.map(String) ?? []).slice(0, 4));
+
 	return (
-		<div class="folder-icon">
-			<FaRegularFolder size={20} />
+		<div classList={{ "folder-icon": true, open: props.open }} style={{ "--folder-color": "#" + (color()?.toString(16) ?? "56e") }}>
+			<div class="icon-icon" style={{ padding: "14px" }}>
+				<FaRegularFolder size={20} />
+			</div>
+			<div class="grid-items">
+				<For each={guilds()}>{(id) => <GuildIcon id={id} />}</For>
+			</div>
 		</div>
 	);
 }
@@ -176,20 +190,10 @@ function Folder(props: simpleFolder): JSX.Element {
 		requestAnimationFrame(() => actions?.recomputeLayouts());
 	});
 
-	const folderSettings = createMemo(() =>
-		props.isFolder ? preloadedSettings.guildFolders?.folders.find((f) => String(f.id?.value) === props.id) : undefined,
-	);
-
-	const color = createMemo(() => {
-		const f = folderSettings();
-		if (!f) return;
-		return f.color?.value;
-	});
-
 	return (
 		<>
 			<DroppablePre id={props.id} insideFolder={false} />
-			<div class="guilds-folder" style={{ "--folder-color": "#" + (color()?.toString(16) ?? "fff") }}>
+			<div class="guilds-folder">
 				<Show
 					when={props.isFolder}
 					fallback={
@@ -214,7 +218,7 @@ function Folder(props: simpleFolder): JSX.Element {
 						<div class="folder-header">
 							<div class="indicator" />
 							<Show when={!draggable.isActiveDraggable}>
-								<FolderIcon guilds={props.guilds} open={isOpen()} id={props.id} />
+								<FolderIcon open={isOpen()} id={props.id} />
 							</Show>
 						</div>
 					</div>
@@ -295,7 +299,7 @@ export default function GuildsList(): JSX.Element {
 				scrollRef.scrollTo({ top: scrollRef.scrollTop - 1 });
 				requestAnimationFrame(() => actions?.recomputeLayouts());
 			};
-			interval = setInterval(f, 50 / (cur.height / cur.y));
+			interval = setInterval(f, 50 / (cur.height / Math.max(cur.y, 0)));
 			f();
 			return;
 		}
@@ -306,7 +310,7 @@ export default function GuildsList(): JSX.Element {
 				scrollRef.scrollTo({ top: scrollRef.scrollTop + 1 });
 				requestAnimationFrame(() => actions?.recomputeLayouts());
 			};
-			interval = setInterval(f, 50 / (cur.height / (r.y + r.height - cur.y - cur.height)));
+			interval = setInterval(f, 50 / (cur.height / Math.max(r.y + r.height - cur.y - cur.height, 0)));
 			f();
 			return;
 		}
@@ -329,6 +333,8 @@ export default function GuildsList(): JSX.Element {
 		console.log(JSON.parse(JSON.stringify(event)));
 	};
 
+	const activeDragId = (): string | undefined => state?.active.draggableId?.toString() ?? undefined;
+
 	return (
 		<div ref={scrollRef} class="guilds-list">
 			<DragDropProvider collisionDetector={collisionDetector} onDragStart={onDragStart} onDragEnd={onDragEnd}>
@@ -342,10 +348,14 @@ export default function GuildsList(): JSX.Element {
 				<DragOverlay>
 					<div class="drag-overlay">
 						<Show when={state.active.draggable?.data.type === "guild"}>
-							<GuildIcon id={state.active.draggableId!.toString()} />
+							<GuildIcon id={activeDragId()!} />
 						</Show>
 						<Show when={state.active.draggable?.data.type === "folder"}>
-							<FaRegularFolder size={48} />
+							{((): JSX.Element => {
+								const open = createMemo(() => collapsed[activeDragId()!] ?? false);
+
+								return <FolderIcon id={activeDragId()!} open={open()} />;
+							})()}
 						</Show>
 					</div>
 				</DragOverlay>
