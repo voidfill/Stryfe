@@ -39,7 +39,10 @@ window.addEventListener(
 	() => {
 		hideAll({ duration: 0 });
 	},
-	true,
+	{
+		capture: true,
+		passive: true,
+	},
 );
 
 function tippyFactory(tippyProducer: typeof makeTippy): (target: Element, props: Accessor<p>) => void {

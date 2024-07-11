@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from "@solidjs/router";
 import { Accessor, createEffect, createMemo, For, JSX, Show } from "solid-js";
-import { createStore } from "solid-js/store";
+import { createStore, produce, unwrap } from "solid-js/store";
 import { boolean, fallback, record, string } from "valibot";
 
 import { FaRegularFolder } from "solid-icons/fa";
@@ -172,7 +172,7 @@ function FolderIcon(props: { id: string; open: boolean }): JSX.Element {
 
 function Folder(props: simpleFolder): JSX.Element {
 	// eslint-disable-next-line solid/reactivity
-	const droppable = createDroppable(props.id, { insideFolder: true });
+	const droppable = createDroppable(props.id, { id: props.id, insideFolder: props.isFolder, type: "actual" });
 	// eslint-disable-next-line solid/reactivity
 	const draggable = createDraggable(props.id, { type: "folder" });
 	const [, actions] = useDragDropContext()!;
@@ -242,6 +242,10 @@ function Folder(props: simpleFolder): JSX.Element {
 	);
 }
 
+function pseudoRandomId(): number {
+	return 2 ** 32 * Math.random();
+}
+
 export default function GuildsList(): JSX.Element {
 	let scrollRef: HTMLDivElement | undefined;
 	let actions: DragDropActions | undefined;
@@ -268,7 +272,7 @@ export default function GuildsList(): JSX.Element {
 	});
 
 	const collisionDetector: CollisionDetector = (draggable, droppables, context) => {
-		if (draggable.data.type === "folder") droppables = droppables.filter((d) => !d.data.insideFolder);
+		if (draggable.data.type === "folder") droppables = droppables.filter((d) => !d.data.insideFolder && d.data.type !== "actual");
 		if (draggable.data.type === "guild") droppables = droppables.filter((d) => d.id !== draggable.id);
 		return closestCenter(draggable, droppables, context);
 	};
@@ -323,17 +327,94 @@ export default function GuildsList(): JSX.Element {
 		document.addEventListener("mousemove", onMouseMove);
 	};
 
-	const onDragEnd: DragEventHandler = (event) => {
-		actions?.removeTransformer("draggables", event.draggable.id, constrainXAxis.id);
+	const onDragEnd: DragEventHandler = ({ draggable, droppable }) => {
+		actions?.removeTransformer("draggables", draggable.id, constrainXAxis.id);
 		document.removeEventListener("mousemove", onMouseMove);
 		if (interval) interval = void clearInterval(interval);
-		if (!event.draggable || !event.droppable) return;
+		if (!draggable || !droppable) return;
 
-		if (event.draggable.id === event.droppable.data.id) return;
-		console.log(JSON.parse(JSON.stringify(event)));
+		if (draggable.id === droppable.data.id) return;
+
+		if (draggable.data.type === "folder") {
+			const oldPos = folders.findIndex((f) => f.id === draggable.id);
+			if (oldPos === -1) return;
+
+			let newPos = -1;
+			if (droppable.data.type === "pre") {
+				newPos = folders.findIndex((f) => f.id === droppable.data.id);
+			} else if (droppable.data.type === "post") {
+				newPos = folders.length; // droppable post that fits folder draggable is only the very last one
+			}
+			if (newPos === -1) return;
+
+			if (oldPos < newPos) newPos--;
+			const newf = folders.filter((f) => f.id !== draggable.id);
+			newf.splice(newPos, 0, folders[oldPos]);
+			return void setFolders(newf);
+		}
+
+		const newFolders: simpleFolder[] = folders
+			.map((f) => ({ ...f, guilds: f.guilds.filter((g) => g !== draggable.id) }) as simpleFolder)
+			.filter((f) => f.guilds.length);
+
+		if (droppable.data.type === "actual") {
+			const i = newFolders.findIndex((f) => f.id === droppable.data.id);
+			if (i === -1) return;
+			const f = newFolders[i];
+			if (droppable.data.insideFolder) {
+				f.guilds.push(String(draggable.id));
+			} else {
+				let fid =
+					folders.reduce((acc, cur) => {
+						if (cur.isFolder && Number(cur.id) > acc) return Number(cur.id);
+						return acc;
+					}, 0) + 1;
+				while (!fid) fid = pseudoRandomId();
+
+				const newFolder: simpleFolder = {
+					guilds: [String(droppable.data.id), String(draggable.id)],
+					id: String(fid),
+					isFolder: true,
+				};
+				newFolders.splice(i, 1, newFolder);
+			}
+			return void setFolders(newFolders);
+		}
+
+		if (droppable.data.insideFolder) {
+			const f = newFolders.find((f) => f.id === droppable.data.parentId);
+			if (!f) return;
+			if (droppable.data.type === "post") {
+				f.guilds.push(String(draggable.id));
+			} else {
+				const i = f.guilds.indexOf(String(droppable.data.id));
+				if (i === -1) return;
+				f.guilds.splice(i, 0, String(draggable.id));
+			}
+			return void setFolders(newFolders);
+		}
+
+		if (droppable.data.insideFolder === false) {
+			let newPos = -1;
+			if (droppable.data.type === "pre") {
+				newPos = newFolders.findIndex((f) => f.id === droppable.data.id);
+				if (newPos === -1) newPos = folders.findIndex((f) => f.id === droppable.data.id);
+			} else if (droppable.data.type === "post") {
+				newPos = newFolders.length; // we are outside of folders
+			}
+			console.log(draggable, droppable);
+			if (newPos === -1) return;
+
+			newFolders.splice(newPos, 0, { guilds: [String(draggable.id)], id: String(draggable.id), isFolder: false });
+			return void setFolders(newFolders);
+		}
 	};
 
 	const activeDragId = (): string | undefined => state?.active.draggableId?.toString() ?? undefined;
+
+	createEffect(() => {
+		console.log(JSON.parse(JSON.stringify(folders)));
+	});
 
 	return (
 		<div ref={scrollRef} class="guilds-list">
@@ -344,7 +425,7 @@ export default function GuildsList(): JSX.Element {
 				})()}
 				<DragDropSensors />
 				<For each={folders}>{Folder}</For>
-				<DroppablePost id={folders[folders.length - 1].id} insideFolder={false} />
+				<Show when={folders[folders.length - 1]}>{(f): JSX.Element => <DroppablePost id={f().id} insideFolder={false} />}</Show>
 				<DragOverlay>
 					<div class="drag-overlay">
 						<Show when={state.active.draggable?.data.type === "guild"}>
