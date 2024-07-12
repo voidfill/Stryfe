@@ -1,23 +1,43 @@
 import { createEffect, createMemo, For, JSX, Show } from "solid-js";
 
+import { collapsedFolders, guildFolders, setCollapsedFolders } from "@stores/guildfolders";
+import { getGuild } from "@stores/guilds";
+
+import tippy from "@components/common/tooltip";
+import { arbitrary } from "@components/common/usearbitrary";
 import { FaRegularFolder } from "solid-icons/fa";
 
-import { arbitrary } from "../common/usearbitrary";
 import { DroppablePost, DroppablePre } from "./droppables";
 import { GuildWrapper } from "./guild";
 import { GuildIcon } from "./guild";
 
-import { collapsedFolders, guildFolders, setCollapsedFolders } from "@renderer/stores/guildfolders";
 import { createDraggable, createDroppable, useDragDropContext } from "@thisbeyond/solid-dnd";
 
 arbitrary;
+tippy;
 
 export function FolderIcon(props: { id: string; open: boolean }): JSX.Element {
 	const folder = createMemo(() => guildFolders[props.id]);
 	const guilds = createMemo(() => (folder()?.guildIds.map(String) ?? []).slice(0, 4));
+	const tooltipContent = createMemo(() => {
+		const f = folder();
+		if (!f) return "";
+		if (f.name) return f.name;
+		const guilds = f.guildIds
+			.slice(0, 4)
+			.map((id) => getGuild(id)?.name)
+			.filter(Boolean)
+			.join(", ");
+		if (f.guildIds.length <= 4) return guilds;
+		return `${guilds}, and ${f.guildIds.length - 4} more`;
+	});
 
 	return (
-		<div classList={{ "folder-icon": true, open: props.open }} style={{ "--folder-color": "#" + (folder().color?.toString(16) ?? "56e") }}>
+		<div
+			use:tippy={{ content: tooltipContent, props: { offset: [0, 20], placement: "right" } }}
+			classList={{ "folder-icon": true, open: props.open }}
+			style={{ "--folder-color": "#" + (folder().color?.toString(16) ?? "56e") }}
+		>
 			<div class="icon-icon" style={{ padding: "14px" }}>
 				<FaRegularFolder size={20} />
 			</div>
@@ -28,7 +48,7 @@ export function FolderIcon(props: { id: string; open: boolean }): JSX.Element {
 	);
 }
 
-export default function Folder(props: { id: string }): JSX.Element {
+export function Folder(props: { id: string }): JSX.Element {
 	const folder = createMemo(() => guildFolders[props.id]);
 	// eslint-disable-next-line solid/reactivity
 	const droppable = createDroppable(props.id, { id: props.id, insideFolder: !folder().isGuild, type: "actual" });

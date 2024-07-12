@@ -11,14 +11,16 @@ import {
 	setOrderedFolderIds,
 } from "@stores/guildfolders";
 
-import { arbitrary } from "../common/usearbitrary";
+import { arbitrary } from "@components/common/usearbitrary";
+import { OcStack3 } from "solid-icons/oc";
+
 import { DroppablePost } from "./droppables";
-import Folder from "./folder";
-import { FolderIcon } from "./folder";
+import { Folder, FolderIcon } from "./folder";
 import { GuildIcon } from "./guild";
 
 import "./style.scss";
 
+import { lastSelectedChannels } from "@renderer/signals";
 import {
 	closestCenter,
 	CollisionDetector,
@@ -193,6 +195,11 @@ export default function GuildsList(): JSX.Element {
 
 	return (
 		<div ref={scrollRef} class="guilds-list">
+			<a class="home-button" href={`/channels/@me/${lastSelectedChannels["@me"] ?? ""}`}>
+				<div class="indicator" />
+				<OcStack3 size={40} />
+			</a>
+			<div class="divider" />
 			<DragDropProvider collisionDetector={collisionDetector} onDragStart={onDragStart} onDragEnd={onDragEnd}>
 				{((): JSX.Element => {
 					[state, actions] = useDragDropContext()!;

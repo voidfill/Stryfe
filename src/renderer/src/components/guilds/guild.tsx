@@ -1,10 +1,12 @@
 import { useNavigate, useParams } from "@solidjs/router";
 import { createMemo, JSX, Show } from "solid-js";
 
-import { arbitrary } from "../common/usearbitrary";
+import { getAcronym, getGuild, getIconUrl } from "@stores/guilds";
+
+import tippy from "@components/common/tooltip";
+import { arbitrary } from "@components/common/usearbitrary";
 
 import { lastSelectedChannels } from "@renderer/signals";
-import { getAcronym, getGuild, getIconUrl } from "@renderer/stores/guilds";
 import { createDraggable } from "@thisbeyond/solid-dnd";
 
 arbitrary;
@@ -40,7 +42,7 @@ export function GuildWrapper(props: { id: string; parentId?: string }): JSX.Elem
 					<div
 						classList={{ acronym: !guild().icon, "icon-container": true }}
 						onClick={() => nav(`/channels/${props.id}/${lastSelectedChannels[props.id] ?? ""}`)}
-						use:arbitrary={[draggable]}
+						use:arbitrary={[draggable, [tippy, { content: () => guild().name, props: { offset: [0, 20], placement: "right" } }]]}
 					>
 						<Show when={!draggable.isActiveDraggable}>
 							<GuildIcon id={props.id} />

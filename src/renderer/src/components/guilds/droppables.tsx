@@ -1,6 +1,6 @@
 import { createEffect, JSX, Show } from "solid-js";
 
-import { arbitrary } from "../common/usearbitrary";
+import { arbitrary } from "@components/common/usearbitrary";
 
 import { createDroppable, useDragDropContext } from "@thisbeyond/solid-dnd";
 
