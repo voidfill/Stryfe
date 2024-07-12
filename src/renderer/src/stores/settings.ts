@@ -9,6 +9,7 @@ import Api from "@modules/api";
 import { on, once } from "@modules/dispatcher";
 
 import { registerDebugStore } from ".";
+import { setupGuildFolders } from "./guildfolders";
 
 import { FrecencyUserSettings, PreloadedUserSettings } from "discord-protos";
 
@@ -71,6 +72,7 @@ on("READY", ({ user_settings_proto, user_guild_settings }) => {
 	// TODO: set status from settings
 	batch(() => {
 		setPreloadedSettings(PreloadedUserSettings.fromBinary(base64ToUint8Array(user_settings_proto)));
+		setupGuildFolders(preloadedSettings.guildFolders?.folders ?? []);
 
 		if (!user_guild_settings) return;
 		if (user_guild_settings.partial) throw new Error("Partial updates are not supported");
@@ -131,6 +133,8 @@ on("USER_SETTINGS_PROTO_UPDATE", ({ partial, settings }) => {
 			break;
 		case UserSettingsType.PRELOADED_USER_SETTINGS:
 			setPreloadedSettings(PreloadedUserSettings.fromBinary(base64ToUint8Array(settings.proto)));
+			setupGuildFolders(preloadedSettings.guildFolders?.folders ?? []);
+
 			break;
 		default:
 			throw new Error("Unknown settings type");

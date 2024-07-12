@@ -1,22 +1,266 @@
-.droppable-pre {
-	height: 8px;
-
-	&.active {
-		background-color: green;
-	}
-}
-
-.droppable-post.active {
-	height: 8px;
-	background-color: blue;
+:root {
+	--guild-drop-color: green;
+	--folder-background: rgb(from var(--background-secondary) r g b / 80%);
 }
 
 .guilds-list {
-	overflow-x: visible;
+	overflow-x: hidden;
 	overflow-y: scroll;
+	flex-shrink: 0;
+	padding: 8px 0;
 	width: 72px;
+
+	.home-button {
+		width: 72px;
+		height: 48px;
+		display: flex;
+		flex-direction: row;
+		gap: 4px;
+		cursor: pointer;
+
+		&:active > svg {
+			margin-top: 1px;
+		}
+	}
+
+	&::-webkit-scrollbar {
+		display: none;
+	}
 }
 
-.guild {
-	height: 48px;
+.drag-overlay {
+	opacity: 0.5;
+	color: white;
+	pointer-events: none;
+	border-radius: 16px;
+	overflow: hidden;
+
+	.folder-icon {
+		margin-left: 12px;
+	}
+
+	.guild-acronym {
+		background-color: var(--background-secondary);
+	}
+}
+
+.guilds-list,
+.drag-overlay {
+	.divider {
+		height: 2px;
+		background-color: var(--background-tertiary);
+		border-radius: 50%;
+		margin: 0 16px;
+	}
+
+	.droppable-pre,
+	.droppable-post:not(.inside-folder),
+	.droppable-post.active {
+		height: 4px;
+		margin: 2px 4px;
+		border-radius: 2px;
+
+		&.active {
+			background-color: var(--guild-drop-color);
+		}
+	}
+
+	.droppable-post-spacer {
+		height: 8px;
+	}
+
+	.guild {
+		height: 48px;
+		display: flex;
+		flex-direction: row;
+
+		.icon-container:active {
+			margin-top: 1px;
+		}
+	}
+
+	.indicator {
+		width: 12px;
+		height: 100%;
+	}
+
+	.guild .icon-container {
+		overflow: hidden;
+		border-radius: 50%;
+		transition: border-radius 0.2s;
+		width: 48px;
+		height: 48px;
+	}
+
+	.guild.active-draggable,
+	.guild.selected,
+	.fake-folder.active-droppable {
+		.icon-container {
+			border-radius: 16px;
+		}
+	}
+
+	.icon-container:hover {
+		border-radius: 16px;
+	}
+
+	.icon-container {
+		cursor: pointer;
+	}
+
+	.guild.active-draggable .icon-container {
+		background-color: var(--background-secondary);
+	}
+
+	.guilds-folder {
+		position: relative;
+	}
+
+	.folder-background {
+		position: absolute;
+		top: 0px;
+		bottom: 0px;
+		width: 48px;
+		background-color: var(--folder-background);
+		margin-left: 12px;
+		z-index: -1;
+		border-radius: 24px;
+	}
+
+	.icon-container.acronym {
+		background-color: var(--background-secondary);
+	}
+
+	.guild-acronym {
+		width: 48px;
+		height: 48px;
+		display: grid;
+		place-content: center;
+	}
+
+	.fake-folder {
+		> .guild .icon-container .icon {
+			transform: scale(1) translate(0, 0);
+			border-radius: 0;
+			transition: transform 0.2s;
+		}
+
+		&.active-droppable > .guild .icon-container .icon {
+			border-radius: 50%;
+			transform: scale(0.35) translate(-24px, -24px);
+		}
+
+		&.active-droppable > .guild .icon-container {
+			background-color: var(--folder-background);
+		}
+	}
+
+	.folder-droppable {
+		position: relative;
+	}
+
+	.folder-droppable.active-draggable .folder-header::after {
+		content: "";
+		height: 48px;
+		width: 48px;
+		background-color: var(--background-secondary);
+		border-radius: 16px;
+	}
+
+	.folder-icon {
+		width: 48px;
+		height: 48px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		background-color: var(--folder-background);
+		transition: background-color 0.2s;
+		border-radius: 16px;
+		overflow: hidden;
+		display: flex;
+		flex-direction: column;
+		cursor: pointer;
+
+		&:not(.open) {
+			background-color: var(--folder-color);
+
+			.icon-icon {
+				margin-top: -52px;
+			}
+		}
+
+		.icon-icon {
+			color: var(--folder-color);
+		}
+
+		.grid-items {
+			display: grid;
+			height: 38px;
+			width: 38px;
+			grid-template-columns: 1fr 1fr;
+			grid-template-rows: 1fr 1fr;
+			padding: 6px;
+			gap: 4px;
+
+			.icon {
+				height: 16px;
+				width: 16px;
+				border-radius: 50%;
+				font-size: 60%;
+				line-height: 16px;
+
+				&.guild-acronym {
+					background-color: var(--background-secondary);
+				}
+			}
+		}
+	}
+
+	.folder-droppable.active-droppable {
+		&::after {
+			position: absolute;
+			content: "";
+			left: 6px;
+			top: 50%;
+			transform: translateY(-50%);
+
+			width: 12px;
+			height: 12px;
+			border-radius: 50%;
+			background-color: green;
+		}
+
+		> * {
+			animation: shake 0.5s infinite;
+		}
+	}
+
+	.folder-header-container {
+		display: flex;
+		flex-direction: column;
+		height: 48px;
+	}
+
+	.folder-header {
+		display: flex;
+		flex-direction: row;
+	}
+}
+
+@keyframes shake {
+	0% {
+		transform: rotate(0);
+	}
+	25% {
+		transform: rotate(3deg);
+	}
+	50% {
+		transform: rotate(-3deg);
+	}
+	75% {
+		transform: rotate(3deg);
+	}
+	100% {
+		transform: rotate(-3deg);
+	}
 }
