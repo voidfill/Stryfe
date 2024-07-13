@@ -128,6 +128,10 @@ export function ModalFooter(props: FlowProps): JSX.Element {
 	return <div class="modal-footer">{props.children}</div>;
 }
 
+export function ModalBody(props: FlowProps): JSX.Element {
+	return <div class="modal-body">{props.children}</div>;
+}
+
 export function ModalHeader(props: { closeButton?: boolean; subtitle?: string; title: string }): JSX.Element {
 	const close = useModalContext();
 

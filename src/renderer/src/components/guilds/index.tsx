@@ -3,8 +3,8 @@ import { produce } from "solid-js/store";
 
 import {
 	addToFolder,
-	collapsedFolders,
 	guildFolders,
+	openFolders,
 	orderedFolderIds,
 	removeFromFolder,
 	setGuildFolders,
@@ -31,6 +31,8 @@ import {
 	Transformer,
 	useDragDropContext,
 } from "@thisbeyond/solid-dnd";
+
+export const defaultFolderColor = 5267680;
 
 arbitrary;
 
@@ -162,8 +164,8 @@ export default function GuildsList(): JSX.Element {
 				removeFromFolder(draggable.data.parentId, draggable.data.id);
 				addToFolder(droppable.data.parentId, draggable.data.id);
 			} else {
-				const i = sourceFolder.guildIds.indexOf(droppable.data.id);
 				removeFromFolder(draggable.data.parentId, draggable.data.id);
+				const i = sourceFolder.guildIds.indexOf(droppable.data.id);
 				addToFolder(droppable.data.parentId, draggable.data.id, i);
 			}
 			return;
@@ -217,7 +219,7 @@ export default function GuildsList(): JSX.Element {
 						</Show>
 						<Show when={state.active.draggable?.data.type === "folder"}>
 							{((): JSX.Element => {
-								const open = createMemo(() => collapsedFolders[activeDragId()!] ?? false);
+								const open = createMemo(() => openFolders[activeDragId()!] ?? false);
 
 								return <FolderIcon id={activeDragId()!} open={open()} />;
 							})()}

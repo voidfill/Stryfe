@@ -1,12 +1,19 @@
-import { createEffect, createMemo, For, JSX, Show } from "solid-js";
+import { createEffect, createMemo, For, JSX, Show, useContext } from "solid-js";
+import { produce } from "solid-js/store";
 
-import { collapsedFolders, guildFolders, setCollapsedFolders } from "@stores/guildfolders";
+import { guildFolders, openFolders, setOpenFolders } from "@stores/guildfolders";
 import { getGuild } from "@stores/guilds";
 
+import { HoverAnimationDirective } from "@components/common/animationcontext";
+import { ContextmenuDirective, Item, menuContext, Separator } from "@components/common/contextmenu";
 import tippy from "@components/common/tooltip";
 import { arbitrary } from "@components/common/usearbitrary";
 import { FaRegularFolder } from "solid-icons/fa";
 
+import { numberToHexColor } from "../common/colorpicker";
+import { createModal } from "../common/modals";
+import FolderSettingsModal from "../common/modals/foldersettings";
+import { defaultFolderColor } from ".";
 import { DroppablePost, DroppablePre } from "./droppables";
 import { GuildWrapper } from "./guild";
 import { GuildIcon } from "./guild";
@@ -15,6 +22,44 @@ import { createDraggable, createDroppable, useDragDropContext } from "@thisbeyon
 
 arbitrary;
 tippy;
+HoverAnimationDirective;
+ContextmenuDirective;
+
+function FolderContextMenu(props: { folderId: string }): JSX.Element {
+	const { parentCleanup } = useContext(menuContext);
+	let closeSettingsModal: undefined | (() => void);
+
+	parentCleanup(() => closeSettingsModal?.());
+
+	return (
+		<>
+			<Item
+				label="Mark as Read"
+				action={() => {
+					// TODO: Implement
+					props.folderId;
+				}}
+			/>
+			<Separator />
+			<Item
+				label="Folder Settings"
+				action={() => {
+					closeSettingsModal = createModal({ content: () => <FolderSettingsModal folderId={props.folderId} /> });
+				}}
+			/>
+			<Item
+				label="Close all Folders"
+				action={() => {
+					setOpenFolders(
+						produce((p) => {
+							for (const id in p) p[id] = false;
+						}),
+					);
+				}}
+			/>
+		</>
+	);
+}
 
 export function FolderIcon(props: { id: string; open: boolean }): JSX.Element {
 	const folder = createMemo(() => guildFolders[props.id]);
@@ -35,8 +80,10 @@ export function FolderIcon(props: { id: string; open: boolean }): JSX.Element {
 	return (
 		<div
 			use:tippy={{ content: tooltipContent, props: { offset: [0, 20], placement: "right" } }}
+			use:HoverAnimationDirective
+			use:ContextmenuDirective={() => <FolderContextMenu folderId={props.id} />}
 			classList={{ "folder-icon": true, open: props.open }}
-			style={{ "--folder-color": "#" + (folder().color?.toString(16) ?? "56e") }}
+			style={{ "--folder-color": numberToHexColor(folder().color ?? defaultFolderColor) }}
 		>
 			<div class="icon-icon" style={{ padding: "14px" }}>
 				<FaRegularFolder size={20} />
@@ -59,7 +106,7 @@ export function Folder(props: { id: string }): JSX.Element {
 	const isOpen = createMemo(() => {
 		if (folder().isGuild) return false;
 		if (draggable.isActiveDraggable) return false;
-		return collapsedFolders[props.id] ?? true;
+		return openFolders[props.id] ?? false;
 	});
 
 	let firstRun = true;
@@ -92,7 +139,7 @@ export function Folder(props: { id: string }): JSX.Element {
 							"folder-header-container": true,
 						}}
 						use:arbitrary={[droppable, draggable]}
-						onClick={() => setCollapsedFolders(props.id, !isOpen())}
+						onClick={() => setOpenFolders(props.id, !isOpen())}
 					>
 						<div class="folder-header">
 							<div class="indicator" />

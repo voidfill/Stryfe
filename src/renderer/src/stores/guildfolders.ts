@@ -1,11 +1,12 @@
 import { createStore, produce } from "solid-js/store";
 import { boolean, fallback, record, string } from "valibot";
 
+import { on } from "@modules/dispatcher";
 import { persistStore } from "@modules/persist";
 
+import { registerDebugStore } from ".";
 import { getGuild, getGuildIds } from "./guilds";
 
-import { on } from "@renderer/modules/dispatcher";
 import { PreloadedUserSettings_GuildFolder } from "discord-protos";
 
 type GuildFolder = {
@@ -17,7 +18,12 @@ type GuildFolder = {
 
 export const [guildFolders, setGuildFolders] = createStore<Record<string, GuildFolder>>({});
 export const [orderedFolderIds, setOrderedFolderIds] = createStore<string[]>([]);
-export const [collapsedFolders, setCollapsedFolders] = persistStore("collapsedFolders", fallback(record(string(), boolean()), {}));
+export const [openFolders, setOpenFolders] = persistStore(
+	"openFolders",
+	fallback(record(string(), boolean()), {}),
+	// since the default is true, we filter out the true values
+	(v) => Object.fromEntries(Object.entries(v).filter(([, v]) => !v)),
+);
 
 export function removeFromFolder(folderId: string, guildId: string): void {
 	if (!guildFolders[folderId]) return;
@@ -104,12 +110,36 @@ on("READY", ({ guilds }) => {
 });
 
 on("GUILD_CREATE", ({ id }) => {
+	// check if became available again
+	for (const folderId of orderedFolderIds) if (guildFolders[folderId].guildIds.includes(id)) return;
+
 	setGuildFolders(id, { guildIds: [id], isGuild: true });
 	setOrderedFolderIds((p) => [id, ...p]);
 });
 
 on("GUILD_DELETE", ({ id, unavailable }) => {
 	if (unavailable) return;
-	setOrderedFolderIds((p) => p.filter((i) => i !== id));
-	setGuildFolders(produce((p) => delete p[id]));
+
+	let foundIn: string | undefined;
+	for (const folderId of orderedFolderIds) {
+		if (guildFolders[folderId].guildIds.includes(id)) {
+			foundIn = folderId;
+			break;
+		}
+	}
+	if (!foundIn) return;
+
+	removeFromFolder(foundIn, id);
+});
+
+registerDebugStore("guildFolders", {
+	addToFolder,
+	intoProto,
+	removeFromFolder,
+	setupGuildFolders,
+	state: {
+		guildFolders,
+		openFolders,
+		orderedFolderIds,
+	},
 });

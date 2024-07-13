@@ -74,7 +74,14 @@ export type parentRect = {
 	y: number;
 };
 
-const menuContext = createContext<context>({ get: () => "", hide: () => {}, is: () => false, off: () => {}, on: () => {}, parentCleanup: () => {} });
+export const menuContext = createContext<context>({
+	get: () => "",
+	hide: () => {},
+	is: () => false,
+	off: () => {},
+	on: () => {},
+	parentCleanup: () => {},
+});
 
 function clamp(num: number, min: number, max: number): number {
 	return num <= min ? min : num >= max ? max : num;
