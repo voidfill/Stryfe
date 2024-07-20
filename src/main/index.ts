@@ -1,5 +1,5 @@
 import { electronApp, is } from "@electron-toolkit/utils";
-import { app, BrowserWindow, ipcMain, safeStorage, session, shell } from "electron";
+import { app, BrowserWindow, ipcMain, nativeTheme, safeStorage, session, shell } from "electron";
 import { join } from "path";
 import os from "os";
 
@@ -124,15 +124,19 @@ if (is.dev) {
 
 app.whenReady().then(() => {
 	electronApp.setAppUserModelId("com.electron");
-	ipcMain.handle("encryption:available", () => safeStorage.isEncryptionAvailable());
-	ipcMain.handle("encryption:encrypt", (_, data: string) => safeStorage.encryptString(data).toString("base64"));
-	ipcMain.handle("encryption:decrypt", (_, data: string) => safeStorage.decryptString(Buffer.from(data, "base64")));
 	ipcMain.handle("is:dev", () => is.dev);
 	ipcMain.handle("useragent:set", (_, ua: string) => {
 		newUserAgent = ua;
 	});
-	ipcMain.handle("os:type", () => osType);
 	ipcMain.handle("cookies:get", () => session.defaultSession.cookies.get({}));
+	ipcMain.handle("os:type", () => osType);
+	ipcMain.handle("theme:set", (_, theme: "light" | "dark" | "system") => {
+		nativeTheme.themeSource = theme;
+	});
+
+	ipcMain.handle("encryption:available", () => safeStorage.isEncryptionAvailable());
+	ipcMain.handle("encryption:encrypt", (_, data: string) => safeStorage.encryptString(data).toString("base64"));
+	ipcMain.handle("encryption:decrypt", (_, data: string) => safeStorage.decryptString(Buffer.from(data, "base64")));
 
 	const bw = createWindow();
 

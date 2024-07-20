@@ -154,21 +154,16 @@ on("READY", ({ user, users }) => {
 		setSelf({ ...user, display_name });
 		if (user.clan?.identity_enabled) setClans(user.id, intoStoredClan(user.clan));
 
-		setUsers(
-			produce((s) => {
-				for (const user of users ?? []) {
-					s[user.id] = intoStoredUser(user);
-				}
-			}),
-		);
+		const u: Record<string, storedUser> = {},
+			c: typeof clans = {};
 
-		setClans(
-			produce((s) => {
-				for (const { clan, id } of users ?? []) {
-					if (clan?.identity_enabled) s[id] = intoStoredClan(clan);
-				}
-			}),
-		);
+		for (const user of users ?? []) {
+			u[user.id] = intoStoredUser(user);
+			if (user.clan?.identity_enabled) c[user.id] = intoStoredClan(user.clan);
+		}
+
+		setUsers(u);
+		setClans(c);
 	});
 });
 

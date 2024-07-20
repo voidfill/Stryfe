@@ -1,4 +1,4 @@
-import { Accessor, batch, createSignal, untrack } from "solid-js";
+import { Accessor, batch, createEffect, createSignal, untrack } from "solid-js";
 import { createStore, produce } from "solid-js/store";
 import { InferOutput } from "valibot";
 
@@ -27,6 +27,10 @@ const [channelOverrides, setChannelOverrides] = createStore<{
 	[channel_id: string]: storedChannelOverride;
 }>({});
 const [userGuildSettingsVersion, setUserGuildSettingsVersion] = createSignal<number>(0);
+
+createEffect(() => {
+	window.ipc.setTheme((["system", "dark", "light"] as const)[preloadedSettings.appearance?.theme ?? 0]);
+});
 
 export { frecencySettings, preloadedSettings, userGuildSettings, channelOverrides, userGuildSettingsVersion };
 
@@ -194,6 +198,23 @@ function ensureGuildSettings(guildId: string): void {
 	});
 }
 
+function ensureAppearanceSettings(): void {
+	untrack(() => {
+		if (!preloadedSettings.appearance) setPreloadedSettings("appearance", { developerMode: false, mobileRedesignDisabled: false, theme: 0 });
+	});
+}
+
+function ensureTextAndImagesSettings(): void {
+	untrack(() => {
+		if (!preloadedSettings.textAndImages)
+			setPreloadedSettings("textAndImages", {
+				dmSpamFilterV2: 0,
+				emojiPickerCollapsedSections: [],
+				stickerPickerCollapsedSections: [],
+			});
+	});
+}
+
 export function setCollapsed(channelId: string, value: boolean): void {
 	ensureChannelOverrides(channelId);
 	setChannelOverrides(channelId, "collapsed", value);
@@ -249,6 +270,16 @@ export function setMobilePush(guildId: string, value: boolean): void {
 export function setHideMutedChannels(guildId: string, value: boolean): void {
 	ensureGuildSettings(guildId);
 	setUserGuildSettings(guildId, "hide_muted_channels", value);
+}
+
+export function setTheme(v: 0 | 1 | 2): void {
+	ensureAppearanceSettings();
+	setPreloadedSettings("appearance", "theme", v);
+}
+
+export function setMessageDisplayCompact(value: boolean): void {
+	ensureTextAndImagesSettings();
+	setPreloadedSettings("textAndImages", "messageDisplayCompact", { value });
 }
 
 registerDebugStore("settings", {

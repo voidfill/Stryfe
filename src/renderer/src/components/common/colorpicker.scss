@@ -18,6 +18,11 @@
 	.input-wrapper svg {
 		position: absolute;
 		pointer-events: none;
+
+		&.picker-icon {
+			top: 2px;
+			right: 2px;
+		}
 	}
 
 	input {
