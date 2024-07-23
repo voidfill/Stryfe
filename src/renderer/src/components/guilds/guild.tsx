@@ -27,6 +27,8 @@ import { Choice, ChoiceGroup, Colors, ContextmenuDirective, Id, Item, Separator,
 import tippy from "@components/common/tooltip";
 import { arbitrary } from "@components/common/usearbitrary";
 
+import { GuildAccessories } from "./accessories";
+
 import { lastSelectedChannels } from "@renderer/signals";
 import { createDraggable } from "@thisbeyond/solid-dnd";
 
@@ -206,16 +208,20 @@ export function GuildWrapper(props: { id: string; parentId?: string }): JSX.Elem
 				<div classList={{ "active-draggable": draggable?.isActiveDraggable, guild: true, selected: isSelected() }}>
 					<div class="indicator" />
 					<div
-						classList={{ acronym: !guild().icon, "icon-container": true }}
+						class="container-wrapper"
 						onClick={() => nav(`/channels/${props.id}/${lastSelectedChannels[props.id] ?? ""}`)}
 						use:arbitrary={[draggable]}
 						use:HoverAnimationDirective
 						use:tippy={{ content: () => guild().name, props: { offset: [0, 20], placement: "right" } }}
 						use:ContextmenuDirective={() => <GuildContextmenu guildId={props.id} />}
 					>
-						<Show when={!draggable.isActiveDraggable}>
-							<GuildIcon id={props.id} />
-						</Show>
+						<GuildAccessories guildId={props.id}>
+							<div classList={{ acronym: !guild().icon, "icon-container": true }}>
+								<Show when={!draggable.isActiveDraggable}>
+									<GuildIcon id={props.id} />
+								</Show>
+							</div>
+						</GuildAccessories>
 					</div>
 				</div>
 			)}

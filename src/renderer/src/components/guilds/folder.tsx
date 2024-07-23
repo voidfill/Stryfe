@@ -14,6 +14,7 @@ import { numberToHexColor } from "../common/colorpicker";
 import { createModal } from "../common/modals";
 import FolderSettingsModal from "../common/modals/foldersettings";
 import { defaultFolderColor } from ".";
+import { FolderAcccessories } from "./accessories";
 import { DroppablePost, DroppablePre } from "./droppables";
 import { GuildWrapper } from "./guild";
 import { GuildIcon } from "./guild";
@@ -84,6 +85,7 @@ export function FolderIcon(props: { id: string; open: boolean }): JSX.Element {
 			use:ContextmenuDirective={() => <FolderContextMenu folderId={props.id} />}
 			classList={{ "folder-icon": true, open: props.open }}
 			style={{ "--folder-color": numberToHexColor(folder().color ?? defaultFolderColor) }}
+			onClick={() => setOpenFolders(props.id, !props.open)}
 		>
 			<div class="icon-icon" style={{ padding: "14px" }}>
 				<FaRegularFolder size={20} />
@@ -119,7 +121,7 @@ export function Folder(props: { id: string }): JSX.Element {
 	return (
 		<>
 			<DroppablePre id={props.id} insideFolder={false} />
-			<div class="guilds-folder">
+			<div classList={{ "folder-open": isOpen(), "guilds-folder": true }}>
 				<Show
 					when={!folder().isGuild}
 					fallback={
@@ -139,12 +141,13 @@ export function Folder(props: { id: string }): JSX.Element {
 							"folder-header-container": true,
 						}}
 						use:arbitrary={[droppable, draggable]}
-						onClick={() => setOpenFolders(props.id, !isOpen())}
 					>
 						<div class="folder-header">
 							<div class="indicator" />
 							<Show when={!draggable.isActiveDraggable}>
-								<FolderIcon open={isOpen()} id={props.id} />
+								<FolderAcccessories folderId={props.id} disabled={isOpen()}>
+									<FolderIcon open={isOpen()} id={props.id} />
+								</FolderAcccessories>
 							</Show>
 						</div>
 					</div>
