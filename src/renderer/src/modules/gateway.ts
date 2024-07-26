@@ -46,7 +46,7 @@ const enum ConnectionState {
 const HELLO_TIMEOUT = 20_000,
 	HEARTBEAT_MAX_RESUME_THRESHOLD = 60 * 3 * 1000,
 	MAX_RETRIES = 20,
-	capabilities = 16381,
+	capabilities = 30717,
 	guildSubscriptionUpdateMaxSize = 15360;
 
 type guildSubscription = {

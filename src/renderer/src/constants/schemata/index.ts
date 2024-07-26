@@ -30,7 +30,7 @@ import {
 } from "./message";
 import { PRESENCE_UPDATE } from "./presence";
 import { CHANNEL_PINS_ACK, GUILD_FEATURE_ACK, MESSAGE_ACK, RECENT_MENTION_DELETE, USER_NON_CHANNEL_ACK } from "./readstate";
-import { PASSIVE_UPDATE_V1, READY, READY_SUPPLEMENTAL, RESUMED, USER_UPDATE } from "./ready";
+import { PASSIVE_UPDATE_V1, PASSIVE_UPDATE_V2, READY, READY_SUPPLEMENTAL, RESUMED, USER_UPDATE } from "./ready";
 import connectedAccount from "./ready/connectedaccount";
 import { SESSIONS_REPLACE } from "./ready/session";
 import { RELATIONSHIP_ADD, RELATIONSHIP_REMOVE } from "./relationship";
@@ -83,6 +83,7 @@ export const dispatches = {
 	MESSAGE_REACTION_REMOVE_EMOJI,
 	MESSAGE_UPDATE,
 	PASSIVE_UPDATE_V1,
+	PASSIVE_UPDATE_V2,
 	PRESENCE_UPDATE,
 	READY,
 	READY_SUPPLEMENTAL,

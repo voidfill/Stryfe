@@ -6,7 +6,7 @@ export const status = picklist(["online", "idle", "dnd", "offline", "invisible",
 
 export const clan = union([
 	object({
-		identity_enabled: literal(false),
+		identity_enabled: nullable(literal(false)),
 	}),
 	object({
 		badge: string(),

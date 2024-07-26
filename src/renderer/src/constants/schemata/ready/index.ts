@@ -1,4 +1,4 @@
-import { any, array, boolean, nullable, number, object, omit, optional, string, tuple, union, unknown } from "valibot";
+import { any, array, boolean, nullable, number, object, omit, optional, strictObject, string, tuple, union, unknown } from "valibot";
 
 import { private_channel } from "../channels";
 import { status, user, user_self } from "../common";
@@ -107,6 +107,7 @@ export const READY_SUPPLEMENTAL = object({
 	),
 });
 
+// not received with current capabilities
 export const PASSIVE_UPDATE_V1 = object({
 	channels: optional(
 		nullable(
@@ -122,6 +123,14 @@ export const PASSIVE_UPDATE_V1 = object({
 	guild_id: string(),
 	members: optional(nullable(array(guild_member))),
 	voice_states: optional(nullable(array(voice_state))),
+});
+
+export const PASSIVE_UPDATE_V2 = strictObject({
+	guild_id: string(),
+	removed_voice_states: optional(nullable(array(string()))),
+	updated_channels: PASSIVE_UPDATE_V1.entries.channels,
+	updated_members: PASSIVE_UPDATE_V1.entries.members,
+	updated_voice_states: PASSIVE_UPDATE_V1.entries.voice_states,
 });
 
 export const RESUMED = object({

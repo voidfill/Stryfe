@@ -461,9 +461,9 @@ on("MESSAGE_CREATE", ({ channel_id, id }) => {
 	});
 });
 
-on("PASSIVE_UPDATE_V1", ({ channels }) => {
+on("PASSIVE_UPDATE_V2", ({ updated_channels }) => {
 	batch(() => {
-		for (const channel of channels ?? []) {
+		for (const channel of updated_channels ?? []) {
 			lastMessageIds.set(channel.id, channel.last_message_id || channel.id);
 			if (channel.last_pin_timestamp) lastPinTimestamps.set(channel.id, channel.last_pin_timestamp);
 		}

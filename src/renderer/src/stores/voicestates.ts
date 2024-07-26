@@ -145,11 +145,35 @@ on("GUILD_DELETE", ({ id, unavailable }) => {
 	});
 });
 
-on("PASSIVE_UPDATE_V1", ({ voice_states, guild_id }) => {
-	if (!voice_states?.length) return;
+on("PASSIVE_UPDATE_V2", ({ updated_voice_states, guild_id, removed_voice_states }) => {
+	if (removed_voice_states?.length && perGuild[guild_id]) {
+		batch(() => {
+			for (const userId of removed_voice_states) {
+				const sessionId = perGuild[guild_id][userId];
+				if (!sessionId) continue;
+				const channelId = perSessionId[sessionId]?.channel_id;
+				if (!channelId) continue;
+
+				setPerGuild(
+					guild_id,
+					produce((prev) => {
+						delete prev[userId];
+					}),
+				);
+				setPerChannel(
+					channelId,
+					produce((prev) => {
+						delete prev[userId];
+					}),
+				);
+			}
+		});
+	}
+
+	if (!updated_voice_states?.length) return;
 	if (!perGuild[guild_id]) setPerGuild(guild_id, {});
 	batch(() => {
-		for (const vs of voice_states) {
+		for (const vs of updated_voice_states) {
 			const s = intoStored(vs);
 			s.guild_id = guild_id;
 
