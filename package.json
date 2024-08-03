@@ -78,7 +78,8 @@
 	},
 	"pnpm": {
 		"patchedDependencies": {
-			"tippy.js@6.3.7": "patches/tippy.js@6.3.7.patch"
+			"tippy.js@6.3.7": "patches/tippy.js@6.3.7.patch",
+			"zlib-sync@0.1.9": "patches/zlib-sync@0.1.9.patch"
 		}
 	}
 }

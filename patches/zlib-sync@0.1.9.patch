@@ -1,0 +1,12 @@
+diff --git a/src/zlib_sync.cc b/src/zlib_sync.cc
+index d335c3518d80cb0af4020392c916f76cac88aca1..9e86e540a7c406320a9853879bc1e41e3265a7c6 100644
+--- a/src/zlib_sync.cc
++++ b/src/zlib_sync.cc
+@@ -1,3 +1,7 @@
++#ifdef _WIN32
++#define NOMINMAX
++#endif
++
+ #include <algorithm>
+ #include <nan.h>
+ #include <node.h>
