@@ -1,6 +1,8 @@
 import { createEffect, createMemo, For, JSX, Show, useContext } from "solid-js";
 import { produce } from "solid-js/store";
 
+import { defaultFolderColor } from "@constants/guilds";
+
 import { guildFolders, openFolders, setOpenFolders } from "@stores/guildfolders";
 import { getGuild } from "@stores/guilds";
 
@@ -13,11 +15,9 @@ import { FaRegularFolder } from "solid-icons/fa";
 import { numberToHexColor } from "../common/colorpicker";
 import { createModal } from "../common/modals";
 import FolderSettingsModal from "../common/modals/foldersettings";
-import { defaultFolderColor } from ".";
 import { FolderAcccessories } from "./accessories";
 import { DroppablePost, DroppablePre } from "./droppables";
-import { GuildWrapper } from "./guild";
-import { GuildIcon } from "./guild";
+import { GuildIcon, GuildWrapper } from "./guild";
 
 import { createDraggable, createDroppable, useDragDropContext } from "@thisbeyond/solid-dnd";
 

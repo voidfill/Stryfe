@@ -32,8 +32,6 @@ import {
 	useDragDropContext,
 } from "@thisbeyond/solid-dnd";
 
-export const defaultFolderColor = 5267680;
-
 arbitrary;
 
 type DragDropContext = ReturnType<typeof useDragDropContext> extends infer R | null ? R : never;

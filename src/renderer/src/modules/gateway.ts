@@ -272,6 +272,7 @@ export default class GatewaySocket {
 			ack: true,
 			beat: setInterval(() => {
 				if (!this.#heart.ack) return void this.#socket?.close(SocketGatewayCloseCodes.UNKNOWN_ERROR, "Heartbeat timeout");
+				this.#heart.ack = false;
 				this.#send(OPCodes.HEARTBEAT, this.#seq);
 			}, interval),
 			interval,

@@ -1,9 +1,10 @@
 import { createMemo, createSignal, JSX } from "solid-js";
 
+import { defaultFolderColor } from "@constants/guilds";
+
 import { guildFolders, setGuildFolders } from "@stores/guildfolders";
 
 import ColorPicker, { hexColorToNumber, numberToHexColor } from "@components/common/colorpicker";
-import { defaultFolderColor } from "@components/guilds";
 
 import { GenericModal, ModalBody, ModalFooter, ModalHeader, useModalContext } from ".";
 
