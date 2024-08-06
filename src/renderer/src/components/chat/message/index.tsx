@@ -22,9 +22,9 @@ import Divider from "./divider";
 import Embed from "./embed";
 import Reply from "./reply";
 import Sticker from "./sticker";
+import messagecss from "./style.css@sheet";
 
-import "./style.scss";
-
+import { ShadowCss } from "@renderer/components/common/nocascade";
 import { showAvatarsInCompact } from "@renderer/signals";
 
 NoAnimationDirective;
@@ -61,100 +61,102 @@ export default function Message(props: { id: string; prevId?: string }): JSX.Ele
 	const [hoveredOnce, setHoveredOnce] = createSignal(false);
 
 	return (
-		<Show when={msg()}>
-			{(msg): JSX.Element => (
-				<>
-					<Divider isNextDay={isNextDay()} date={date()} id={props.id} prevId={props.prevId} />
-					<div
-						classList={{
-							"is-group-start": isGroupStart(),
-							"is-mentioned": false, // TODO
-							[`message-author-${msg().author_id}`]: true,
-							message: true,
-							[`message-type-${msg().type}`]: true,
-							"message-compact": isCompact(),
-							"message-cozy": !isCompact(),
-							[`message-state-${state()}`]: true,
-						}}
-						use:HoverAnimationDirective
-						use:ContextmenuDirective={() => (
-							<>
-								<ViewRaw Content={() => msg().content} Message={msg} />
-							</>
-						)}
-						onMouseEnter={() => setHoveredOnce(true)}
-					>
-						{((): JSX.Element => {
-							// this is an iife because we need the context of hoveranimationdirective for md parsing
-							// TODO: maybe maybe find a better way? doesnt matter too much all things considered
-							const md = createMemo(() => parse(content(), { allowHeading: true, inline: true, outputData: {} }));
-
-							return (
+		<ShadowCss css={messagecss}>
+			<Show when={msg()}>
+				{(msg): JSX.Element => (
+					<>
+						<Divider isNextDay={isNextDay()} date={date()} id={props.id} prevId={props.prevId} />
+						<div
+							classList={{
+								"is-group-start": isGroupStart(),
+								"is-mentioned": false, // TODO
+								[`message-author-${msg().author_id}`]: true,
+								message: true,
+								[`message-type-${msg().type}`]: true,
+								"message-compact": isCompact(),
+								"message-cozy": !isCompact(),
+								[`message-state-${state()}`]: true,
+							}}
+							use:HoverAnimationDirective
+							use:ContextmenuDirective={() => (
 								<>
-									<Switch fallback={`This messagetype hasnt been implemented yet. type=${msg().type}`}>
-										<Match when={msg().type === MessageType.DEFAULT || msg().type === MessageType.REPLY}>
-											<Show when={msg().type === MessageType.REPLY}>
-												<Reply guildId={location().guildId} id={msg().message_reference!} />
-											</Show>
-											<div class="message-container">
-												<div class="message-aside">
-													<Show
-														when={!isCompact() && isGroupStart()}
-														fallback={<span class="message-date">{date().toLocaleDateString()}</span>}
-													>
-														<Avatar
-															size={32}
-															userId={msg().author_id}
-															guildId={location().guildId === "@me" ? undefined : location().guildId}
-															showStatus={ShowStatus.NEVER}
-														/>
-													</Show>
-												</div>
-												<div class="message-main">
-													<Show
-														when={!isCompact()}
-														fallback={
-															<>
-																<Show when={showAvatarsInCompact()}>
-																	<Avatar
-																		size={16}
-																		userId={msg().author_id}
-																		guildId={location().guildId === "@me" ? undefined : location().guildId}
-																		showStatus={ShowStatus.NEVER}
-																	/>
-																</Show>
-																<UserName guildId={location().guildId} id={msg().author_id} color roleIcon clan />
-															</>
-														}
-													>
-														<Show when={isGroupStart()}>
-															<div class="message-header">
-																<UserName guildId={location().guildId} id={msg().author_id} color roleIcon clan />
-																{date().toLocaleTimeString()}
-															</div>
+									<ViewRaw Content={() => msg().content} Message={msg} />
+								</>
+							)}
+							onMouseEnter={() => setHoveredOnce(true)}
+						>
+							{((): JSX.Element => {
+								// this is an iife because we need the context of hoveranimationdirective for md parsing
+								// TODO: maybe maybe find a better way? doesnt matter too much all things considered
+								const md = createMemo(() => parse(content(), { allowHeading: true, inline: true, outputData: {} }));
+
+								return (
+									<>
+										<Switch fallback={`This messagetype hasnt been implemented yet. type=${msg().type}`}>
+											<Match when={msg().type === MessageType.DEFAULT || msg().type === MessageType.REPLY}>
+												<Show when={msg().type === MessageType.REPLY}>
+													<Reply guildId={location().guildId} id={msg().message_reference!} />
+												</Show>
+												<div class="message-container">
+													<div class="message-aside">
+														<Show
+															when={!isCompact() && isGroupStart()}
+															fallback={<span class="message-date">{date().toLocaleDateString()}</span>}
+														>
+															<Avatar
+																size={32}
+																userId={msg().author_id}
+																guildId={location().guildId === "@me" ? undefined : location().guildId}
+																showStatus={ShowStatus.NEVER}
+															/>
 														</Show>
-													</Show>
-													<span class="message-content">{md().element}</span>
-													<div classList={{ "message-accessories": true, [`message-accesories-${props.id}`]: true }}>
-														<For each={msg().attachments ?? []}>{Attachment}</For>
-														<For each={embeds() ?? []}>
-															{(e): JSX.Element => <Embed embed={e} spoilers={md().outputData.spoilers ?? {}} />}
-														</For>
-														<For each={msg().sticker_items ?? []}>{Sticker}</For>
+													</div>
+													<div class="message-main">
+														<Show
+															when={!isCompact()}
+															fallback={
+																<>
+																	<Show when={showAvatarsInCompact()}>
+																		<Avatar
+																			size={16}
+																			userId={msg().author_id}
+																			guildId={location().guildId === "@me" ? undefined : location().guildId}
+																			showStatus={ShowStatus.NEVER}
+																		/>
+																	</Show>
+																	<UserName guildId={location().guildId} id={msg().author_id} color roleIcon clan />
+																</>
+															}
+														>
+															<Show when={isGroupStart()}>
+																<div class="message-header">
+																	<UserName guildId={location().guildId} id={msg().author_id} color roleIcon clan />
+																	{date().toLocaleTimeString()}
+																</div>
+															</Show>
+														</Show>
+														<span class="message-content">{md().element}</span>
+														<div classList={{ "message-accessories": true, [`message-accesories-${props.id}`]: true }}>
+															<For each={msg().attachments ?? []}>{Attachment}</For>
+															<For each={embeds() ?? []}>
+																{(e): JSX.Element => <Embed embed={e} spoilers={md().outputData.spoilers ?? {}} />}
+															</For>
+															<For each={msg().sticker_items ?? []}>{Sticker}</For>
+														</div>
 													</div>
 												</div>
-											</div>
-										</Match>
-									</Switch>
-									<Show when={hoveredOnce()}>
-										<MessageButtons messageId={props.id} />
-									</Show>
-								</>
-							);
-						})()}
-					</div>
-				</>
-			)}
-		</Show>
+											</Match>
+										</Switch>
+										<Show when={hoveredOnce()}>
+											<MessageButtons messageId={props.id} />
+										</Show>
+									</>
+								);
+							})()}
+						</div>
+					</>
+				)}
+			</Show>
+		</ShadowCss>
 	);
 }

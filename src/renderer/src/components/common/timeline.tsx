@@ -2,7 +2,8 @@ import { createEffect, createMemo, FlowProps, For, JSX, mergeProps, onCleanup, o
 import { createStore } from "solid-js/store";
 import { createToken, createTokenizer, resolveTokens } from "@solid-primitives/jsx-tokenizer";
 
-import "./timeline.scss";
+import { ShadowCss } from "./shadowcss";
+import timelinecss from "./timeline.css@sheet";
 
 type tokenData = {
 	class?: string;
@@ -36,7 +37,7 @@ export function Timeline(props: FlowProps<{ bulletSize?: number; lineWidth?: num
 	const curGradientHeight = createMemo(() => aggregateTo(props.state) + ((sizes[props.state] ?? 0) + p.bulletSize) / 2);
 
 	return (
-		<>
+		<ShadowCss css={timelinecss}>
 			<div class="timeline" style={{ "--tl-bullet-size": `${p.bulletSize}px`, "--tl-grad-at": `${curGradientHeight()}px` }}>
 				<svg class="timeline-line" width={p.bulletSize} height={totalHeight()}>
 					<mask id={id} width={p.bulletSize} height={totalHeight()}>
@@ -99,7 +100,7 @@ export function Timeline(props: FlowProps<{ bulletSize?: number; lineWidth?: num
 					</For>
 				</div>
 			</div>
-		</>
+		</ShadowCss>
 	);
 }
 

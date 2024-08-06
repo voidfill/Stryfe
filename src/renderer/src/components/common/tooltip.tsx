@@ -3,7 +3,7 @@ import { Accessor, createEffect, createSignal, JSX, onCleanup, Show, untrack } f
 import "tippy.js/dist/svg-arrow.css";
 import "tippy.js/animations/scale.css";
 import "tippy.js/animations/scale-subtle.css";
-import "./tooltip.scss";
+import "./tooltip.css";
 
 import makeTippy, { hideAll, Props, roundArrow } from "tippy.js";
 import makeHeadlessTippy from "tippy.js/headless";

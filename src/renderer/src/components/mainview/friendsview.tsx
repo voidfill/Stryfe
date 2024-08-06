@@ -17,9 +17,9 @@ import { HoverAnimationDirective } from "../common/animationcontext";
 import Avatar, { ShowStatus } from "../common/avatar";
 import { Colors, ContextmenuDirective, Item } from "../common/contextmenu";
 import CustomStatus from "../common/customstatus";
+import { ShadowCss } from "../common/shadowcss";
 import tippy from "../common/tooltip";
-
-import "./friendsview.scss";
+import friendsviewcss from "./friendsview.css@sheet";
 
 import { friendsTab, FriendsTabs } from "@renderer/signals";
 
@@ -229,10 +229,12 @@ function Friends(): JSX.Element {
 
 export default function FriendsView(): JSX.Element {
 	return (
-		<div class="friends-view">
-			<Show when={friendsTab() !== FriendsTabs.ADD} fallback={<AddFriend />}>
-				<Friends />
-			</Show>
-		</div>
+		<ShadowCss css={friendsviewcss}>
+			<div class="friends-view">
+				<Show when={friendsTab() !== FriendsTabs.ADD} fallback={<AddFriend />}>
+					<Friends />
+				</Show>
+			</div>
+		</ShadowCss>
 	);
 }

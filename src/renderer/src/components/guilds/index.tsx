@@ -14,11 +14,11 @@ import {
 import { arbitrary } from "@components/common/usearbitrary";
 import { OcStack3 } from "solid-icons/oc";
 
+import { ShadowCss } from "../common/shadowcss";
 import { DroppablePost } from "./droppables";
 import { Folder, FolderIcon } from "./folder";
 import { GuildIcon } from "./guild";
-
-import "./style.scss";
+import guildscss from "./style.css@sheet";
 
 import { lastSelectedChannels } from "@renderer/signals";
 import {
@@ -194,37 +194,41 @@ export default function GuildsList(): JSX.Element {
 	const activeDragId = (): string | undefined => state?.active.draggableId?.toString() ?? undefined;
 
 	return (
-		<div ref={scrollRef} class="guilds-list">
-			<a class="home-button" href={`/channels/@me/${lastSelectedChannels["@me"] ?? ""}`}>
-				<div class="indicator" />
-				<OcStack3 size={40} />
-			</a>
-			<div class="divider" />
-			<DragDropProvider collisionDetector={collisionDetector} onDragStart={onDragStart} onDragEnd={onDragEnd}>
-				{((): JSX.Element => {
-					[state, actions] = useDragDropContext()!;
-					return <></>;
-				})()}
-				<DragDropSensors />
-				<For each={orderedFolderIds}>{(id) => <Folder id={id} />}</For>
-				<Show when={orderedFolderIds[orderedFolderIds.length - 1]}>
-					{(id): JSX.Element => <DroppablePost id={id()} insideFolder={false} />}
-				</Show>
-				<DragOverlay>
-					<div class="drag-overlay">
-						<Show when={state.active.draggable?.data.type === "guild"}>
-							<GuildIcon id={activeDragId()!} />
-						</Show>
-						<Show when={state.active.draggable?.data.type === "folder"}>
-							{((): JSX.Element => {
-								const open = createMemo(() => openFolders[activeDragId()!] ?? false);
+		<ShadowCss css={guildscss}>
+			<div ref={scrollRef} class="guilds-list">
+				<a class="home-button" href={`/channels/@me/${lastSelectedChannels["@me"] ?? ""}`}>
+					<div class="indicator" />
+					<OcStack3 size={40} />
+				</a>
+				<div class="divider" />
+				<DragDropProvider collisionDetector={collisionDetector} onDragStart={onDragStart} onDragEnd={onDragEnd}>
+					{((): JSX.Element => {
+						[state, actions] = useDragDropContext()!;
+						return <></>;
+					})()}
+					<DragDropSensors />
+					<For each={orderedFolderIds}>{(id) => <Folder id={id} />}</For>
+					<Show when={orderedFolderIds[orderedFolderIds.length - 1]}>
+						{(id): JSX.Element => <DroppablePost id={id()} insideFolder={false} />}
+					</Show>
+					<DragOverlay>
+						<ShadowCss css={guildscss}>
+							<div class="drag-overlay">
+								<Show when={state.active.draggable?.data.type === "guild"}>
+									<GuildIcon id={activeDragId()!} />
+								</Show>
+								<Show when={state.active.draggable?.data.type === "folder"}>
+									{((): JSX.Element => {
+										const open = createMemo(() => openFolders[activeDragId()!] ?? false);
 
-								return <FolderIcon id={activeDragId()!} open={open()} />;
-							})()}
-						</Show>
-					</div>
-				</DragOverlay>
-			</DragDropProvider>
-		</div>
+										return <FolderIcon id={activeDragId()!} open={open()} />;
+									})()}
+								</Show>
+							</div>
+						</ShadowCss>
+					</DragOverlay>
+				</DragDropProvider>
+			</div>
+		</ShadowCss>
 	);
 }

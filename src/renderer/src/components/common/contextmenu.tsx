@@ -26,10 +26,10 @@ import { addLayer, removeLayer } from "@modules/layers";
 import { FaSolidChevronRight } from "solid-icons/fa";
 import { FiCode } from "solid-icons/fi";
 
+import contextmenucss from "./contextmenu.css@sheet";
 import { createModal } from "./modals";
 import ViewRawModal from "./modals/viewraw";
-
-import "./contextmenu.scss";
+import { ShadowCss } from "./shadowcss";
 
 export enum Colors {
 	PRIMARY = "primary",
@@ -645,20 +645,22 @@ export function createContextmenu(
 					parentCleanup: (to) => void toCleanup.push(to),
 				}}
 			>
-				<Wrapper
-					children={
-						<>
-							<Show when={searchable}>
-								<Search for={id} />
-							</Show>
-							{menu()}
-						</>
-					}
-					for={id}
-					parentRect={parentRect}
-					ref={sr}
-					toplevel={true}
-				/>
+				<ShadowCss css={contextmenucss}>
+					<Wrapper
+						children={
+							<>
+								<Show when={searchable}>
+									<Search for={id} />
+								</Show>
+								{menu()}
+							</>
+						}
+						for={id}
+						parentRect={parentRect}
+						ref={sr}
+						toplevel={true}
+					/>
+				</ShadowCss>
 			</menuContext.Provider>
 		));
 	});
@@ -717,29 +719,32 @@ export function ContextmenuDirective(
 					parentCleanup: (to) => void toCleanup.push(to),
 				}}
 			>
-				<Wrapper
-					children={
-						<>
-							<Show when={value().searchable}>
-								<Search for={id} />
-							</Show>
-							{value().menu()}
-						</>
-					}
-					for={id}
-					parentRect={value().parentRect ?? mouseRect}
-					ref={sr}
-					toplevel={true}
-				/>
+				<ShadowCss css={contextmenucss}>
+					<Wrapper
+						children={
+							<>
+								<Show when={value().searchable}>
+									<Search for={id} />
+								</Show>
+								{value().menu()}
+							</>
+						}
+						for={id}
+						parentRect={value().parentRect ?? mouseRect}
+						ref={sr}
+						toplevel={true}
+					/>
+				</ShadowCss>
 			</menuContext.Provider>
 		));
 	}
 
 	function clickOutsideHandler(e: MouseEvent): void {
+		const target = e.composedPath()[0] as Element;
 		const menu = r();
 		if (layerId === undefined || !menu) return;
-		if (menu === e.target) return e.stopPropagation(), e.preventDefault();
-		if (!menu.contains(e.target as Node)) hide();
+		if (menu === target) return e.stopPropagation(), e.preventDefault();
+		if (!menu.contains(target as Node)) hide();
 	}
 
 	function kbNavHandler(e: KeyboardEvent): void {

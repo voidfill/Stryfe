@@ -6,12 +6,13 @@ const Login = lazy(() => import("@components/login"));
 
 import { FaSolidWindowMaximize, FaSolidWindowMinimize, FaSolidXmark } from "solid-icons/fa";
 
+import appcss from "./app.css@sheet";
 import { FocusAnimationDirective } from "./components/common/animationcontext";
+import { ShadowCss } from "./components/common/shadowcss";
 import Layers from "./modules/layers";
 import { getToken } from "./modules/token";
 import { setWindowTitle } from "./signals";
 
-import "./app.scss";
 import "highlight.js/styles/github-dark.min.css";
 
 FocusAnimationDirective;
@@ -44,52 +45,54 @@ export default function App(): JSX.Element {
 	});
 
 	return (
-		<div class={`app platform-${window.os_type.toLowerCase()}`} use:FocusAnimationDirective>
-			<Show when={window.os_type.toLowerCase() === "windows"}>
-				<div class="titlebar">
-					<span class="titlebar-title">Stryfe</span>
-					<div class="titlebar-buttons">
-						<div class="titlebar-button minimize" onClick={(): void => void window.ipc.minimize()}>
-							<FaSolidWindowMinimize size={14} />
-						</div>
-						<div class="titlebar-button maximize" onClick={(): void => void window.ipc.maximize()}>
-							<FaSolidWindowMaximize size={14} />
-						</div>
-						<div class="titlebar-button close" onClick={(): void => void window.ipc.close()}>
-							<FaSolidXmark size={18} />
+		<ShadowCss css={appcss}>
+			<div class={`app platform-${window.os_type.toLowerCase()}`} use:FocusAnimationDirective>
+				<Show when={window.os_type.toLowerCase() === "windows"}>
+					<div class="titlebar">
+						<span class="titlebar-title">Stryfe</span>
+						<div class="titlebar-buttons">
+							<div class="titlebar-button minimize" onClick={(): void => void window.ipc.minimize()}>
+								<FaSolidWindowMinimize size={14} />
+							</div>
+							<div class="titlebar-button maximize" onClick={(): void => void window.ipc.maximize()}>
+								<FaSolidWindowMaximize size={14} />
+							</div>
+							<div class="titlebar-button close" onClick={(): void => void window.ipc.close()}>
+								<FaSolidXmark size={18} />
+							</div>
 						</div>
 					</div>
-				</div>
-			</Show>
-			<Show
-				when={canEncrypt()}
-				fallback={
-					<div class="encryption-disabled">
-						<h1>Encryption is not available</h1>
-						<p>Please make sure you have an os keyring set up.</p>
+				</Show>
+				<Show
+					when={canEncrypt()}
+					fallback={
+						<div class="encryption-disabled">
+							<h1>Encryption is not available</h1>
+							<p>Please make sure you have an os keyring set up.</p>
+						</div>
+					}
+				>
+					<Layers />
+					<div class="base">
+						<Show when={f()}>
+							<HashRouter>
+								<Route path="/" component={(): JSX.Element => <Navigate href={t()?.length ? "/channels/@me" : "/login"} />} />
+								<Route path="/login" component={Login} />
+								<Route
+									path="/channels/:guildId/:channelId?/:messageId?"
+									component={MainView}
+									matchFilters={{
+										channelId: (id) => /^\d+$/.test(id),
+										guildId: (id) => id === "@me" || /^\d+$/.test(id),
+										messageId: (id) => /^\d+$/.test(id),
+									}}
+								/>
+								<Route path={"/*path"} component={NotFoundPage} />
+							</HashRouter>
+						</Show>
 					</div>
-				}
-			>
-				<Layers />
-				<div class="base">
-					<Show when={f()}>
-						<HashRouter>
-							<Route path="/" component={(): JSX.Element => <Navigate href={t()?.length ? "/channels/@me" : "/login"} />} />
-							<Route path="/login" component={Login} />
-							<Route
-								path="/channels/:guildId/:channelId?/:messageId?"
-								component={MainView}
-								matchFilters={{
-									channelId: (id) => /^\d+$/.test(id),
-									guildId: (id) => id === "@me" || /^\d+$/.test(id),
-									messageId: (id) => /^\d+$/.test(id),
-								}}
-							/>
-							<Route path={"/*path"} component={NotFoundPage} />
-						</HashRouter>
-					</Show>
-				</div>
-			</Show>
-		</div>
+				</Show>
+			</div>
+		</ShadowCss>
 	);
 }

@@ -1,7 +1,7 @@
 import { createEffect, createMemo, createSignal, getOwner, JSX, onCleanup, ParentProps, runWithOwner, sharedConfig } from "solid-js";
 import { Dynamic, insert } from "solid-js/web";
 
-export const globalSheet = new CSSStyleSheet();
+import globalSheet from "@renderer/global.css@sheet";
 document.adoptedStyleSheets.push(globalSheet);
 
 // https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow#elements_you_can_attach_a_shadow_to
@@ -46,8 +46,19 @@ type css = string | CSSStyleSheet;
  * @param {Object} props The props for the component.
  * @param {string | CSSStyleSheet} props.css The CSS to apply inside the shadow root.
  * @param {validShadowHosts} props.as The tag name of the shadow host. Defaults to "div".
+ * @param {string} props.class The class name to apply to the shadow host.
+ * @param {Record<string, boolean>} props.classList The class names to apply to the shadow host.
+ * @param {boolean} props.noDisplayContents Whether to set the default display style to "contents".
  */
-export function NoCascade(props: ParentProps<{ as?: validShadowHosts; css?: css | css[] }>): JSX.Element {
+export function ShadowCss(
+	props: ParentProps<{
+		as?: validShadowHosts;
+		class?: string;
+		classList?: { [k: string]: boolean | undefined };
+		css?: css | css[];
+		noDisplayContents?: boolean;
+	}>,
+): JSX.Element {
 	// honestly i dont really understand whats going on here, i just tried my best to copy solidjs Portal implementation
 	const owner = getOwner();
 	const marker = document.createTextNode("");
@@ -83,5 +94,14 @@ export function NoCascade(props: ParentProps<{ as?: validShadowHosts; css?: css 
 		},
 	);
 
-	return <Dynamic ref={setRef} component={props.as ?? "div"} attr:no-cascade="" style={{ display: "contents" }} />;
+	return (
+		<Dynamic
+			ref={setRef}
+			component={props.as ?? "div"}
+			attr:shadow-css=""
+			style={props.noDisplayContents ? undefined : { display: "contents" }}
+			class={props.class}
+			classList={props.classList}
+		/>
+	);
 }

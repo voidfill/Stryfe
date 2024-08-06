@@ -1,0 +1,40 @@
+:root,
+:host {
+	--background-primary: #73648a;
+	--background-secondary: #453750;
+	--background-tertiary: #292030;
+	--background-quaternary: #0c0910;
+	--accent-primary: #9882ac;
+	--accent-secondary: #a393bf;
+	--text-normal: white;
+	--text-muted: #a0a0a0;
+
+	--scrollbar-track: hsl(from --background-primary, h s calc(l - 20));
+	--scrollbar-thumb: hsl(from --background-primary, h s calc(l + 20));
+}
+
+::placeholder,
+body,
+button,
+input,
+select,
+textarea {
+	text-rendering: optimizeLegibility;
+}
+
+button,
+a:-webkit-any-link {
+	all: unset;
+}
+
+body {
+	background-color: var(--background-quaternary);
+	margin: 0;
+	user-select: none;
+	-webkit-user-select: none;
+	overflow: hidden;
+
+	#root {
+		background-color: var(--background-quaternary);
+	}
+}

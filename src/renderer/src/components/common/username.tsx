@@ -7,9 +7,9 @@ import { getHighestColoredForMember, getHighestIconForMember, getRole } from "@s
 import { getUser } from "@stores/users";
 
 import ClanBadge from "./clanbadge";
+import { ShadowCss } from "./shadowcss";
 import tippy from "./tooltip";
-
-import "./username.scss";
+import usernamecss from "./username.css@sheet";
 
 tippy;
 
@@ -44,7 +44,7 @@ export default function UserName(props: {
 	});
 
 	return (
-		<span classList={{ "no-interact": props.noInteract, username: true }}>
+		<ShadowCss css={usernamecss} as="span" classList={{ "no-interact": props.noInteract, username: true }} noDisplayContents>
 			<span style={{ color: color() }} class="username-name">
 				<Show when={name()} fallback={"unknown"} keyed>
 					{(n) => n}
@@ -62,6 +62,6 @@ export default function UserName(props: {
 			<Show when={props.clan}>
 				<ClanBadge userId={props.id} clickable={!props.noInteract} />
 			</Show>
-		</span>
+		</ShadowCss>
 	);
 }

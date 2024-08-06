@@ -13,7 +13,7 @@ let layerId = 0;
 
 export default function Layers(): JSX.Element {
 	return (
-		<Portal>
+		<Portal useShadow>
 			<For each={layers}>{([lid, Layer]): JSX.Element => <Layer close={/* @once */ (): void => removeLayer(lid)} />}</For>
 		</Portal>
 	);

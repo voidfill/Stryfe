@@ -8,10 +8,9 @@ import { isTypingInChannel } from "@stores/typing";
 import { getAvatarUrl } from "@stores/users";
 
 import { useAnimationContext } from "./animationcontext";
+import avatarcss from "./avatar.css@sheet";
+import { ShadowCss } from "./shadowcss";
 import tippy from "./tooltip";
-
-import "./avatar.scss";
-
 tippy;
 
 const theta = (Math.PI * 25) / 100;
@@ -95,32 +94,34 @@ export default function Avatar(props: avatarProps): JSX.Element {
 	const streaming = createMemo(() => "userId" in props && isStreaming(props.userId));
 
 	return (
-		<svg class="avatar" width={props.size} height={props.size}>
-			<Show
-				when={"userId" in props}
-				fallback={
-					<foreignObject height={props.size} width={props.size}>
+		<ShadowCss css={avatarcss}>
+			<svg class="avatar" width={props.size} height={props.size}>
+				<Show
+					when={"userId" in props}
+					fallback={
+						<foreignObject height={props.size} width={props.size}>
+							<img height={props.size} width={props.size} src={avatarUrl()} />
+						</foreignObject>
+					}
+				>
+					<Mask size={props.size} maskId={maskId} showStatus={shouldShowStatus()} isTyping={isTyping()} />
+					<foreignObject height={props.size} width={props.size} style={{ mask: `url(#${maskId})` }}>
 						<img height={props.size} width={props.size} src={avatarUrl()} />
 					</foreignObject>
-				}
-			>
-				<Mask size={props.size} maskId={maskId} showStatus={shouldShowStatus()} isTyping={isTyping()} />
-				<foreignObject height={props.size} width={props.size} style={{ mask: `url(#${maskId})` }}>
-					<img height={props.size} width={props.size} src={avatarUrl()} />
-				</foreignObject>
-				<Show when={shouldShowStatus()}>
-					<Status
-						userId={("userId" in props && props.userId) || "this wont happen so its ok"}
-						isStreaming={streaming()}
-						isTyping={isTyping()}
-						size={props.size / 3.2}
-						status={status()}
-						x={props.size / 2 + (props.size / 2) * Math.cos(theta) - props.size / 2.55}
-						y={props.size / 2 + (props.size / 2) * Math.sin(theta) - props.size / 6.5}
-					/>
+					<Show when={shouldShowStatus()}>
+						<Status
+							userId={("userId" in props && props.userId) || "this wont happen so its ok"}
+							isStreaming={streaming()}
+							isTyping={isTyping()}
+							size={props.size / 3.2}
+							status={status()}
+							x={props.size / 2 + (props.size / 2) * Math.cos(theta) - props.size / 2.55}
+							y={props.size / 2 + (props.size / 2) * Math.sin(theta) - props.size / 6.5}
+						/>
+					</Show>
 				</Show>
-			</Show>
-		</svg>
+			</svg>
+		</ShadowCss>
 	);
 }
 

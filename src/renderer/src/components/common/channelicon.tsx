@@ -11,9 +11,8 @@ import { FaSolidHashtag, FaSolidImage, FaSolidLock, FaSolidTriangleExclamation }
 import { HiOutlineChatBubbleLeftRight, HiOutlineSpeakerWave, HiSolidChatBubbleLeft } from "solid-icons/hi";
 import { RiBusinessMegaphoneLine, RiMapSignalTowerLine } from "solid-icons/ri";
 
+import { ShadowCss } from "./shadowcss";
 import tippy from "./tooltip";
-
-import "./channelicon.scss";
 
 tippy;
 
@@ -84,41 +83,49 @@ export function ModifiedIcon(props: { hasThreads: boolean; isLimited: boolean; i
 	});
 
 	return (
-		<svg
-			class="channel-icon"
-			width={`${props.size}px`}
-			height={`${props.size}px`}
-			use:tippy={{
-				content: () =>
-					channelTypeToText(props.type) + (props.isLimited || props.isNSFW ? ` (${props.isNSFW ? "Age-Restricted" : "Limited"})` : ""),
-				props: {
-					delay: [300, 0],
-				},
-			}}
-		>
-			<foreignObject
-				width={`${props.size * (4 / 5)}px`}
-				height={`${props.size * (4 / 5)}px`}
-				x={props.size / 10}
-				y={props.size / 10}
-				style={{
-					"clip-path": clipPath(),
+		<ShadowCss>
+			<svg
+				class="channel-icon"
+				width={`${props.size}px`}
+				height={`${props.size}px`}
+				color="var(--accent-secondary)"
+				fill="var(--accent-secondary)"
+				use:tippy={{
+					content: () =>
+						channelTypeToText(props.type) + (props.isLimited || props.isNSFW ? ` (${props.isNSFW ? "Age-Restricted" : "Limited"})` : ""),
+					props: {
+						delay: [300, 0],
+					},
 				}}
 			>
-				<RawChannelIcon size={props.size * (4 / 5)} type={props.type} />
-			</foreignObject>
-			<Show when={props.isLimited || props.isNSFW}>
-				<Show
-					when={props.isNSFW}
-					fallback={<FaSolidLock x={`${props.size * (11 / 20)}px`} y={`${props.size / 40}px`} size={`${props.size * (2 / 5)}px`} />}
+				<foreignObject
+					width={`${props.size * (4 / 5)}px`}
+					height={`${props.size * (4 / 5)}px`}
+					x={props.size / 10}
+					y={props.size / 10}
+					style={{
+						"clip-path": clipPath(),
+					}}
 				>
-					<FaSolidTriangleExclamation x={`${props.size * (11.5 / 20)}px`} y={`${props.size / 40}px`} size={`${props.size * (2 / 5)}px`} />
+					<RawChannelIcon size={props.size * (4 / 5)} type={props.type} />
+				</foreignObject>
+				<Show when={props.isLimited || props.isNSFW}>
+					<Show
+						when={props.isNSFW}
+						fallback={<FaSolidLock x={`${props.size * (11 / 20)}px`} y={`${props.size / 40}px`} size={`${props.size * (2 / 5)}px`} />}
+					>
+						<FaSolidTriangleExclamation
+							x={`${props.size * (11.5 / 20)}px`}
+							y={`${props.size / 40}px`}
+							size={`${props.size * (2 / 5)}px`}
+						/>
+					</Show>
 				</Show>
-			</Show>
-			<Show when={props.hasThreads}>
-				<HiSolidChatBubbleLeft x={`${props.size / 2}px`} y={`${props.size / 2}px`} size={`${props.size / 2}px`} />
-			</Show>
-		</svg>
+				<Show when={props.hasThreads}>
+					<HiSolidChatBubbleLeft x={`${props.size / 2}px`} y={`${props.size / 2}px`} size={`${props.size / 2}px`} />
+				</Show>
+			</svg>
+		</ShadowCss>
 	);
 }
 

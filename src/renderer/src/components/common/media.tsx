@@ -8,7 +8,7 @@ import { FiExternalLink, FiSlash } from "solid-icons/fi";
 import { useAnimationContext } from "./animationcontext";
 import tippy from "./tooltip";
 
-import "./media.scss";
+import "./media.css";
 
 import { thumbHashToDataURL } from "thumbhash";
 

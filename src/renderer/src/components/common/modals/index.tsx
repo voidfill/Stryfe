@@ -5,10 +5,10 @@ import { addLayer, removeLayer } from "@modules/layers";
 
 import { AiOutlineCloseCircle } from "solid-icons/ai";
 
-import "./style.scss";
+import { ShadowCss } from "../shadowcss";
+import modalcss from "./style.css@sheet";
 
 import { Transition } from "solid-transition-group";
-1;
 
 type modalProps = {
 	animationOptions?: KeyframeAnimationOptions;
@@ -62,26 +62,28 @@ export function createModal(opts: modalProps): () => void {
 
 	function Menu(): JSX.Element {
 		return (
-			<Transition
-				appear
-				name="modal-scale"
-				onEnter={onEnter}
-				onExit={onExit}
-				onAfterExit={() => {
-					layerId &&= void removeLayer(layerId);
-				}}
-				onBeforeEnter={() => {
-					layerId ||= addLayer(Menu);
-				}}
-			>
-				<Show when={visible(id)}>
-					<ModalContext.Provider value={closeSelf}>
-						<div class="modal-root" onClick={(e) => !withDefaults.noDismiss && e.target === e.currentTarget && closeSelf()}>
-							<div class="modal-wrapper">{opts.content(closeSelf)}</div>
-						</div>
-					</ModalContext.Provider>
-				</Show>
-			</Transition>
+			<ShadowCss css={modalcss}>
+				<Transition
+					appear
+					name="modal-scale"
+					onEnter={onEnter}
+					onExit={onExit}
+					onAfterExit={() => {
+						layerId &&= void removeLayer(layerId);
+					}}
+					onBeforeEnter={() => {
+						layerId ||= addLayer(Menu);
+					}}
+				>
+					<Show when={visible(id)}>
+						<ModalContext.Provider value={closeSelf}>
+							<div class="modal-root" onClick={(e) => !withDefaults.noDismiss && e.target === e.currentTarget && closeSelf()}>
+								<div class="modal-wrapper">{opts.content(closeSelf)}</div>
+							</div>
+						</ModalContext.Provider>
+					</Show>
+				</Transition>
+			</ShadowCss>
 		);
 	}
 

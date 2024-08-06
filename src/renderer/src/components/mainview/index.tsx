@@ -12,13 +12,13 @@ import GuildsList from "@components/guilds";
 
 import Chat from "../chat";
 import { LocationContext } from "../common/locationcontext";
+import { ShadowCss } from "../common/shadowcss";
 import { CurrentPermissionProvider } from "../common/permissionscontext";
 import MemberList from "../memberlist";
 import SideBar from "../sidebar";
 import FriendsView from "./friendsview";
 import HeaderBar from "./headerbar";
-
-import "./style.scss";
+import mainviewcss from "./style.css@sheet";
 
 import shiggy from "@resources/highres_shiggy.png";
 
@@ -110,62 +110,65 @@ export default function MainView(): JSX.Element {
 	});
 
 	return (
-		<Show when={uiVisible()} fallback={<NotConnected />}>
-			<LocationContext.Provider
-				value={() => ({
-					channelId: params.channelId,
-					guildId: params.guildId,
-					messageId: params.messageId || undefined,
-					selectedChannel,
-					selectedGuild,
-				})}
-			>
-				<CurrentPermissionProvider>
-					<div class="main-view">
-						<GuildsList />
-						<SideBar />
-						<div class="channel-wrapper">
-							<HeaderBar />
-							<div class="channel" style={{ display: "flex", "flex-direction": "row", "flex-grow": 1 }}>
-								<Show
-									when={currChannel()}
-									fallback={
-										<Show
-											when={params.guildId === "@me" && !params.channelId}
-											fallback={<div class="nochannel">no channel selected</div>}
-										>
-											<FriendsView />
-										</Show>
-									}
-								>
-									<Switch
+		<ShadowCss css={mainviewcss}>
+			<Show when={uiVisible()} fallback={<NotConnected />}>
+				<LocationContext.Provider
+					value={() => ({
+						channelId: params.channelId,
+						guildId: params.guildId,
+						messageId: params.messageId || undefined,
+						selectedChannel,
+						selectedGuild,
+					})}
+				>
+					<CurrentPermissionProvider>
+						<div class="main-view">
+							<GuildsList />
+							<SideBar />
+							<div class="channel-wrapper">
+								<HeaderBar />
+								<div class="channel" style={{ display: "flex", "flex-direction": "row", "flex-grow": 1 }}>
+									<Show
+										when={currChannel()}
 										fallback={
-											<>
-												<Chat />
-												<Show when={showMembers() && params.channelId && currChannel()?.type !== ChannelTypes.DM}>
-													<MemberList />
-												</Show>
-												<Show when={showDMUserProfile() && currChannel()?.type === ChannelTypes.DM}>
-													<span>DM User Profile</span>
-												</Show>
-											</>
+											<Show
+												when={params.guildId === "@me" && !params.channelId}
+												fallback={<div class="nochannel">no channel selected</div>}
+											>
+												<FriendsView />
+											</Show>
 										}
 									>
-										<Match
-											when={
-												currChannel()?.type === ChannelTypes.GUILD_FORUM || currChannel()?.type === ChannelTypes.GUILD_MEDIA
+										<Switch
+											fallback={
+												<>
+													<Chat />
+													<Show when={showMembers() && params.channelId && currChannel()?.type !== ChannelTypes.DM}>
+														<MemberList />
+													</Show>
+													<Show when={showDMUserProfile() && currChannel()?.type === ChannelTypes.DM}>
+														<span>DM User Profile</span>
+													</Show>
+												</>
 											}
 										>
-											forum/media channel
-										</Match>
-										<Match when={currChannel()?.type === ChannelTypes.GUILD_DIRECTORY}>directory channel</Match>
-									</Switch>
-								</Show>
+											<Match
+												when={
+													currChannel()?.type === ChannelTypes.GUILD_FORUM ||
+													currChannel()?.type === ChannelTypes.GUILD_MEDIA
+												}
+											>
+												forum/media channel
+											</Match>
+											<Match when={currChannel()?.type === ChannelTypes.GUILD_DIRECTORY}>directory channel</Match>
+										</Switch>
+									</Show>
+								</div>
 							</div>
 						</div>
-					</div>
-				</CurrentPermissionProvider>
-			</LocationContext.Provider>
-		</Show>
+					</CurrentPermissionProvider>
+				</LocationContext.Provider>
+			</Show>
+		</ShadowCss>
 	);
 }

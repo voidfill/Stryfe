@@ -1,4 +1,5 @@
-:root {
+:root,
+:host {
 	--guild-drop-color: green;
 	--folder-background: rgb(from var(--background-secondary) r g b / 80%);
 }

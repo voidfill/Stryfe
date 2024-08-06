@@ -10,7 +10,7 @@ import Emoji from "./emoji";
 import OverflowTooltip from "./overflowtooltip";
 import tippy from "./tooltip";
 
-import "./customstatus.scss";
+import "./customstatus.css";
 
 tippy;
 OverflowTooltip;
