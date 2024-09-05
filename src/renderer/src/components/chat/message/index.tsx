@@ -24,7 +24,7 @@ import Reply from "./reply";
 import Sticker from "./sticker";
 import messagecss from "./style.css@sheet";
 
-import { ShadowCss } from "@renderer/components/common/nocascade";
+import { ShadowCss } from "@renderer/components/common/shadowcss";
 import { showAvatarsInCompact } from "@renderer/signals";
 
 NoAnimationDirective;

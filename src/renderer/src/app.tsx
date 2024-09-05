@@ -8,12 +8,14 @@ import { FaSolidWindowMaximize, FaSolidWindowMinimize, FaSolidXmark } from "soli
 
 import appcss from "./app.css@sheet";
 import { FocusAnimationDirective } from "./components/common/animationcontext";
-import { ShadowCss } from "./components/common/shadowcss";
+import { mergeIntoSheet, ShadowCss } from "./components/common/shadowcss";
+import globalSheet from "./global.css@sheet";
 import Layers from "./modules/layers";
 import { getToken } from "./modules/token";
 import { setWindowTitle } from "./signals";
 
-import "highlight.js/styles/github-dark.min.css";
+import hljsSheet from "highlight.js/styles/github-dark.min.css@sheet";
+mergeIntoSheet(globalSheet, [hljsSheet]);
 
 FocusAnimationDirective;
 

@@ -47,6 +47,7 @@
 		"@typescript-eslint/eslint-plugin": "^7.8.0",
 		"@typescript-eslint/parser": "^7.8.0",
 		"ansi_up": "^6.0.2",
+		"cssnano": "^7.0.6",
 		"electron": "^31.2.1",
 		"electron-builder": "^24.13.3",
 		"electron-vite": "^2.2.0",
@@ -69,7 +70,7 @@
 		"thumbhash": "^0.1.1",
 		"typescript": "^5.5.2",
 		"valibot": "^0.31.1",
-		"vite": "^5.2.11",
+		"vite": "^5.4.3",
 		"vite-plugin-compile-time": "^0.2.1",
 		"vite-plugin-solid": "^2.10.1"
 	},

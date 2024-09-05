@@ -2,7 +2,12 @@ import { createEffect, createMemo, createSignal, getOwner, JSX, onCleanup, Paren
 import { Dynamic, insert } from "solid-js/web";
 
 import globalSheet from "@renderer/global.css@sheet";
-document.adoptedStyleSheets.push(globalSheet);
+import { theme } from "@renderer/signals";
+
+const themeSheet = new CSSStyleSheet();
+createEffect(() => themeSheet.replaceSync(`:root, :host { --theme: ${theme()}; }`));
+
+document.adoptedStyleSheets.push(themeSheet, globalSheet);
 
 // https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow#elements_you_can_attach_a_shadow_to
 type validShadowHosts =
@@ -39,6 +44,10 @@ function getOrCreateSheet(css: string): CSSStyleSheet {
 }
 
 type css = string | CSSStyleSheet;
+export function mergeIntoSheet(destination: CSSStyleSheet, sources: css[]): void {
+	for (const style of sources.map((s) => (typeof s === "string" ? getOrCreateSheet(s) : s)))
+		for (const rule of style.cssRules) destination.insertRule(rule.cssText, destination.cssRules.length);
+}
 
 /**
  * A component that creates a shadow root to prevent inheriting stylesheets from the parent.
@@ -72,7 +81,7 @@ export function ShadowCss(
 			if (!el) return;
 
 			const shadow = el.attachShadow({ mode: "open" });
-			shadow.adoptedStyleSheets.push(globalSheet);
+			shadow.adoptedStyleSheets.push(themeSheet, globalSheet);
 			if (props.css)
 				for (const style of Array.isArray(props.css) ? props.css : [props.css])
 					shadow.adoptedStyleSheets.push(typeof style === "string" ? getOrCreateSheet(style) : style);

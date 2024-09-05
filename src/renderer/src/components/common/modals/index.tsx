@@ -1,4 +1,4 @@
-import { Accessor, createContext, createSelector, FlowProps, JSX, onCleanup, Show, useContext } from "solid-js";
+import { Accessor, createContext, createSelector, FlowProps, JSX, onCleanup, Owner, runWithOwner, Show, useContext } from "solid-js";
 import { createStore, produce } from "solid-js/store";
 
 import { addLayer, removeLayer } from "@modules/layers";
@@ -14,6 +14,7 @@ type modalProps = {
 	animationOptions?: KeyframeAnimationOptions;
 	content: (close: () => void) => JSX.Element;
 	noDismiss?: boolean;
+	owner?: Owner;
 };
 
 let nextId = 1;
@@ -87,7 +88,7 @@ export function createModal(opts: modalProps): () => void {
 		);
 	}
 
-	layerId = addLayer(Menu);
+	layerId = addLayer(() => (opts.owner ? runWithOwner(opts.owner, Menu) : Menu()));
 
 	return closeSelf;
 }

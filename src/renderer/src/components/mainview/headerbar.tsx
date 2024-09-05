@@ -1,4 +1,4 @@
-import { createMemo, JSX, Match, Show, Switch } from "solid-js";
+import { createMemo, getOwner, JSX, Match, Show, Switch, untrack } from "solid-js";
 
 import { ChannelTypes } from "@constants/channel";
 
@@ -153,6 +153,7 @@ function TextOrVoice(props: { id: string }): JSX.Element {
 		if (!c || !("topic" in c) || !c.topic) return "";
 		return c.topic;
 	});
+	const owner = getOwner()!;
 
 	return (
 		<Show when={channel()}>
@@ -162,7 +163,10 @@ function TextOrVoice(props: { id: string }): JSX.Element {
 					{(t) => (
 						<>
 							<div class="topic-divider" />
-							<div class="channel-topic md-format-inline" use:ModalDirective={{ content: () => <TopicModal channelId={props.id} /> }}>
+							<div
+								class="channel-topic md-format-inline"
+								use:ModalDirective={{ content: () => <TopicModal channelId={untrack(() => props.id)} />, owner }}
+							>
 								{parse(t, { allowHeading: true, formatInline: true, inline: true, outputData: {} }).element}
 							</div>
 						</>

@@ -8,9 +8,20 @@
 	--accent-secondary: #a393bf;
 	--text-normal: white;
 	--text-muted: #a0a0a0;
+}
 
-	--scrollbar-track: hsl(from --background-primary, h s calc(l - 20));
-	--scrollbar-thumb: hsl(from --background-primary, h s calc(l + 20));
+@container style(--theme: light) {
+	:root,
+	:host {
+		--background-primary: #f5f5f5;
+		--background-secondary: #e0e0e0;
+		--background-tertiary: #d6d6d6;
+		--background-quaternary: #c9c9c9;
+		--accent-primary: #9882ac;
+		--accent-secondary: #a393bf;
+		--text-normal: black;
+		--text-muted: #a0a0a0;
+	}
 }
 
 ::placeholder,

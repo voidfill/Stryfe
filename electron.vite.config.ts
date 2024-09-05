@@ -3,34 +3,47 @@ import { resolve } from "path";
 
 import { readFileSync } from "fs";
 import { visualizer } from "rollup-plugin-visualizer";
-import { Plugin } from "vite";
+import { Plugin, preprocessCSS, ResolvedConfig } from "vite";
 import compileTime from "vite-plugin-compile-time";
 import solid from "vite-plugin-solid";
 
-const sheetSuffix = "@sheet";
-const sheetPlugin: Plugin = {
-	enforce: "pre",
-	load(id) {
-		if (!id.endsWith(sheetSuffix)) return;
-		id = id.slice(0, -sheetSuffix.length);
-		const code = readFileSync(id, "utf-8");
-		this.addWatchFile(id);
-		const out = `const sheet = new CSSStyleSheet(); sheet.replace(${JSON.stringify(code)}).catch(console.error); export default sheet;`;
+const sheetPlugin = ((): Plugin => {
+	const sheetSuffix = "@sheet";
+	let resolvedViteConfig: ResolvedConfig;
 
-		return {
-			code: out,
-			map: { mappings: "" },
-		};
-	},
-	name: "css-sheet-plugin",
-	async resolveId(source, importer, options) {
-		if (!source.endsWith(sheetSuffix)) return;
-		const resolution = await this.resolve(source.slice(0, -sheetSuffix.length), importer, options);
-		if (!resolution || resolution.external) return resolution;
-		return resolution.id + sheetSuffix;
-	},
-	version: "0.0.1",
-};
+	return {
+		configResolved(config) {
+			resolvedViteConfig = config;
+		},
+		async load(id) {
+			if (!id.endsWith(sheetSuffix)) return;
+			id = id.slice(0, -sheetSuffix.length);
+			const code = readFileSync(id, "utf-8");
+
+			const { code: processedCode, map, deps } = await preprocessCSS(code, id.split("/").pop()!, resolvedViteConfig);
+			this.addWatchFile(id);
+			for (const dep of deps ?? []) this.addWatchFile(dep);
+
+			const out = `const sheet = new CSSStyleSheet();sheet.replace(${JSON.stringify(processedCode)}).catch(console.error);export default sheet;`;
+			return {
+				code: out,
+				map,
+			};
+		},
+		name: "css-sheet-plugin",
+		async resolveId(source, importer, options) {
+			if (!source.endsWith(sheetSuffix)) return;
+			const resolution = await this.resolve(source.slice(0, -sheetSuffix.length), importer, options);
+			if (!resolution || resolution.external) return resolution;
+			return resolution.id + sheetSuffix;
+		},
+		version: "0.0.1",
+	} as Plugin;
+})();
+
+function sourcemapIgnoreList(sourcePath: string): boolean {
+	return sourcePath.includes("node_modules") || sourcePath.includes("shadowcss");
+}
 
 export default defineConfig({
 	main: {
@@ -41,6 +54,7 @@ export default defineConfig({
 	},
 	renderer: {
 		build: {
+			chunkSizeWarningLimit: 1500,
 			minify: "esbuild",
 			rollupOptions: {
 				output: {
@@ -48,6 +62,7 @@ export default defineConfig({
 						highlight: ["./src/renderer/src/modules/highlight.ts"],
 						protos: ["./node_modules/discord-protos"],
 					},
+					sourcemapIgnoreList,
 				},
 			},
 		},
@@ -67,6 +82,9 @@ export default defineConfig({
 				"@resources": resolve("resources"),
 				"@stores": resolve("src/renderer/src/stores"),
 			},
+		},
+		server: {
+			sourcemapIgnoreList,
 		},
 	},
 });

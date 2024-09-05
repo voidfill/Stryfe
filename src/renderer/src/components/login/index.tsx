@@ -1,22 +1,25 @@
-import { createSignal, For, JSX, lazy } from "solid-js";
+import { createSignal, For, JSX } from "solid-js";
 import { Dynamic } from "solid-js/web";
 
 import { ShadowCss } from "../common/shadowcss";
+import Credentials from "./credentials";
+import QRCode from "./qrcode";
 import logincss from "./style.css@sheet";
+import Token from "./token";
 
 import { setWindowTitle } from "@renderer/signals";
 
 const items = [
 	{
-		component: lazy(() => import("./credentials")),
+		component: Credentials,
 		name: "Credentials",
 	},
 	{
-		component: lazy(() => import("./token")),
+		component: Token,
 		name: "Token",
 	},
 	{
-		component: lazy(() => import("./qrcode")),
+		component: QRCode,
 		name: "QR Code",
 	},
 ];

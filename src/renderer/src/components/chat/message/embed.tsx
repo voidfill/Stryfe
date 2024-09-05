@@ -10,7 +10,7 @@ import { MaybeSpoiler, Media, Youtube } from "@components/common/media";
 
 import embedcss from "./embed.css@sheet";
 
-import { ShadowCss } from "@renderer/components/common/nocascade";
+import { ShadowCss } from "@renderer/components/common/shadowcss";
 
 const maxHeight = 225;
 const maxWidth = 400;
