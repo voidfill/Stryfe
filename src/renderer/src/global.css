@@ -1,5 +1,11 @@
-:root,
-:host {
+/*
+ Variable declarations:
+
+ use :root in global css, use :host in shadow css
+ :root is not available in the shadow dom, while :host isnt available in the light dom
+*/
+
+:root {
 	--background-primary: #73648a;
 	--background-secondary: #453750;
 	--background-tertiary: #292030;
@@ -7,12 +13,13 @@
 	--accent-primary: #9882ac;
 	--accent-secondary: #a393bf;
 	--text-normal: white;
-	--text-muted: #a0a0a0;
+
+	--scrollbar-track: hsl(from var(--background-primary) h s calc(l * 0.8));
+	--scrollbar-thumb: hsl(from var(--background-primary) h s calc(l * 1.2));
 }
 
 @container style(--theme: light) {
-	:root,
-	:host {
+	:root {
 		--background-primary: #f5f5f5;
 		--background-secondary: #e0e0e0;
 		--background-tertiary: #d6d6d6;
@@ -20,7 +27,6 @@
 		--accent-primary: #9882ac;
 		--accent-secondary: #a393bf;
 		--text-normal: black;
-		--text-muted: #a0a0a0;
 	}
 }
 
@@ -44,8 +50,89 @@ body {
 	user-select: none;
 	-webkit-user-select: none;
 	overflow: hidden;
+}
 
-	#root {
-		background-color: var(--background-quaternary);
+.scroll {
+	&.scroll-v {
+		overflow-y: auto;
+	}
+
+	&.scroll-h {
+		overflow-x: auto;
+	}
+
+	&.scroll-gutter {
+		scrollbar-gutter: stable;
+	}
+
+	&.scroll-hidden::-webkit-scrollbar {
+		width: 0;
+		height: 0;
+	}
+
+	&.scroll-thin {
+		&::-webkit-scrollbar {
+			width: 8px;
+			height: 8px;
+		}
+
+		&::-webkit-scrollbar-corner {
+			background-color: transparent;
+		}
+
+		&::-webkit-scrollbar-track {
+			border-color: var(--scrollbar-track);
+			background-color: var(--scrollbar-track);
+			border: 2px solid var(--scrollbar-track);
+		}
+
+		&::-webkit-scrollbar-thumb {
+			background-clip: padding-box;
+			border: 2px solid transparent;
+			border-radius: 4px;
+			background-color: var(--scrollbar-thumb);
+			min-height: 40px;
+		}
+	}
+
+	&.scroll-auto {
+		&::-webkit-scrollbar {
+			width: 16px;
+			height: 16px;
+		}
+
+		&::-webkit-scrollbar-track {
+			background-color: var(--scrollbar-track);
+		}
+
+		&::-webkit-scrollbar-thumb,
+		&::-webkit-scrollbar-track {
+			border: 4px solid transparent;
+			background-clip: padding-box;
+			border-radius: 8px;
+		}
+
+		&::-webkit-scrollbar-thumb {
+			background-color: var(--scrollbar-thumb);
+			min-height: 40px;
+		}
+
+		&::-webkit-scrollbar-corner {
+			background-color: transparent;
+		}
+	}
+
+	&.scroll-hover-thumb {
+
+		&::-webkit-scrollbar-thumb,
+		&::-webkit-scrollbar,
+		&::-webkit-scrollbar-track {
+			background-color: transparent;
+			border-color: transparent;
+		}
+
+		&:hover::-webkit-scrollbar-thumb {
+			background-color: var(--scrollbar-thumb);
+		}
 	}
 }

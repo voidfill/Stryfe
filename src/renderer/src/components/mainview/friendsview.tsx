@@ -220,7 +220,7 @@ function Friends(): JSX.Element {
 				</div>
 			</div>
 			<span class="friends-count">{`${countText()} - ${searchedCount()}`}</span>
-			<div class="friends-list scroller scroller-auto">
+			<div class="friends-list scroll scroll-auto">
 				<For each={filteredIds()}>{(id): JSX.Element => <FriendItem id={id} />}</For>
 			</div>
 		</>

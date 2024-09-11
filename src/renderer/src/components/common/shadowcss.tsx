@@ -5,7 +5,7 @@ import globalSheet from "@renderer/global.css@sheet";
 import { theme } from "@renderer/signals";
 
 const themeSheet = new CSSStyleSheet();
-createEffect(() => themeSheet.replaceSync(`:root, :host { --theme: ${theme()}; }`));
+createEffect(() => themeSheet.replaceSync(`:root { --theme: ${theme()}; }`));
 
 document.adoptedStyleSheets.push(themeSheet, globalSheet);
 

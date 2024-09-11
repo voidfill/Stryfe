@@ -75,7 +75,7 @@ export default function PrivateChannels(): JSX.Element {
 
 	return (
 		<div
-			class="channels private-channels scroller scroller-thin scroller-hover-thumb"
+			class="channels private-channels scroll scroll-thin scroll-hover-thumb"
 			ref={
 				// @ts-expect-error ref
 				ref

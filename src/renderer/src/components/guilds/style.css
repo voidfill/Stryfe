@@ -1,4 +1,3 @@
-:root,
 :host {
 	--guild-drop-color: green;
 	--folder-background: rgb(from var(--background-secondary) r g b / 80%);
@@ -19,7 +18,7 @@
 		gap: 4px;
 		cursor: pointer;
 
-		&:active > svg {
+		&:active>svg {
 			margin-top: 1px;
 		}
 	}
@@ -74,10 +73,10 @@
 		height: 48px;
 		display: flex;
 		flex-direction: row;
+	}
 
-		.icon-container:active {
-			margin-top: 1px;
-		}
+	.container-wrapper:active {
+		margin-top: 1px;
 	}
 
 	.indicator {
@@ -143,18 +142,18 @@
 	}
 
 	.fake-folder {
-		> .guild .icon-container .icon {
+		>.guild .icon-container .icon {
 			transform: scale(1) translate(0, 0);
 			border-radius: 0;
 			transition: transform 0.2s;
 		}
 
-		&.active-droppable > .guild .icon-container .icon {
+		&.active-droppable>.guild .icon-container .icon {
 			border-radius: 50%;
 			transform: scale(0.35) translate(-24px, -24px);
 		}
 
-		&.active-droppable > .guild .icon-container {
+		&.active-droppable>.guild .icon-container {
 			background-color: var(--folder-background);
 		}
 	}
@@ -234,7 +233,7 @@
 			background-color: green;
 		}
 
-		> * {
+		>* {
 			animation: shake 0.5s infinite;
 		}
 	}
@@ -261,7 +260,7 @@
 	}
 }
 
-.guild-accessories-mask > * {
+.guild-accessories-mask>* {
 	transition: all 0.1s linear;
 }
 
@@ -278,7 +277,7 @@
 	width: 48px;
 	height: 48px;
 
-	> * {
+	>* {
 		position: absolute;
 		transition: all 0.1s linear;
 	}
@@ -308,15 +307,19 @@
 	0% {
 		transform: rotate(0);
 	}
+
 	25% {
 		transform: rotate(3deg);
 	}
+
 	50% {
 		transform: rotate(-3deg);
 	}
+
 	75% {
 		transform: rotate(3deg);
 	}
+
 	100% {
 		transform: rotate(-3deg);
 	}

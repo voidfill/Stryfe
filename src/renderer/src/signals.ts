@@ -21,7 +21,7 @@ export const [showDMUserProfile, setShowDMUserProfile] = persistSignal("showDMUs
 export const [showHelp, setShowHelp] = persistSignal("showHelp", fallback(boolean(), true));
 export const [showAvatarsInCompact, setShowAvatarsInCompact] = persistSignal("showAvatarsInCompact", fallback(boolean(), true));
 
-export enum FriendsTabs {
+export const enum FriendsTabs {
 	ONLINE,
 	ALL,
 	PENDING,
@@ -46,10 +46,13 @@ export const theme = createMemo(() => {
 });
 
 createEffect(() => {
+	const t = userSelectedTheme();
+	window.ipc.setTheme(t);
 	localStorage.setItem("computedTheme", userSelectedTheme());
 });
 createEffect(() => {
-	const theme = (["system", "dark", "light"] as const)[preloadedSettings.appearance?.theme ?? 0];
-	window.ipc.setTheme(theme);
-	setUserSelectedTheme(theme);
+	const theme = preloadedSettings.appearance?.theme;
+	if (theme === undefined) return;
+
+	setUserSelectedTheme((["system", "dark", "light"] as const)[theme]);
 });

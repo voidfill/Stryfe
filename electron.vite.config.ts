@@ -3,9 +3,17 @@ import { resolve } from "path";
 
 import { readFileSync } from "fs";
 import { visualizer } from "rollup-plugin-visualizer";
-import { Plugin, preprocessCSS, ResolvedConfig } from "vite";
+import { createLogger, Plugin, preprocessCSS, ResolvedConfig } from "vite";
 import compileTime from "vite-plugin-compile-time";
 import solid from "vite-plugin-solid";
+
+const logger = createLogger();
+const originalWarn = logger.warn;
+logger.warn = (msg, options): void => {
+	// ignore postcss failing to parse hsl(from var(--v) ...)
+	if (msg.includes("[vite:css]") && msg.includes("Unrecognized text.")) return;
+	originalWarn(msg, options);
+};
 
 const sheetPlugin = ((): Plugin => {
 	const sheetSuffix = "@sheet";
@@ -18,15 +26,35 @@ const sheetPlugin = ((): Plugin => {
 		async load(id) {
 			if (!id.endsWith(sheetSuffix)) return;
 			id = id.slice(0, -sheetSuffix.length);
-			const code = readFileSync(id, "utf-8");
+			const raw = readFileSync(id, "utf-8");
 
-			const { code: processedCode, map, deps } = await preprocessCSS(code, id.split("/").pop()!, resolvedViteConfig);
+			const { code: processedCSS, map, deps } = await preprocessCSS(raw, id, resolvedViteConfig);
 			this.addWatchFile(id);
 			for (const dep of deps ?? []) this.addWatchFile(dep);
 
-			const out = `const sheet = new CSSStyleSheet();sheet.replace(${JSON.stringify(processedCode)}).catch(console.error);export default sheet;`;
 			return {
-				code: out,
+				code: `
+const sheet = new CSSStyleSheet();
+export default sheet;
+export const code = ${JSON.stringify(processedCSS)};
+
+if (import.meta.hot) {
+	if (!import.meta.hot.data.handled) {
+		import.meta.hot.data.handled = true;
+		sheet.replace(code).catch(console.error);
+
+		function a() {
+			import.meta.hot.accept((newModule) => {
+				sheet.replace(newModule.code).catch(console.error);
+				a();
+			});
+		}
+		a();
+	}
+} else {
+	sheet.replace(code).catch(console.error);
+}
+`,
 				map,
 			};
 		},
@@ -66,6 +94,7 @@ export default defineConfig({
 				},
 			},
 		},
+		customLogger: logger,
 		plugins: [
 			solid(),
 			compileTime(),

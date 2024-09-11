@@ -31,7 +31,7 @@ import { createModal } from "./modals";
 import ViewRawModal from "./modals/viewraw";
 import { ShadowCss } from "./shadowcss";
 
-export enum Colors {
+export const enum Colors {
 	PRIMARY = "primary",
 	RED = "red",
 	GREEN = "green",

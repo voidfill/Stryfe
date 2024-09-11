@@ -1,20 +1,21 @@
-import { boolean, enum_, literal, nullable, number, object, optional, picklist, string, union, unknown } from "valibot";
+import { boolean, fallback, literal, nullable, number, object, optional, picklist, string, union, unknown } from "valibot";
 
 import { PremiumTypes } from "../user";
 
 export const status = picklist(["online", "idle", "dnd", "offline", "invisible", "unknown"]);
 
-export const clan = union([
-	object({
-		identity_enabled: nullable(literal(false)),
-	}),
-	object({
-		badge: string(),
-		identity_enabled: literal(true),
-		identity_guild_id: string(),
-		tag: string(),
-	}),
-]);
+export const clan = fallback(
+	union([
+		object({
+			badge: string(),
+			identity_enabled: literal(true),
+			identity_guild_id: string(),
+			tag: string(),
+		}),
+		object({ identity_enabled: literal(false) }),
+	]),
+	{ identity_enabled: false },
+);
 
 export const permission_overwrite = object({
 	allow: string(),
@@ -67,7 +68,7 @@ export const user_self = object({
 	nsfw_allowed: boolean(),
 	phone: nullable(string()),
 	premium: boolean(),
-	premium_type: enum_(PremiumTypes),
+	premium_type: picklist([PremiumTypes.NONE, PremiumTypes.NITRO_BASIC, PremiumTypes.NITRO]),
 	pronouns: string(),
 	purchased_flags: number(),
 	username: string(),

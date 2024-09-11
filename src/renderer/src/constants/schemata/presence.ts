@@ -1,4 +1,4 @@
-import { array, boolean, enum_, nullable, number, object, optional, string, union, unknown } from "valibot";
+import { array, boolean, nullable, number, object, optional, picklist, string, union, unknown } from "valibot";
 
 import { ActivityTypes } from "../user";
 import { status, user } from "./common";
@@ -9,7 +9,15 @@ export const client_status = object({
 	web: optional(status),
 });
 
-export const activity_type = enum_(ActivityTypes);
+export const activity_type = picklist([
+	ActivityTypes.PLAYING,
+	ActivityTypes.STREAMING,
+	ActivityTypes.LISTENING,
+	ActivityTypes.WATCHING,
+	ActivityTypes.CUSTOM,
+	ActivityTypes.COMPETING,
+	ActivityTypes.HANG_STATUS,
+]);
 export const activity = object({
 	application_id: optional(union([string(), number()])),
 	assets: optional(

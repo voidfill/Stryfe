@@ -1,4 +1,3 @@
-:root,
 :host {
 	--ctx-background: var(--background-quaternary);
 	--ctx-scrollbar-thumb: var(--background-tertiary);
