@@ -12,8 +12,8 @@ import GuildsList from "@components/guilds";
 
 import Chat from "../chat";
 import { LocationContext } from "../common/locationcontext";
-import { ShadowCss } from "../common/shadowcss";
 import { CurrentPermissionProvider } from "../common/permissionscontext";
+import { ShadowCss } from "../common/shadowcss";
 import MemberList from "../memberlist";
 import SideBar from "../sidebar";
 import FriendsView from "./friendsview";

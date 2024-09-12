@@ -7,6 +7,8 @@ import { theme } from "@renderer/signals";
 const themeSheet = new CSSStyleSheet();
 createEffect(() => themeSheet.replaceSync(`:root { --theme: ${theme()}; }`));
 
+// variables penetrate the shadow dom so we only need to adopt the theme sheet once
+// globalSheet will have to be adopted by every shadow root
 document.adoptedStyleSheets.push(themeSheet, globalSheet);
 
 // https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow#elements_you_can_attach_a_shadow_to
@@ -81,7 +83,7 @@ export function ShadowCss(
 			if (!el) return;
 
 			const shadow = el.attachShadow({ mode: "open" });
-			shadow.adoptedStyleSheets.push(themeSheet, globalSheet);
+			shadow.adoptedStyleSheets.push(globalSheet);
 			if (props.css)
 				for (const style of Array.isArray(props.css) ? props.css : [props.css])
 					shadow.adoptedStyleSheets.push(typeof style === "string" ? getOrCreateSheet(style) : style);

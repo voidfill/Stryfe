@@ -130,7 +130,7 @@ app.whenReady().then(() => {
 	});
 	ipcMain.handle("cookies:get", () => session.defaultSession.cookies.get({}));
 	ipcMain.handle("os:type", () => osType);
-	ipcMain.handle("theme:set", (_, theme: "light" | "dark" | "system") => {
+	ipcMain.on("theme:set", (_, theme: "light" | "dark" | "system") => {
 		nativeTheme.themeSource = theme;
 	});
 
@@ -140,9 +140,9 @@ app.whenReady().then(() => {
 
 	const bw = createWindow();
 
-	ipcMain.handle("window:close", () => bw.close());
-	ipcMain.handle("window:minimize", () => bw.minimize());
-	ipcMain.handle("window:maximize", () => bw.maximize());
+	ipcMain.on("window:close", () => bw.close());
+	ipcMain.on("window:minimize", () => bw.minimize());
+	ipcMain.on("window:maximize", () => bw.maximize());
 
 	app.on("activate", function () {
 		if (BrowserWindow.getAllWindows().length === 0) createWindow();

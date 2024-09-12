@@ -135,11 +135,11 @@
 		--divider-color: #ff3c3c;
 	}
 
-	>.divider-date {
+	> .divider-date {
 		padding: 0 10px;
 	}
 
-	>.divider-line {
+	> .divider-line {
 		flex-grow: 1;
 		height: 1px;
 		background-color: var(--divider-color);

@@ -9,7 +9,7 @@
 		display: flex;
 		flex-direction: row;
 		margin: 20px 30px 10px 30px;
-		background-color: blue;
+		background-color: var(--background-tertiary);
 		border-radius: 4px;
 		padding: 3px;
 		overflow: hidden;
@@ -106,7 +106,7 @@
 					display: block !important;
 				}
 
-				&+.friend-item {
+				& + .friend-item {
 					border-color: transparent;
 				}
 
@@ -165,4 +165,3 @@
 		}
 	}
 }
-

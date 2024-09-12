@@ -1,25 +1,32 @@
 /*
  Variable declarations:
 
- use :root in global css, use :host in shadow css
- :root is not available in the shadow dom, while :host isnt available in the light dom
+ in css thats used in the shadow dom, its fine to declare them with :host, but that wont work in the light dom.
+ while :root does work in light dom, it doesnt work with the @container queries since :root isnt a child of the queried container (html)
+ so we have to do body, body ~ *
+ body should be obvious, but we also need body ~ * to catch anything that inserts directly into the html element
+ as far as i can see we dont technically need them there but it shouldnt hurt.
 */
 
-:root {
-	--background-primary: #73648a;
-	--background-secondary: #453750;
-	--background-tertiary: #292030;
-	--background-quaternary: #0c0910;
-	--accent-primary: #9882ac;
-	--accent-secondary: #a393bf;
-	--text-normal: white;
+@container style(--theme: dark) {
+	body,
+	body ~ * {
+		--background-primary: #73648a;
+		--background-secondary: #453750;
+		--background-tertiary: #292030;
+		--background-quaternary: #0c0910;
+		--accent-primary: #9882ac;
+		--accent-secondary: #a393bf;
+		--text-normal: white;
 
-	--scrollbar-track: hsl(from var(--background-primary) h s calc(l * 0.8));
-	--scrollbar-thumb: hsl(from var(--background-primary) h s calc(l * 1.2));
+		--scrollbar-track: hsl(from var(--background-primary) h s calc(l * 0.8));
+		--scrollbar-thumb: hsl(from var(--background-primary) h s calc(l * 1.2));
+	}
 }
 
 @container style(--theme: light) {
-	:root {
+	body,
+	body ~ * {
 		--background-primary: #f5f5f5;
 		--background-secondary: #e0e0e0;
 		--background-tertiary: #d6d6d6;
@@ -123,7 +130,6 @@ body {
 	}
 
 	&.scroll-hover-thumb {
-
 		&::-webkit-scrollbar-thumb,
 		&::-webkit-scrollbar,
 		&::-webkit-scrollbar-track {
