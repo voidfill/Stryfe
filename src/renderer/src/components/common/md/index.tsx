@@ -12,7 +12,8 @@ import spoiler from "./spoiler";
 import timestamp from "./timestamp";
 import { autolink, url } from "./url";
 
-import "./style.scss";
+// TODO: markdown css, but also redo this entire thing you know how it be
+// import "./style.css";
 
 const rules: Record<string, Rule<any>> = {
 	attachmentlink,

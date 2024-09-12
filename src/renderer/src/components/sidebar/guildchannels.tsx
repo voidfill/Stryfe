@@ -221,7 +221,7 @@ export default function GuildChannels(): JSX.Element {
 				<FaSolidChevronDown class="header-context-menu-icon" size={16} />
 			</button>
 			<div
-				class="channels guild-channels scroller scroller-thin scroller-hover-thumb"
+				class="channels guild-channels scroll scroll-thin scroll-hover-thumb"
 				ref={ref}
 				onScroll={(): void => {
 					lastKnownScrollPosition = ref!.scrollTop;

@@ -1,4 +1,4 @@
-import { createMemo, JSX, Match, Show, Switch } from "solid-js";
+import { createMemo, getOwner, JSX, Match, Show, Switch, untrack } from "solid-js";
 
 import { ChannelTypes } from "@constants/channel";
 
@@ -15,8 +15,8 @@ import { useLocationContext } from "../common/locationcontext";
 import { parse } from "../common/md";
 import { ModalDirective } from "../common/modals";
 import { GenericModal, ModalHeader } from "../common/modals";
-
-import "./headerbar.scss";
+import { ShadowCss } from "../common/shadowcss";
+import headerbarcss from "./headerbar.css@sheet";
 
 import {
 	friendsTab,
@@ -153,6 +153,7 @@ function TextOrVoice(props: { id: string }): JSX.Element {
 		if (!c || !("topic" in c) || !c.topic) return "";
 		return c.topic;
 	});
+	const owner = getOwner()!;
 
 	return (
 		<Show when={channel()}>
@@ -162,7 +163,10 @@ function TextOrVoice(props: { id: string }): JSX.Element {
 					{(t) => (
 						<>
 							<div class="topic-divider" />
-							<div class="channel-topic md-format-inline" use:ModalDirective={{ content: () => <TopicModal channelId={props.id} /> }}>
+							<div
+								class="channel-topic md-format-inline"
+								use:ModalDirective={{ content: () => <TopicModal channelId={untrack(() => props.id)} />, owner }}
+							>
 								{parse(t, { allowHeading: true, formatInline: true, inline: true, outputData: {} }).element}
 							</div>
 						</>
@@ -178,67 +182,69 @@ export default function HeaderBar(): JSX.Element {
 		type = createMemo(() => getChannel(location().channelId)?.type);
 
 	return (
-		<div class="header-bar">
-			<div class="left">
-				<Show
-					when={location().guildId !== "@me"}
-					fallback={
-						<Switch fallback={<FriendsHeaderButtons />}>
-							<Match when={type() === ChannelTypes.DM}>
-								<DM id={location().channelId} />
+		<ShadowCss css={headerbarcss}>
+			<div class="header-bar">
+				<div class="left">
+					<Show
+						when={location().guildId !== "@me"}
+						fallback={
+							<Switch fallback={<FriendsHeaderButtons />}>
+								<Match when={type() === ChannelTypes.DM}>
+									<DM id={location().channelId} />
+								</Match>
+								<Match when={type() === ChannelTypes.GROUP_DM}>
+									<GroupDM id={location().channelId} />
+								</Match>
+							</Switch>
+						}
+					>
+						<ChannelIcon id={location().channelId} guildId={location().guildId} size={28} />
+						<Switch fallback={<span>No Text Channel Selected</span>}>
+							<Match when={threadChannelTypes.has(type() as ChannelTypes)}>
+								<Thread id={location().channelId} />
 							</Match>
-							<Match when={type() === ChannelTypes.GROUP_DM}>
-								<GroupDM id={location().channelId} />
+							<Match when={type() === ChannelTypes.GUILD_FORUM || type() === ChannelTypes.GUILD_MEDIA}>
+								<Forum id={location().channelId} />
+							</Match>
+							<Match when={type() !== undefined}>
+								<TextOrVoice id={location().channelId} />
 							</Match>
 						</Switch>
-					}
-				>
-					<ChannelIcon id={location().channelId} guildId={location().guildId} size={28} />
-					<Switch fallback={<span>No Text Channel Selected</span>}>
-						<Match when={threadChannelTypes.has(type() as ChannelTypes)}>
-							<Thread id={location().channelId} />
-						</Match>
-						<Match when={type() === ChannelTypes.GUILD_FORUM || type() === ChannelTypes.GUILD_MEDIA}>
-							<Forum id={location().channelId} />
-						</Match>
-						<Match when={type() !== undefined}>
-							<TextOrVoice id={location().channelId} />
-						</Match>
-					</Switch>
-				</Show>
+					</Show>
+				</div>
+				<div class="right">
+					<Show when={type() !== undefined && type() !== ChannelTypes.DM}>
+						<button
+							classList={{
+								active: showMembers(),
+								"members-button": true,
+							}}
+							onClick={() => setShowMembers((p): boolean => !p)}
+						>
+							<FiUsers class="icon" size={24} />
+						</button>
+					</Show>
+					<Show when={type() === ChannelTypes.DM}>
+						<button
+							classList={{
+								active: showDMUserProfile(),
+								"dm-user-profile-button": true,
+							}}
+							onClick={() => setShowDMUserProfile((p): boolean => !p)}
+						>
+							<FaSolidCircleUser class="icon" size={24} />
+						</button>
+					</Show>
+					<Show when={location().channelId}>
+						<span>Search</span>
+					</Show>
+					<Show when={showHelp()}>
+						<button class="help-button" onClick={(): void => {}}>
+							<FiHelpCircle class="icon" size={24} />
+						</button>
+					</Show>
+				</div>
 			</div>
-			<div class="right">
-				<Show when={type() !== undefined && type() !== ChannelTypes.DM}>
-					<button
-						classList={{
-							active: showMembers(),
-							"members-button": true,
-						}}
-						onClick={() => setShowMembers((p): boolean => !p)}
-					>
-						<FiUsers class="icon" size={24} />
-					</button>
-				</Show>
-				<Show when={type() === ChannelTypes.DM}>
-					<button
-						classList={{
-							active: showDMUserProfile(),
-							"dm-user-profile-button": true,
-						}}
-						onClick={() => setShowDMUserProfile((p): boolean => !p)}
-					>
-						<FaSolidCircleUser class="icon" size={24} />
-					</button>
-				</Show>
-				<Show when={location().channelId}>
-					<span>Search</span>
-				</Show>
-				<Show when={showHelp()}>
-					<button class="help-button" onClick={(): void => {}}>
-						<FiHelpCircle class="icon" size={24} />
-					</button>
-				</Show>
-			</div>
-		</div>
+		</ShadowCss>
 	);
 }

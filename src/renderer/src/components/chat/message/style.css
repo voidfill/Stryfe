@@ -1,4 +1,4 @@
-:root {
+:host {
 	--message-aside-width: 60px;
 }
 
@@ -42,6 +42,7 @@
 			padding-left: 4px;
 		}
 	}
+
 	.message-header {
 		display: flex;
 		flex-direction: row;

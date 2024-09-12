@@ -107,7 +107,7 @@ function LazyScroller(props: { around?: string; channelId: string; guildId?: str
 
 	return (
 		<div
-			class="scroller scroller-thin"
+			class="scroll scroll-thin"
 			// @ts-expect-error ref
 			ref={scrollRef}
 			onScroll={onScroll}

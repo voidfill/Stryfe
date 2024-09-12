@@ -1,9 +1,10 @@
 import { Accessor, createEffect, createSignal, JSX, onCleanup, Show, untrack } from "solid-js";
 
+// these can be "global" since tooltips dont live in shadow dom
 import "tippy.js/dist/svg-arrow.css";
 import "tippy.js/animations/scale.css";
 import "tippy.js/animations/scale-subtle.css";
-import "./tooltip.scss";
+import "./tooltip.css";
 
 import makeTippy, { hideAll, Props, roundArrow } from "tippy.js";
 import makeHeadlessTippy from "tippy.js/headless";

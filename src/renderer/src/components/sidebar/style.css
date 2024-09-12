@@ -244,7 +244,7 @@
 					text-overflow: ellipsis;
 				}
 
-				// i forget who wrote this, but thanks solidcord.
+				/* i forgot who wrote this, but thanks Solidcord. */
 				.text-roll {
 					display: inline-block;
 					vertical-align: top;

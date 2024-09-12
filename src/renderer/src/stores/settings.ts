@@ -1,4 +1,4 @@
-import { Accessor, batch, createEffect, createSignal, untrack } from "solid-js";
+import { Accessor, batch, createSignal, untrack } from "solid-js";
 import { createStore, produce } from "solid-js/store";
 import { InferOutput } from "valibot";
 
@@ -27,10 +27,6 @@ const [channelOverrides, setChannelOverrides] = createStore<{
 	[channel_id: string]: storedChannelOverride;
 }>({});
 const [userGuildSettingsVersion, setUserGuildSettingsVersion] = createSignal<number>(0);
-
-createEffect(() => {
-	window.ipc.setTheme((["system", "dark", "light"] as const)[preloadedSettings.appearance?.theme ?? 0]);
-});
 
 export { frecencySettings, preloadedSettings, userGuildSettings, channelOverrides, userGuildSettingsVersion };
 

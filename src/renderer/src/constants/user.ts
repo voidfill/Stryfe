@@ -1,4 +1,4 @@
-export enum PremiumTypes {
+export const enum PremiumTypes {
 	NONE = 0,
 	NITRO_BASIC = 1, // basic & classic
 	NITRO = 2,
@@ -24,7 +24,7 @@ export enum PlatformTypes {
 	PLAYSTATION = "playstation",
 }
 
-export enum RelationshipTypes {
+export const enum RelationshipTypes {
 	NONE,
 	FRIEND,
 	BLOCKED,
@@ -34,7 +34,7 @@ export enum RelationshipTypes {
 	SUGGESTION,
 }
 
-export enum ActivityTypes {
+export const enum ActivityTypes {
 	PLAYING,
 	STREAMING,
 	LISTENING,

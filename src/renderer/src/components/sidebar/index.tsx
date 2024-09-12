@@ -12,10 +12,10 @@ import { BiRegularMicrophone } from "solid-icons/bi";
 import { FiHeadphones } from "solid-icons/fi";
 import { IoSettingsOutline } from "solid-icons/io";
 
+import { ShadowCss } from "../common/shadowcss";
 import GuildChannels from "./guildchannels";
 import PrivateChannels from "./privatechannels";
-
-import "./style.scss";
+import sidebarcss from "./style.css@sheet";
 
 ContextmenuDirective;
 
@@ -89,11 +89,13 @@ export default function SideBar(): JSX.Element {
 	const params = useParams();
 
 	return (
-		<div class="sidebar">
-			<Show when={params.guildId === "@me"} fallback={<GuildChannels />}>
-				<PrivateChannels />
-			</Show>
-			<UserArea />
-		</div>
+		<ShadowCss css={sidebarcss}>
+			<div class="sidebar">
+				<Show when={params.guildId === "@me"} fallback={<GuildChannels />}>
+					<PrivateChannels />
+				</Show>
+				<UserArea />
+			</div>
+		</ShadowCss>
 	);
 }

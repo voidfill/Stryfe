@@ -1,7 +1,9 @@
-import { createSignal } from "solid-js";
+import { createEffect, createMemo, createSignal } from "solid-js";
 import { boolean, fallback, optional, record, string } from "valibot";
 
 import { persistSignal, persistStore } from "@modules/persist";
+
+import { preloadedSettings } from "./stores/settings";
 
 export const [windowTitle, setWindowTitle] = createSignal("Stryfe");
 
@@ -19,7 +21,7 @@ export const [showDMUserProfile, setShowDMUserProfile] = persistSignal("showDMUs
 export const [showHelp, setShowHelp] = persistSignal("showHelp", fallback(boolean(), true));
 export const [showAvatarsInCompact, setShowAvatarsInCompact] = persistSignal("showAvatarsInCompact", fallback(boolean(), true));
 
-export enum FriendsTabs {
+export const enum FriendsTabs {
 	ONLINE,
 	ALL,
 	PENDING,
@@ -28,3 +30,29 @@ export enum FriendsTabs {
 }
 
 export const [friendsTab, setFriendsTab] = createSignal<FriendsTabs>(FriendsTabs.ONLINE);
+
+const prefersDarkTheme = window.matchMedia("(prefers-color-scheme: dark)");
+const [systemTheme, setSystemTheme] = createSignal<"light" | "dark">(prefersDarkTheme.matches ? "dark" : "light");
+prefersDarkTheme.addEventListener("change", (e) => {
+	setSystemTheme(e.matches ? "dark" : "light");
+});
+const [userSelectedTheme, setUserSelectedTheme] = createSignal<"light" | "dark" | "system">(
+	(localStorage.getItem("computedTheme") as any) ?? "system",
+);
+export const theme = createMemo(() => {
+	const theme = userSelectedTheme();
+	if (theme === "system") return systemTheme();
+	return theme;
+});
+
+createEffect(() => {
+	const t = userSelectedTheme();
+	window.ipc.setTheme(t);
+	localStorage.setItem("computedTheme", userSelectedTheme());
+});
+createEffect(() => {
+	const theme = preloadedSettings.appearance?.theme;
+	if (theme === undefined) return;
+
+	setUserSelectedTheme((["system", "dark", "light"] as const)[theme]);
+});

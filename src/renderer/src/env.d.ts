@@ -17,3 +17,8 @@ type Prettify<T> = {
 } & {};
 
 type AsyncReturnType<T extends (...args: any) => Promise<any>> = T extends (...args: any) => Promise<infer R> ? R : any;
+
+declare module "*@sheet" {
+	const sheet: CSSStyleSheet;
+	export default sheet;
+}

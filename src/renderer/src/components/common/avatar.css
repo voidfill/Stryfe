@@ -4,7 +4,7 @@
 
 .avatar {
 	overflow: visible;
-	overflow-clip-margin: content-box 100px; // yea yea whatever
+	overflow-clip-margin: content-box 100px;
 
 	img {
 		border-radius: 50%;
@@ -21,15 +21,19 @@
 	&.status-offline .status-status {
 		fill: #747f8d;
 	}
+
 	&.status-streaming .status-status {
 		fill: rgb(89, 54, 149);
 	}
+
 	&.status-online .status-status {
 		fill: #3ba55d;
 	}
+
 	&.status-idle .status-status {
 		fill: #faa81a;
 	}
+
 	&.status-dnd .status-status {
 		fill: #ed4245;
 	}

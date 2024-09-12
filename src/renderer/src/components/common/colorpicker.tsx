@@ -3,9 +3,9 @@ import { createSelector, For, JSX, Show } from "solid-js";
 import { AiOutlineCheck } from "solid-icons/ai";
 import { CgColorPicker } from "solid-icons/cg";
 
+import colorpickercss from "./colorpicker.css@sheet";
+import { ShadowCss } from "./shadowcss";
 import tippy from "./tooltip";
-
-import "./colorpicker.scss";
 
 const presetColors: string[] = [
 	"#1abc9c",
@@ -38,36 +38,38 @@ export default function ColorPicker(props: { default: string; setValue: (n: stri
 	const sel = createSelector(() => props.value);
 
 	return (
-		<div class="color-picker">
-			<button
-				class="default-color"
-				style={{ "background-color": props.default }}
-				onClick={() => props.setValue(props.default)}
-				use:tippy={() => "Default"}
-			>
-				<Show when={props.value === undefined || sel(props.default)}>
-					<AiOutlineCheck size={24} />
-				</Show>
-			</button>
-			<div class="input-wrapper" use:tippy={() => "Custom Color"}>
-				<input class="input" type="color" value={props.value} onChange={(v) => props.setValue(v.target.value)} />
-				<Show when={props.value !== props.default && !presetSet.has(props.value!)}>
-					<AiOutlineCheck size={24} />
-				</Show>
-				<CgColorPicker class="picker-icon" size={16} />
+		<ShadowCss css={colorpickercss}>
+			<div class="color-picker">
+				<button
+					class="default-color"
+					style={{ "background-color": props.default }}
+					onClick={() => props.setValue(props.default)}
+					use:tippy={() => "Default"}
+				>
+					<Show when={props.value === undefined || sel(props.default)}>
+						<AiOutlineCheck size={24} />
+					</Show>
+				</button>
+				<div class="input-wrapper" use:tippy={() => "Custom Color"}>
+					<input class="input" type="color" value={props.value} onChange={(v) => props.setValue(v.target.value)} />
+					<Show when={props.value !== props.default && !presetSet.has(props.value!)}>
+						<AiOutlineCheck size={24} />
+					</Show>
+					<CgColorPicker class="picker-icon" size={16} />
+				</div>
+				<div class="presets">
+					<For each={presetColors}>
+						{(color) => (
+							<button class="preset-color" style={{ "background-color": color }} onClick={() => props.setValue(color)}>
+								<Show when={sel(color)}>
+									<AiOutlineCheck size={18} />
+								</Show>
+							</button>
+						)}
+					</For>
+				</div>
 			</div>
-			<div class="presets">
-				<For each={presetColors}>
-					{(color) => (
-						<button class="preset-color" style={{ "background-color": color }} onClick={() => props.setValue(color)}>
-							<Show when={sel(color)}>
-								<AiOutlineCheck size={18} />
-							</Show>
-						</button>
-					)}
-				</For>
-			</div>
-		</div>
+		</ShadowCss>
 	);
 }
 

@@ -6,9 +6,9 @@ import { FaRegularStar, FaSolidPlay, FaSolidStar } from "solid-icons/fa";
 import { FiExternalLink, FiSlash } from "solid-icons/fi";
 
 import { useAnimationContext } from "./animationcontext";
+import mediaSheet from "./media.css@sheet";
+import { ShadowCss } from "./shadowcss";
 import tippy from "./tooltip";
-
-import "./media.scss";
 
 import { thumbHashToDataURL } from "thumbhash";
 
@@ -44,19 +44,21 @@ type props = {
 
 export function Media(props: props): JSX.Element {
 	return (
-		<MaybeSpoiler is_spoiler={props.is_spoiler ?? false}>
-			<Switch fallback={<div>Media fallback: {JSON.stringify(props)}</div>}>
-				<Match when={props.content_type === "gifv" && props.width && props.height && props.proxy_url}>
-					{GifV(props as Parameters<typeof GifV>[0])}
-				</Match>
-				<Match when={props.content_type?.startsWith("video") && props.width && props.height && props.proxy_url}>
-					{Video(props as Parameters<typeof Video>[0])}
-				</Match>
-				<Match when={props.content_type?.startsWith("image") && props.width && props.height && props.proxy_url}>
-					{MediaImage(props as Parameters<typeof MediaImage>[0])}
-				</Match>
-			</Switch>
-		</MaybeSpoiler>
+		<ShadowCss css={mediaSheet}>
+			<MaybeSpoiler is_spoiler={props.is_spoiler ?? false}>
+				<Switch fallback={<div>Media fallback: {JSON.stringify(props)}</div>}>
+					<Match when={props.content_type === "gifv" && props.width && props.height && props.proxy_url}>
+						{GifV(props as Parameters<typeof GifV>[0])}
+					</Match>
+					<Match when={props.content_type?.startsWith("video") && props.width && props.height && props.proxy_url}>
+						{Video(props as Parameters<typeof Video>[0])}
+					</Match>
+					<Match when={props.content_type?.startsWith("image") && props.width && props.height && props.proxy_url}>
+						{MediaImage(props as Parameters<typeof MediaImage>[0])}
+					</Match>
+				</Switch>
+			</MaybeSpoiler>
+		</ShadowCss>
 	);
 }
 

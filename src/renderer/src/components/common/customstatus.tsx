@@ -6,11 +6,11 @@ import { getActivities, getCustomStatus } from "@stores/activities";
 
 import { BsCardText } from "solid-icons/bs";
 
+import cssSheet from "./customstatus.css@sheet";
 import Emoji from "./emoji";
 import OverflowTooltip from "./overflowtooltip";
+import { ShadowCss } from "./shadowcss";
 import tippy from "./tooltip";
-
-import "./customstatus.scss";
 
 tippy;
 OverflowTooltip;
@@ -23,15 +23,17 @@ export default function CustomStatus(props: { inline?: boolean; noToolTip?: bool
 		<Show when={status()}>
 			{(status): JSX.Element => {
 				return (
-					<div class="custom-status">
-						<Show when={status().emoji}>{(emoji): JSX.Element => <Emoji emoji={emoji()} size={14} tooltip={!props.inline} />}</Show>
-						<span class="custom-status-text" use:OverflowTooltip={() => status().text}>
-							{status().text}
-						</span>
-						<Show when={isPlaying()}>
-							<BsCardText class="activity-box" size={14} />
-						</Show>
-					</div>
+					<ShadowCss css={cssSheet}>
+						<div class="custom-status">
+							<Show when={status().emoji}>{(emoji): JSX.Element => <Emoji emoji={emoji()} size={14} tooltip={!props.inline} />}</Show>
+							<span class="custom-status-text" use:OverflowTooltip={() => status().text}>
+								{status().text}
+							</span>
+							<Show when={isPlaying()}>
+								<BsCardText class="activity-box" size={14} />
+							</Show>
+						</div>
+					</ShadowCss>
 				);
 			}}
 		</Show>

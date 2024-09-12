@@ -1,4 +1,4 @@
-:root {
+:host {
 	--guild-drop-color: green;
 	--folder-background: rgb(from var(--background-secondary) r g b / 80%);
 }
@@ -73,10 +73,10 @@
 		height: 48px;
 		display: flex;
 		flex-direction: row;
+	}
 
-		.icon-container:active {
-			margin-top: 1px;
-		}
+	.container-wrapper:active {
+		margin-top: 1px;
 	}
 
 	.indicator {
@@ -307,15 +307,19 @@
 	0% {
 		transform: rotate(0);
 	}
+
 	25% {
 		transform: rotate(3deg);
 	}
+
 	50% {
 		transform: rotate(-3deg);
 	}
+
 	75% {
 		transform: rotate(3deg);
 	}
+
 	100% {
 		transform: rotate(-3deg);
 	}
