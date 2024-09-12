@@ -103,6 +103,11 @@
 
 	.icon-container {
 		cursor: pointer;
+
+		.icon {
+			width: 48px;
+			height: 48px;
+		}
 	}
 
 	.guild.active-draggable .icon-container {

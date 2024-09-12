@@ -1,3 +1,4 @@
+import { A } from "@solidjs/router";
 import { createMemo, For, JSX, Show } from "solid-js";
 import { produce } from "solid-js/store";
 
@@ -196,10 +197,10 @@ export default function GuildsList(): JSX.Element {
 	return (
 		<ShadowCss css={guildscss}>
 			<div ref={scrollRef} class="guilds-list">
-				<a class="home-button" href={`/channels/@me/${lastSelectedChannels["@me"] ?? ""}`}>
+				<A class="home-button" href={`/channels/@me/${lastSelectedChannels["@me"] ?? ""}`}>
 					<div class="indicator" />
 					<OcStack3 size={40} />
-				</a>
+				</A>
 				<div class="divider" />
 				<DragDropProvider collisionDetector={collisionDetector} onDragStart={onDragStart} onDragEnd={onDragEnd}>
 					{((): JSX.Element => {

@@ -1,0 +1,21 @@
+diff --git a/lib/module-type/node-gyp/worker.js b/lib/module-type/node-gyp/worker.js
+index 3e1c1d78816742be1fd32263b30ac45990c6e680..361d5ec597dac8cdbe09238026cbce17858eeb68 100644
+--- a/lib/module-type/node-gyp/worker.js
++++ b/lib/module-type/node-gyp/worker.js
+@@ -4,7 +4,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const node_gyp_1 = __importDefault(require("node-gyp"));
+-const util_1 = require("util");
+ process.on('message', async ({ nodeGypArgs, devDir, extraNodeGypArgs, }) => {
+     const nodeGyp = (0, node_gyp_1.default)();
+     nodeGyp.parseArgv(nodeGypArgs);
+@@ -25,7 +24,7 @@ process.on('message', async ({ nodeGypArgs, devDir, extraNodeGypArgs, }) => {
+                     });
+                 };
+             }
+-            await (0, util_1.promisify)(nodeGyp.commands[command.name])(command.args);
++            await nodeGyp.commands[command.name](command.args);
+             command = nodeGyp.todo.shift();
+         }
+         process.exit(0);

@@ -186,7 +186,7 @@ export function GuildIcon(props: { id: string }): JSX.Element {
 		<Show when={guild()}>
 			{(guild) => (
 				<Show when={guild().icon} fallback={<div class="icon guild-acronym">{getAcronym(props.id)}</div>}>
-					<img class="icon" src={getIconUrl(props.id, 48, doAnimate())} draggable={false} />
+					<img class="icon" src={getIconUrl(props.id, 96, doAnimate())} draggable={false} />
 				</Show>
 			)}
 		</Show>
