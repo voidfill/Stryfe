@@ -2,6 +2,9 @@
 
 A Discord Client built with Solidjs and Electron.
 
+> [!WARNING]  
+> This probably doesnt work anymore and its too much effort to fix. You will likely get banned if you use this.
+
 ## Recommended IDE Setup
 
 -   [VSCode](https://code.visualstudio.com/) + [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) + [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
